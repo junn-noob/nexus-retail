@@ -1,8 +1,71 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using NexusRetail.Shared.DTOs.SanPham
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<SanPhamDtos>
+
+@{
+  ViewData["Title"] = "Sản phẩm";
+  var prices = new (string? K, string T)[] { 
+      (null, "Tất cả mức giá"), 
+      ("lt20", "Dưới 20 triệu"), 
+      ("mid", "20–30 triệu"), 
+      ("gt30", "Trên 30 triệu") 
+  };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<main class="wrap">
+  <aside>
+    <section>
+      <h4>Khoảng giá</h4>
+      @foreach (var (k, t) in prices)
+      {
+        <a class="opt" asp-action="Index" asp-route-page="1">@t</a>
+      }
+    </section>
+  </aside>
+
+  <div>
+    <div id="products" class="grid">
+      @foreach (var p in Model)
+      {
+        <article class="card" data-id="@p.MaSp">
+          <div class="img" style="background-image: url('@Url.Content("~/images/products/" + (p.Anh ?? "default.jpg"))')"></div>
+          <div class="cb">
+            <h3>@p.TenSp</h3>
+            <span class="tag">@p.GhiChu</span>
+            <div class="price">@p.GiaBan.ToString("N0") đ</div>
+            <button class="btn ghost" type="button">Xem nhanh</button>
+          </div>
+        </article>
+      }
+
+      @if (!Model.Any()) 
+      { 
+        <div class="empty" style="grid-column:1/-1">Không có sản phẩm phù hợp.</div> 
+      }
+    </div>
+
+    @if (Model.PageCount > 1)
+    {
+      <div class="pg">
+        <a class="@(!Model.HasPreviousPage ? "off" : "")" 
+           asp-action="Index" 
+           asp-route-page="@(Model.PageNumber - 1)" 
+           asp-fragment="products">←</a>
+
+        @for (var i = 1; i <= Model.PageCount; i++)
+        {
+          <a class="@(i == Model.PageNumber ? "on" : "")" 
+             asp-action="Index" 
+             asp-route-page="@i" 
+             asp-fragment="products">@i</a>
+        }
+
+        <a class="@(!Model.HasNextPage ? "off" : "")" 
+           asp-action="Index" 
+           asp-route-page="@(Model.PageNumber + 1)" 
+           asp-fragment="products">→</a>
+      </div>
+    }
+  </div>
+</main>

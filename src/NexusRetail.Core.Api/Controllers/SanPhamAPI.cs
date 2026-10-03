@@ -25,6 +25,28 @@ namespace NexusRetail.Core.Api.Controllers
             return Ok(danhSach);
         }
 
+
+        [HttpGet("{maSP}")]
+        public async Task<IActionResult> chiTietSanPham(string maSP)
+        {
+            var sanPham = await _db.SanPhams
+                .FirstOrDefaultAsync(x => x.MaSp == maSP);
+
+            if (sanPham == null) return NotFound();
+
+            return Ok(sanPham);
+        }
+
+        [HttpGet("NhanHieu/{maNhanHieu}")]
+        public async Task<IActionResult> laySanPhamTheoNhanHieu(string maNhanHieu)
+        {
+            var danhSach = await _db.SanPhams.AsNoTracking().Where(x => x.MaNhanHieu == maNhanHieu).ToListAsync();
+
+            if (danhSach == null) return NotFound();
+
+            return Ok(danhSach);
+        }
+
         [HttpGet("search")]
         public async Task<IActionResult> timKiem([FromQuery] string? keyword, [FromQuery] string? maLoai, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
         {
@@ -40,18 +62,6 @@ namespace NexusRetail.Core.Api.Controllers
                 query = query.Where(x => x.GiaBan <= maxPrice.Value);
 
             return Ok(await query.ToListAsync());
-        }
-
-
-        [HttpGet("{maSP}")]
-        public async Task<IActionResult> chiTietSanPham(string maSP)
-        {
-            var sanPham = await _db.SanPhams
-                .FirstOrDefaultAsync(x => x.MaSp == maSP);
-
-            if (sanPham == null) return NotFound();
-
-            return Ok(sanPham);
         }
 
         [HttpPost]

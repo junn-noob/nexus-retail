@@ -1,14 +1,39 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WebMvc.Models;
+using System.Diagnostics;
+using X.PagedList.Extensions;
 
 namespace NexusRetail.WebMvc.Controllers;
 
 public class HomeController : Controller
 {
-    public IActionResult Index()
+    private readonly IHttpClientFactory _factory;
+
+    public HomeController(IHttpClientFactory factory) { this._factory = factory; }
+
+    public async Task<IActionResult> Index(int? page)
     {
-        return View();
+        var client = _factory.CreateClient("CoreApi");
+
+        var data = await client.GetFromJsonAsync<List<SanPhamDtos>>("api/SanPhamAPI");
+
+        int pageSize = 9;
+        int pageNumber = page == null || page < 1 ? 1 : page.Value;
+        var pageList = data.ToPagedList(pageNumber, pageSize);
+
+        return View(pageList);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> LaySanPhamTheoNhanHieu(string maNhanHieu)
+    {
+        var client = _factory.CreateClient("CoreApi");
+
+        var data = await client.GetFromJsonAsync<List<SanPhamDtos>>(
+            $"api/SanPhamAPI/NhanHieu/{maNhanHieu}");
+
+        return Json(data);
     }
 
     public IActionResult Privacy()

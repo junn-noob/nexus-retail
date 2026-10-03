@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <PackageReference Include="X.PagedList" Version="10.6.0" />
+    <PackageReference Include="X.PagedList.Mvc.Core" Version="10.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NexusRetail.Shared\NexusRetail.Shared.csproj" />
   </ItemGroup>
 

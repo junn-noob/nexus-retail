@@ -1,0 +1,74 @@
+﻿@using NexusRetail.Shared.Entities
+@model List<NhanHieu>
+
+@foreach (var i in Model)
+{
+    <a style="cursor: pointer"
+       class="brand-item"
+       data-id="@i.MaNhanHieu"
+       onclick="laySanPhamTheoNhanHieu('@i.MaNhanHieu', this)">
+        @i.TenNhanHieu
+    </a>
+}
+
+<script>
+    function laySanPhamTheoNhanHieu(maNhanHieu, element) {
+
+        $('.brand-item').removeClass('on');
+        $(element).addClass('on');
+
+        $.ajax({
+            url: '/Home/LaySanPhamTheoNhanHieu',
+            type: 'GET',
+
+            data: {
+                maNhanHieu: maNhanHieu
+            },
+
+            success: function (data) {
+
+                let html = '';
+
+                data.forEach(sp => {
+                    html += `
+                        <article class="card" data-id="${sp.maSp}">
+
+                            <div class="img"
+                                 style="
+                                    background-image: url('/images/products/${sp.anh}');
+                                    background-size: contain;
+                                    background-position: center;
+                                    background-repeat: no-repeat;
+                                 ">
+                            </div>
+
+                            <div class="cb">
+
+                                <h3>${sp.tenSp}</h3>
+
+                                <span class="tag">
+                                    ${sp.ghiChu ?? ''}
+                                </span>
+
+                                <div class="price">
+                                    ${sp.giaBan.toLocaleString('vi-VN')} đ
+                                </div>
+
+                                <button class="btn ghost" type="button">
+                                    Xem nhanh
+                                </button>
+
+                            </div>
+                        </article>
+                    `;
+                });
+
+                $('#products').html(html);
+            },
+
+            error: function (xhr) {
+                console.log(xhr);
+            }
+        });
+    }
+</script>
