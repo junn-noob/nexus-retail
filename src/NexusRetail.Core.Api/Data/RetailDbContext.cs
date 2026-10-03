@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using NexusRetail.Shared.Entities;
 
-namespace NexusRetail.Shared.Entities;
+namespace NexusRetail.Core.Api.Data;
 
 public partial class RetailDbContext : DbContext
 {
