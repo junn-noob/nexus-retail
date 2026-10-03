@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NexusRetail.Core.Api/NexusRetail.Core.Api.csproj" />
+    <Project Path="src/NexusRetail.Gateway/NexusRetail.Gateway.csproj" />
+    <Project Path="src/NexusRetail.Identity.Api/NexusRetail.Identity.Api.csproj" />
+    <Project Path="src/NexusRetail.Shared/NexusRetail.Shared.csproj" />
+    <Project Path="src/NexusRetail.UnitTests/NexusRetail.UnitTests.csproj" />
+    <Project Path="src/NexusRetail.WebMvc/NexusRetail.WebMvc.csproj" />
+    <Project Path="src/NexusRetail.WinForms/NexusRetail.WinForms.csproj" />
+  </Folder>
+</Solution>
