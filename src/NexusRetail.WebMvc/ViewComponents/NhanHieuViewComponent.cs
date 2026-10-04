@@ -13,7 +13,7 @@ namespace NexusRetail.WebMvc.ViewComponents
         {
             var client = _factory.CreateClient("CoreApi");
 
-            var data = await client.GetFromJsonAsync<List<NhanHieu>>("api/NhanHieuAPI");
+            var data = await client.GetFromJsonAsync<List<NhanHieu>>("api/NhanHieu");
 
             return View(data);
         }

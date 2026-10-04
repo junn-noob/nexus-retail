@@ -16,7 +16,7 @@ public class HomeController : Controller
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var data = await client.GetFromJsonAsync<List<SanPhamDtos>>("api/SanPhamAPI");
+        var data = await client.GetFromJsonAsync<List<SanPhamDto>>("api/san-pham");
 
         int pageSize = 9;
         int pageNumber = page == null || page < 1 ? 1 : page.Value;
@@ -30,8 +30,8 @@ public class HomeController : Controller
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var data = await client.GetFromJsonAsync<List<SanPhamDtos>>(
-            $"api/SanPhamAPI/NhanHieu/{maNhanHieu}");
+        var data = await client.GetFromJsonAsync<List<SanPhamDto>>(
+            $"api/san-pham/nhan-hieu/{maNhanHieu}");
 
         return Json(data);
     }

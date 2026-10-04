@@ -7,11 +7,11 @@ namespace NexusRetail.Core.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NhanHieuAPI : ControllerBase
+    public class NhanHieuController : ControllerBase
     {
         private readonly RetailDbContext _db;
 
-        public NhanHieuAPI(RetailDbContext db) { this._db = db; }
+        public NhanHieuController(RetailDbContext db) { this._db = db; }
 
         [HttpGet]
         public async Task<IActionResult> layTatCa()
