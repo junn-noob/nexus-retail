@@ -23,10 +23,13 @@ namespace NexusRetail.Shared.DTOs.SanPham
         [StringLength(20, ErrorMessage = "Mã màn hình chỉ được nhập tối đa 20 ký tự")]
         public string MaManHinh { get; set; } = null!;
 
+        [Range(0.01, double.MaxValue, ErrorMessage = "Giá nhập phải lớn hơn 0!")]
         public decimal GiaNhap { get; set; }
 
+        [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn 0!")]
         public int SoLuong { get; set; }
 
+        [Range(0, int.MaxValue, ErrorMessage = "Thời gian bảo hành phải lớn hơn 0!")]
         public int ThoiGianBaoHanh { get; set; } = 12;
 
         public string? AmThanh { get; set; }
