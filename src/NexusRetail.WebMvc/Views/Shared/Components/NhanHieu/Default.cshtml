@@ -6,69 +6,114 @@
     <a style="cursor: pointer"
        class="brand-item"
        data-id="@i.MaNhanHieu"
-       onclick="laySanPhamTheoNhanHieu('@i.MaNhanHieu', this)">
+       onclick="laySanPhamTheoNhanHieu('@i.MaNhanHieu', this, 1)">
         @i.TenNhanHieu
     </a>
 }
 
 <script>
-    function laySanPhamTheoNhanHieu(maNhanHieu, element) {
+    let currentBrand = null;
 
-        $('.brand-item').removeClass('on');
-        $(element).addClass('on');
+    function laySanPhamTheoNhanHieu(maNhanHieu, element, page = 1) {
+        // Chỉ đổi brand khi click brand
+        if (element) {
+            $('.brand-item').removeClass('on');
+            $(element).addClass('on');
 
+            currentBrand = maNhanHieu;
+        }
         $.ajax({
             url: '/Home/LaySanPhamTheoNhanHieu',
             type: 'GET',
 
             data: {
-                maNhanHieu: maNhanHieu
+                maNhanHieu: maNhanHieu,
+                page: page
             },
 
             success: function (data) {
 
-                let html = '';
-
-                data.forEach(sp => {
-                    html += `
-                        <article class="card" data-id="${sp.maSp}">
-
-                            <div class="img"
-                                 style="
-                                    background-image: url('/images/products/${sp.anh}');
-                                    background-size: contain;
-                                    background-position: center;
-                                    background-repeat: no-repeat;
-                                 ">
-                            </div>
-
-                            <div class="cb">
-
-                                <h3>${sp.tenSp}</h3>
-
-                                <span class="tag">
-                                    ${sp.ghiChu ?? ''}
-                                </span>
-
-                                <div class="price">
-                                    ${sp.giaBan.toLocaleString('vi-VN')} đ
-                                </div>
-
-                                <button class="btn ghost" type="button">
-                                    Xem nhanh
-                                </button>
-
-                            </div>
-                        </article>
-                    `;
-                });
-
-                $('#products').html(html);
+                renderProducts(data.items);
+                renderPagination(data);
             },
 
             error: function (xhr) {
                 console.log(xhr);
             }
         });
+    }
+
+
+    function renderProducts(items) {
+        let html = '';
+        items.forEach(sp => {
+            html += `<article class="card" data-id="${sp.maSp}">
+                        <div class="img" style="background-image: url('/images/products/${sp.anh}')"></div>
+                        <div class="cb">
+                        <h3>${sp.tenSp}</h3>
+                        <span class="tag">${sp.ghiChu ?? ''}</span>
+                        <div class="price">${sp.giaBan.toLocaleString('vi-VN')} đ</div>
+                        <button class="btn ghost" type="button">Xem nhanh</button>
+                        </div>
+                    </article>`;
+        });
+        $('#products').html(html);
+    }
+
+
+    function renderPagination(data) {
+        let html = '';
+        if (data.totalPages <= 1) {
+            $('#pagination').html('');
+            return;
+        }
+        // Previous
+        if (data.page > 1) {
+            html += `
+                <a onclick="laySanPhamTheoNhanHieu(
+                    '${currentBrand}',
+                    null,
+                    ${data.page - 1}
+                )">
+                    ←
+                </a>
+            `;
+        }
+        else {
+            html += `<a class="off">←</a>`;
+        }
+
+        // Page numbers
+        for (let i = 1; i <= data.totalPages; i++) {
+
+            html += `
+                <a class="${i === data.page ? 'on' : ''}"
+                   onclick="laySanPhamTheoNhanHieu(
+                        '${currentBrand}',
+                        null,
+                        ${i}
+                   )">
+                    ${i}
+                </a>
+            `;
+        }
+
+        // Next
+        if (data.page < data.totalPages) {
+            html += `
+                <a onclick="laySanPhamTheoNhanHieu(
+                    '${currentBrand}',
+                    null,
+                    ${data.page + 1}
+                )">
+                    →
+                </a>
+            `;
+        }
+        else {
+            html += `<a class="off">→</a>`;
+        }
+
+        $('#pagination').html(html);
     }
 </script>

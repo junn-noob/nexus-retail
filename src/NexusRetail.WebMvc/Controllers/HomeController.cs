@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using NexusRetail.Shared.DTOs.Common;
 using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WebMvc.Models;
 using System.Diagnostics;
-using X.PagedList.Extensions;
 
 namespace NexusRetail.WebMvc.Controllers;
 
@@ -12,26 +12,22 @@ public class HomeController : Controller
 
     public HomeController(IHttpClientFactory factory) { this._factory = factory; }
 
-    public async Task<IActionResult> Index(int? page)
+    public async Task<IActionResult> Index(int page = 1)
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var data = await client.GetFromJsonAsync<List<SanPhamDto>>("api/san-pham");
+        var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>($"api/san-pham?page={page}&pageSize=6");
 
-        int pageSize = 9;
-        int pageNumber = page == null || page < 1 ? 1 : page.Value;
-        var pageList = data.ToPagedList(pageNumber, pageSize);
-
-        return View(pageList);
+        return View(data);
     }
 
     [HttpGet]
-    public async Task<IActionResult> LaySanPhamTheoNhanHieu(string maNhanHieu)
+    public async Task<IActionResult> LaySanPhamTheoNhanHieu(string maNhanHieu, int page = 1)
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var data = await client.GetFromJsonAsync<List<SanPhamDto>>(
-            $"api/san-pham/nhan-hieu/{maNhanHieu}");
+        var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(
+            $"api/san-pham/nhan-hieu/{maNhanHieu}?page={page}&pageSize=2");
 
         return Json(data);
     }

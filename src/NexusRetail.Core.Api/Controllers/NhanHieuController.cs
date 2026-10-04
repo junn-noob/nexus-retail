@@ -5,7 +5,7 @@ using NexusRetail.Core.Api.Data;
 
 namespace NexusRetail.Core.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/nhan-hieu")]
     [ApiController]
     public class NhanHieuController : ControllerBase
     {

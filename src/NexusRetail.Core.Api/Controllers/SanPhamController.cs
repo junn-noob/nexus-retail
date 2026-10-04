@@ -2,7 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using NexusRetail.Core.Api.Data;
 using NexusRetail.Shared.DTOs.SanPham;
+using NexusRetail.Shared.DTOs.Common;
 using NexusRetail.Shared.Entities;
+using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.ExtendedProperties;
 
 
 namespace NexusRetail.Core.Api.Controllers
@@ -16,10 +19,20 @@ namespace NexusRetail.Core.Api.Controllers
         public SanPhamController(RetailDbContext db) { this._db = db; }
 
         [HttpGet]
-        public async Task<IActionResult> layTatCa()
+        public async Task<IActionResult> layDanhSach([FromQuery] int page, [FromQuery] int pageSize = 9)
         {
-            var danhSach = await _db.VwDanhSachSanPhams
-                .AsNoTracking()
+            page = Math.Max(page, 1);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            var query = _db.VwDanhSachSanPhams
+                .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.MaSp)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(sp => new SanPhamDto
                 {
                     MaSp = sp.MaSp,
@@ -38,7 +51,16 @@ namespace NexusRetail.Core.Api.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(danhSach);
+            var result = new PagedResultDto<SanPhamDto>
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                Items = items,
+            };
+
+            return Ok(result);
         }
 
 
@@ -71,11 +93,21 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         [HttpGet("nhan-hieu/{maNhanHieu}")]
-        public async Task<IActionResult> laySanPhamTheoNhanHieu(string maNhanHieu)
+        public async Task<IActionResult> laySanPhamTheoNhanHieu(string maNhanHieu, [FromQuery] int page, [FromQuery] int pageSize = 9)
         {
-            var danhSach = await _db.VwDanhSachSanPhams
+            page = Math.Max(page, 1);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            var query = _db.VwDanhSachSanPhams
                 .AsNoTracking()
-                .Where(x => x.MaNhanHieu == maNhanHieu)
+                .Where(x => x.MaNhanHieu == maNhanHieu);
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.MaSp)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(sp => new SanPhamDto
                 {
                     MaSp = sp.MaSp,
@@ -94,9 +126,16 @@ namespace NexusRetail.Core.Api.Controllers
                 })
                 .ToListAsync();
 
-            if (danhSach.Count == 0) return NotFound();
+            var result = new PagedResultDto<SanPhamDto>
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                Items = items,
+            };
 
-            return Ok(danhSach);
+            return Ok(result);
         }
 
         [HttpGet("tim-kiem")]
@@ -147,7 +186,7 @@ namespace NexusRetail.Core.Api.Controllers
 
             // Tách phần số: "SP012" → 12
             if (int.TryParse(maCuoi.Substring(2), out int soHienTai))
-                return $"SP{(soHienTai + 1):D3}"; // D3 = luôn 3 chữ số: 001, 002...
+                return $"SP{(soHienTai + 1):D2}"; // D3 = luôn 3 chữ số: 001, 002...
 
             return $"SP{Guid.NewGuid().ToString()[..6].ToUpper()}"; // fallback nếu parse lỗi
         }

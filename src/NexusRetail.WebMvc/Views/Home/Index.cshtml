@@ -1,7 +1,6 @@
 ﻿@using NexusRetail.Shared.DTOs.SanPham
-@using X.PagedList
-@using X.PagedList.Mvc.Core
-@model IPagedList<SanPhamDto>
+@using NexusRetail.Shared.DTOs.Common
+@model PagedResultDto<SanPhamDto>
 
 @{
   ViewData["Title"] = "Sản phẩm";
@@ -26,7 +25,7 @@
 
   <div>
     <div id="products" class="grid">
-      @foreach (var p in Model)
+      @foreach (var p in Model.Items)
       {
         <article class="card" data-id="@p.MaSp">
           <div class="img" style="background-image: url('@Url.Content("~/images/products/" + (p.Anh ?? "default.jpg"))')"></div>
@@ -39,32 +38,29 @@
         </article>
       }
 
-      @if (!Model.Any()) 
+      @if (!Model.Items.Any()) 
       { 
         <div class="empty" style="grid-column:1/-1">Không có sản phẩm phù hợp.</div> 
       }
     </div>
 
-    @if (Model.PageCount > 1)
+    @if (Model.TotalPages > 1)
     {
-      <div class="pg">
-        <a class="@(!Model.HasPreviousPage ? "off" : "")" 
+      <div id="pagination" class="pg">
+        <a class="@(Model.Page <= 1 ? "off" : "")" 
            asp-action="Index" 
-           asp-route-page="@(Model.PageNumber - 1)" 
-           asp-fragment="products">←</a>
+           asp-route-page="@(Model.Page - 1)">←</a>
 
-        @for (var i = 1; i <= Model.PageCount; i++)
+        @for (var i = 1; i <= Model.TotalPages; i++)
         {
-          <a class="@(i == Model.PageNumber ? "on" : "")" 
+          <a class="@(i == Model.Page ? "on" : "")" 
              asp-action="Index" 
-             asp-route-page="@i" 
-             asp-fragment="products">@i</a>
+             asp-route-page="@i">@i</a>
         }
 
-        <a class="@(!Model.HasNextPage ? "off" : "")" 
+        <a class="@(Model.Page >= Model.TotalPages ? "off" : "")" 
            asp-action="Index" 
-           asp-route-page="@(Model.PageNumber + 1)" 
-           asp-fragment="products">→</a>
+           asp-route-page="@(Model.Page + 1)">→</a>
       </div>
     }
   </div>

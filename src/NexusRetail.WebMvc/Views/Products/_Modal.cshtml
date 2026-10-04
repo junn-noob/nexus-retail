@@ -1,0 +1,314 @@
+@using NexusRetail.Shared.DTOs.SanPham
+@model SanPhamDto
+
+<button class="x"
+        data-close
+        aria-label="Đóng">
+    ✕
+</button>
+
+
+<!-- =========================================================
+     QUICK VIEW
+========================================================= -->
+<div data-pane="quick">
+
+    <div class="qv">
+
+        <!-- Ảnh sản phẩm -->
+        <div class="img">
+
+            <img src="/images/products/@(string.IsNullOrWhiteSpace(Model.Anh)
+                                 ? "default.jpg"
+                                 : Model.Anh)"
+                 alt="@Model.TenSp"
+                 onerror="this.onerror=null;this.src='/images/products/default.jpg';" />
+
+        </div>
+
+
+        <!-- Thông tin sản phẩm -->
+        <div>
+
+            <span class="tag">
+                @Model.TenLoai
+            </span>
+
+
+            <h2>
+                @Model.TenSp
+            </h2>
+
+
+            <div class="price">
+                @Model.GiaBan.ToString("N0") ₫
+            </div>
+
+
+            <!-- Thông tin nổi bật -->
+            <div class="keys">
+
+                @if (!string.IsNullOrWhiteSpace(Model.TenNhanHieu))
+                {
+                    <span>
+                        @Model.TenNhanHieu
+                    </span>
+                }
+
+
+                @if (!string.IsNullOrWhiteSpace(Model.TenManHinh))
+                {
+                    <span>
+                        @Model.TenManHinh
+                    </span>
+                }
+
+
+                @if (Model.ThoiGianBaoHanh != null)
+                {
+                    <span>
+                        Bảo hành @Model.ThoiGianBaoHanh tháng
+                    </span>
+                }
+
+            </div>
+
+
+            <!-- Ghi chú -->
+            @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+            {
+                <div class="ai">
+
+                    <b>
+                        Thông tin sản phẩm
+                    </b>
+
+                    <p>
+                        @Model.GhiChu
+                    </p>
+
+                </div>
+            }
+
+
+            <!-- Actions -->
+            <div class="acts">
+
+                <button type="button"
+                        class="btn"
+                        data-view="specs">
+                    Xem thông số chi tiết
+                </button>
+
+
+                <button type="button"
+                        class="btn ghost"
+                        data-view="reviews">
+                    Đánh giá &amp; nhận xét
+                </button>
+
+
+                <button type="button"
+                        class="btn ghost"
+                        data-view="compare">
+                    So sánh sản phẩm
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     SPECS
+========================================================= -->
+<div data-pane="specs" hidden>
+
+    <button type="button"
+            class="back"
+            data-view="quick">
+        ← Quay lại
+    </button>
+
+
+    <h2 class="mt">
+        Thông số chi tiết — @Model.TenSp
+    </h2>
+
+
+    <table>
+
+        <tbody>
+
+            <tr>
+                <th>Mã sản phẩm</th>
+
+                <td>
+                    @Model.MaSp
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Tên sản phẩm</th>
+
+                <td>
+                    @Model.TenSp
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Loại sản phẩm</th>
+
+                <td>
+                    @(string.IsNullOrWhiteSpace(Model.TenLoai)
+                        ? "Đang cập nhật"
+                        : Model.TenLoai)
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Thương hiệu</th>
+
+                <td>
+                    @(string.IsNullOrWhiteSpace(Model.TenNhanHieu)
+                        ? "Đang cập nhật"
+                        : Model.TenNhanHieu)
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Màn hình</th>
+
+                <td>
+                    @(string.IsNullOrWhiteSpace(Model.TenManHinh)
+                        ? "Đang cập nhật"
+                        : Model.TenManHinh)
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Camera</th>
+
+                <td>
+                    @(string.IsNullOrWhiteSpace(Model.ChupAnh)
+                        ? "Đang cập nhật"
+                        : Model.ChupAnh)
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Âm thanh</th>
+
+                <td>
+                    @(string.IsNullOrWhiteSpace(Model.AmThanh)
+                        ? "Đang cập nhật"
+                        : Model.AmThanh)
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Bảo hành</th>
+
+                <td>
+                    @(Model.ThoiGianBaoHanh != null
+                        ? $"{Model.ThoiGianBaoHanh} tháng"
+                        : "Đang cập nhật")
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Số lượng còn</th>
+
+                <td>
+                    @Model.SoLuong
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>Giá bán</th>
+
+                <td>
+                    @Model.GiaBan.ToString("N0") ₫
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+
+<!-- =========================================================
+     REVIEWS
+========================================================= -->
+<div data-pane="reviews" hidden>
+
+    <button type="button"
+            class="back"
+            data-view="quick">
+        ← Quay lại
+    </button>
+
+
+    <h2 class="mt">
+        Đánh giá &amp; nhận xét
+    </h2>
+
+
+    <div class="empty">
+        Sản phẩm hiện chưa có đánh giá.
+    </div>
+
+</div>
+
+
+
+<div data-pane="compare" hidden>
+
+    <button type="button"
+            class="back"
+            data-view="quick">
+        ← Quay lại
+    </button>
+
+    <h2 class="mt">
+        So sánh sản phẩm
+    </h2>
+
+    <p style="color:var(--mute); margin-bottom:12px;">
+        Chọn sản phẩm để so sánh với
+        <strong>@Model.TenSp</strong>
+    </p>
+
+    <select id="cmpSel"
+            data-id="@Model.MaSp">
+
+        <option value="">
+            -- Chọn sản phẩm --
+        </option>
+
+    </select>
+
+    <div id="cmpBody">
+        <p>Chọn một sản phẩm để bắt đầu so sánh.</p>
+    </div>
+
+</div>
+
+</div>

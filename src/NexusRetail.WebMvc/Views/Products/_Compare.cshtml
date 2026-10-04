@@ -1,0 +1,118 @@
+@using NexusRetail.Shared.DTOs.SanPham
+@model List<SanPhamDto>
+
+@{
+    var a = Model[0];
+    var b = Model[1];
+
+    string Show(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "—"
+            : value;
+    }
+
+    var rows = new[]
+    {
+        (
+            "Thương hiệu",
+            Show(a.TenNhanHieu),
+            Show(b.TenNhanHieu)
+        ),
+
+        (
+            "Loại sản phẩm",
+            Show(a.TenLoai),
+            Show(b.TenLoai)
+        ),
+
+        (
+            "Màn hình",
+            Show(a.TenManHinh),
+            Show(b.TenManHinh)
+        ),
+
+        (
+            "Camera",
+            Show(a.ChupAnh),
+            Show(b.ChupAnh)
+        ),
+
+        (
+            "Âm thanh",
+            Show(a.AmThanh),
+            Show(b.AmThanh)
+        ),
+
+        (
+            "Bảo hành",
+            a.ThoiGianBaoHanh != null
+                ? $"{a.ThoiGianBaoHanh} tháng"
+                : "—",
+
+            b.ThoiGianBaoHanh != null
+                ? $"{b.ThoiGianBaoHanh} tháng"
+                : "—"
+        ),
+
+        (
+            "Số lượng",
+            a.SoLuong.ToString(),
+            b.SoLuong.ToString()
+        ),
+
+        (
+            "Giá bán",
+            $"{a.GiaBan:N0} ₫",
+            $"{b.GiaBan:N0} ₫"
+        )
+    };
+}
+
+<div style="overflow-x:auto">
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Thông số</th>
+
+                <th style="color:var(--ac)">
+                    @a.TenSp
+                </th>
+
+                <th style="color:var(--ac)">
+                    @b.TenSp
+                </th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var (name, valueA, valueB) in rows)
+            {
+                <tr class="@(valueA != valueB ? "df" : "")">
+
+                    <th>@name</th>
+
+                    <td>@valueA</td>
+
+                    <td>@valueB</td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<p style="
+    margin-top:12px;
+    color:var(--mute);
+    font-size:13px">
+
+    Các dòng nền vàng là điểm khác biệt giữa hai sản phẩm.
+
+</p>
