@@ -138,11 +138,39 @@ namespace NexusRetail.Core.Api.Controllers
             return Ok(result);
         }
 
+        [HttpGet("bo-loc-danh-muc")]
+        public async Task<IActionResult> layBoLocDanhMuc()
+        {
+            var loais = await _db.Loais.AsNoTracking().Select(x => new { x.MaLoai, x.TenLoai }).ToListAsync();
+            var nhanHieus = await _db.NhanHieus.AsNoTracking().Select(x => new { x.MaNhanHieu, x.TenNhanHieu }).ToListAsync();
+            var manHinhs = await _db.ManHinhs.AsNoTracking().Select(x => new { x.MaManHinh, x.TenManHinh }).ToListAsync();
+
+            return Ok(new
+            {
+                Loai = loais,
+                NhanHieu = nhanHieus,
+                ManHinh = manHinhs
+            });
+        }
+
+
         [HttpGet("tim-kiem")]
         public async Task<IActionResult> timKiem([FromQuery] string? keyword, [FromQuery] string? tenLoai, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
         {
             var query = _db.VwDanhSachSanPhams
                 .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+                query = query.Where(x => x.TenSp.Contains(keyword) || (x.GhiChu != null && x.GhiChu.Contains(keyword)));
+            if (!string.IsNullOrEmpty(tenLoai))
+                query = query.Where(x => x.TenLoai.Contains(tenLoai));
+            if (minPrice.HasValue)
+                query = query.Where(x => x.GiaBan >= minPrice.Value);
+            if (maxPrice.HasValue)
+                query = query.Where(x => x.GiaBan <= maxPrice.Value);
+
+            var danhSach = await query
                 .Select(sp => new SanPhamDto
                 {
                     MaSp = sp.MaSp,
@@ -159,18 +187,9 @@ namespace NexusRetail.Core.Api.Controllers
                     Anh = sp.Anh,
                     GhiChu = sp.GhiChu
                 })
-                .AsQueryable();
+                .ToListAsync();
 
-            if (!string.IsNullOrEmpty(keyword))
-                query = query.Where(x => x.TenSp.Contains(keyword) || (x.GhiChu != null && x.GhiChu.Contains(keyword)));
-            if (!string.IsNullOrEmpty(tenLoai))
-                query = query.Where(x => x.TenLoai.Contains(tenLoai));
-            if (minPrice.HasValue)
-                query = query.Where(x => x.GiaBan >= minPrice.Value);
-            if (maxPrice.HasValue)
-                query = query.Where(x => x.GiaBan <= maxPrice.Value);
-
-            return Ok(await query.ToListAsync());
+            return Ok(danhSach);
         }
 
         private async Task<string> sinhMaSanPham()
@@ -182,11 +201,11 @@ namespace NexusRetail.Core.Api.Controllers
                 .Select(x => x.MaSp)
                 .FirstOrDefaultAsync();
 
-            if (maCuoi == null) return "SP001"; // DB trống → bắt đầu từ SP001
+            if (maCuoi == null) return "SP01"; // DB trống → bắt đầu từ SP01
 
             // Tách phần số: "SP012" → 12
             if (int.TryParse(maCuoi.Substring(2), out int soHienTai))
-                return $"SP{(soHienTai + 1):D2}"; // D3 = luôn 3 chữ số: 001, 002...
+                return $"SP{(soHienTai + 1):D2}";
 
             return $"SP{Guid.NewGuid().ToString()[..6].ToUpper()}"; // fallback nếu parse lỗi
         }
@@ -253,11 +272,16 @@ namespace NexusRetail.Core.Api.Controllers
         {
             var sp = await _db.SanPhams.FindAsync(maSP);
             if (sp == null) return NotFound();
-
-            _db.SanPhams.Remove(sp);
-            await _db.SaveChangesAsync();
-
-            return NoContent(); // 204
+            try
+            {
+                _db.SanPhams.Remove(sp);
+                await _db.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateException)
+            {
+                return BadRequest(new { message = "Không thể xóa sản phẩm đã phát sinh hóa đơn bán hoặc nhập!" });
+            }
         }
 
     }
