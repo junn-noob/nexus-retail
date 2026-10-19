@@ -19,6 +19,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapControllers(); // ✅ Dòng này bị thiếu là nguyên nhân gây 404
+app.MapControllers(); 
 
 app.Run();

@@ -60,11 +60,15 @@ namespace NexusRetail.Core.Api.Controllers
 
             try
             {
-                var khachHang = _db.KhachHangs.FirstOrDefault(x => x.MaKhach == dto.MaKhach);
+                var khachHang = _db.KhachHangs.FirstOrDefault(x => (x.DienThoai.Equals(dto.DienThoai)) || (x.MaKhach == dto.MaKhach));
                 if (dto.MaKhach != null && khachHang != null)
                 {
                     dto.DienThoai = khachHang.DienThoai;
                 } 
+                else if (dto.DienThoai != null && khachHang != null)
+                {
+                    dto.MaKhach = khachHang.MaKhach;
+                }
                 else
                 {
                     khachHang = new KhachHang
@@ -94,7 +98,6 @@ namespace NexusRetail.Core.Api.Controllers
                         return BadRequest(new { message = $"Sản phẩm '{sp.TenSp}' chỉ còn {sp.SoLuong} chiếc trong kho, không đủ để bán!" });
                     }
                     
-                    sp.SoLuong -= i.SoLuong;
                     var chiTietHdb = new ChiTietHdb
                     {
                         MaHdb = maHdb,
@@ -138,7 +141,17 @@ namespace NexusRetail.Core.Api.Controllers
 
                 return Ok(response);
             }
-            catch (Exception ex) { await tx.RollbackAsync(); return StatusCode(500, ex.Message); }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+
+                var loi = ex.GetBaseException().Message;
+
+                return StatusCode(500, new
+                {
+                    message = loi
+                });
+            }
         }
     }
 }
