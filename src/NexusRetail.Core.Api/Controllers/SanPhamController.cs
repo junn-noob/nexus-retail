@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NexusRetail.Core.Api.Data;
 using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.Shared.DTOs.Common;
 using NexusRetail.Shared.Entities;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml.ExtendedProperties;
 
 
 namespace NexusRetail.Core.Api.Controllers

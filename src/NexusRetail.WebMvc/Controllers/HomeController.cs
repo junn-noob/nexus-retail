@@ -37,6 +37,29 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> TraCuu(string? sdt)
+    {
+        ViewBag.Sdt = sdt;
+        if (string.IsNullOrWhiteSpace(sdt))
+            return View();
+
+        var client = _factory.CreateClient("CoreApi");
+        try
+        {
+            var response = await client.GetAsync($"api/ban-hang/tra-cuu/{sdt.Trim()}");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var data = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+                return View(data);
+            }
+        }
+        catch { /* CoreApi not reachable */ }
+
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

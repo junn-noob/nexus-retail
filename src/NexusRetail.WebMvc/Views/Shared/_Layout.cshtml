@@ -21,7 +21,10 @@
                 <input name="q" type="search" placeholder="Tìm sản phẩm…" aria-label="Tìm sản phẩm" value="@Context.Request.Query["q"]">
             </form>
             <div style="display: flex; align-items: center; gap: 8px;">
-                <a class="btn ghost" asp-controller="Cart" asp-action="Index" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                <a class="btn ghost" asp-controller="Home" asp-action="TraCuu" style="display: flex; align-items: center; gap: 4px; font-size: 13.5px;">
+                    🔍 Tra cứu đơn
+                </a>
+                <a class="btn ghost" asp-controller="Cart" asp-action="Index" style="display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13.5px;">
                     🛒 Giỏ hàng (<span id="cartCount" style="color: var(--ac);">0</span>)
                 </a>
             </div>
@@ -59,7 +62,7 @@
     @RenderBody()
 
     <div class="ov" id="ov" role="dialog" aria-modal="true"><div class="modal" id="modal"></div></div>
-    @* <partial name="_Chat" /> *@
+    <partial name="_Chat" />
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>

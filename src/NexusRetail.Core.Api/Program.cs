@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 builder.Services.AddDbContext<RetailDbContext>(x =>
     x.UseSqlServer(builder.Configuration.GetConnectionString("RetailDb")));
 
@@ -19,6 +20,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapControllers(); 
+app.MapControllers();
 
 app.Run();

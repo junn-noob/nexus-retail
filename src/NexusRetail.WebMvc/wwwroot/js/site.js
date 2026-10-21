@@ -209,7 +209,6 @@ async function loadCompare() {
     const id = select.dataset.id;
     const otherId = select.value;
 
-    console.log("So sánh:", id, otherId);
 
     if (!id || !otherId) {
 
@@ -233,10 +232,6 @@ async function loadCompare() {
             `/Products/Compare?${params.toString()}`
         );
 
-        console.log(
-            "Compare status:",
-            response.status
-        );
 
         if (!response.ok) {
 

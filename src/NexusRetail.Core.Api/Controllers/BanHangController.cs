@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NexusRetail.Core.Api.Data;
@@ -17,38 +16,34 @@ namespace NexusRetail.Core.Api.Controllers
 
         private async Task<string> sinhMaKhachHang()
         {
-            // Tìm mã lớn nhất hiện có trong DB dạng "SP___"
             var maCuoi = await _db.KhachHangs
                 .Where(x => x.MaKhach.StartsWith("KH"))
                 .OrderByDescending(x => x.MaKhach)
                 .Select(x => x.MaKhach)
                 .FirstOrDefaultAsync();
 
-            if (maCuoi == null) return "KH01"; // DB trống → bắt đầu từ SP01
+            if (maCuoi == null) return "KH01";
 
-            // Tách phần số: "SP012" → 12
             if (int.TryParse(maCuoi.Substring(2), out int soHienTai))
                 return $"KH{(soHienTai + 1):D2}";
 
-            return $"KH{Guid.NewGuid().ToString()[..6].ToUpper()}"; // fallback nếu parse lỗi
+            return $"KH{Guid.NewGuid().ToString()[..6].ToUpper()}";
         }
 
         private async Task<string> sinhMaHdb()
         {
-            // Tìm mã lớn nhất hiện có trong DB dạng "SP___"
             var maCuoi = await _db.HoaDonBans
                 .Where(x => x.MaHdb.StartsWith("HDB"))
                 .OrderByDescending(x => x.MaHdb)
                 .Select(x => x.MaHdb)
                 .FirstOrDefaultAsync();
 
-            if (maCuoi == null) return "HDB01"; // DB trống → bắt đầu từ SP01
+            if (maCuoi == null) return "HDB01";
 
-            // Tách phần số: "SP012" → 12
             if (int.TryParse(maCuoi.Substring(3), out int soHienTai))
                 return $"HDB{(soHienTai + 1):D2}";
 
-            return $"HDB{Guid.NewGuid().ToString()[..6].ToUpper()}"; // fallback nếu parse lỗi
+            return $"HDB{Guid.NewGuid().ToString()[..6].ToUpper()}";
         }
 
         [HttpPost("thanh-toan")]
@@ -154,6 +149,43 @@ namespace NexusRetail.Core.Api.Controllers
                     message = loi
                 });
             }
+        }
+
+        /// <summary>
+        /// Tra cứu lịch sử đơn hàng và hạn bảo hành theo số điện thoại
+        /// </summary>
+        [HttpGet("tra-cuu/{sdt}")]
+        public async Task<IActionResult> traCuuDonHang(string sdt)
+        {
+            if (string.IsNullOrWhiteSpace(sdt))
+                return BadRequest(new { message = "Số điện thoại không được để trống!" });
+
+            var list = await _db.HoaDonBans
+                .AsNoTracking()
+                .Include(x => x.MaKhachNavigation)
+                .Include(x => x.ChiTietHdbs).ThenInclude(ct => ct.MaSpNavigation)
+                .Where(x => x.MaKhachNavigation.DienThoai == sdt)
+                .OrderByDescending(x => x.NgayBan)
+                .Select(x => new
+                {
+                    x.MaHdb,
+                    x.NgayBan,
+                    x.TongTien,
+                    TenKhach = x.MaKhachNavigation.TenKhach,
+                    DienThoai = x.MaKhachNavigation.DienThoai,
+                    DanhSachMon = x.ChiTietHdbs.Select(ct => new
+                    {
+                        ct.MaSp,
+                        TenSp = ct.MaSpNavigation.TenSp,
+                        ct.SoLuong,
+                        ct.ThanhTien,
+                        ThoiGianBaoHanh = ct.MaSpNavigation.ThoiGianBaoHanh,
+                        HanBaoHanh = x.NgayBan.AddMonths(ct.MaSpNavigation.ThoiGianBaoHanh)
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(list);
         }
     }
 }
