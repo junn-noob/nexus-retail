@@ -37,12 +37,12 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         /// <summary>
-        /// Endpoint cho WinForms POS hoặc Web kiểm tra trạng thái thanh toán của hóa đơn
+        /// Endpoint cho WinForms POS hoặc Web kiểm tra trạng thái thanh toán của hóa đơn (có thể truyền expectedAmount để so khớp số tiền)
         /// </summary>
         [HttpGet("bank/status/{maHdb}")]
-        public IActionResult CheckPaymentStatus(string maHdb)
+        public IActionResult CheckPaymentStatus(string maHdb, [FromQuery] decimal? expectedAmount = null)
         {
-            var status = _paymentService.GetPaymentStatus(maHdb);
+            var status = _paymentService.GetPaymentStatus(maHdb, expectedAmount);
             return Ok(status);
         }
 

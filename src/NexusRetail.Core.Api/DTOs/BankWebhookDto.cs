@@ -15,6 +15,7 @@ namespace NexusRetail.Core.Api.DTOs
         public string MaHdb { get; set; } = "";
         public bool IsPaid { get; set; }
         public decimal PaidAmount { get; set; }
+        public decimal ExpectedAmount { get; set; }
         public string? TransactionCode { get; set; }
         public DateTime? PaidAt { get; set; }
         public string Message { get; set; } = "";

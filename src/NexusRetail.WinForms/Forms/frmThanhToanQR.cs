@@ -208,22 +208,38 @@ namespace NexusRetail.WinForms.Forms
 
         private async void PollingTimer_Tick(object? sender, EventArgs e)
         {
-            var result = await WinFormsApiClient.Instance.CheckBankPaymentStatusAsync(_maHdb);
-            if (result.IsPaid)
+            var result = await WinFormsApiClient.Instance.CheckBankPaymentStatusAsync(_maHdb, _soTien);
+
+            if (result.PaidAmount > 0)
             {
-                OnPaymentSuccess(result.TransactionCode ?? "MB_AUTO");
+                // SO SÁNH SỐ TIỀN:
+                if (result.PaidAmount < _soTien || !result.IsPaid)
+                {
+                    // Khách chuyển thiếu tiền -> Cảnh báo màu đỏ nổi bật, thông báo rõ số tiền thiếu
+                    pnlStatus.BackColor = Color.FromArgb(239, 68, 68); // Red warning
+                    lblStatus.ForeColor = Color.White;
+                    decimal missing = _soTien - result.PaidAmount;
+                    lblStatus.Text = $"⚠ KHÁCH CHUYỂN THIẾU TIỀN: Đã nhận {result.PaidAmount:N0}đ / Cần {_soTien:N0}đ (Thiếu {missing:N0}đ)!";
+                }
+                else
+                {
+                    // Khách chuyển đủ hoặc thừa tiền -> Hoàn tất thanh toán
+                    OnPaymentSuccess(result.TransactionCode ?? "MB_AUTO", result.PaidAmount);
+                }
             }
         }
 
-        private void OnPaymentSuccess(string txCode)
+        private void OnPaymentSuccess(string txCode, decimal? paidAmount = null)
         {
             _pollingTimer.Stop();
             IsPaymentSuccessful = true;
 
+            decimal amount = paidAmount ?? _soTien;
+
             // Đổi trạng thái sang màu xanh lục
             pnlStatus.BackColor = Color.FromArgb(16, 185, 129); // Modern Emerald Green
             lblStatus.ForeColor = Color.White;
-            lblStatus.Text = $"✔ ĐÃ NHẬN TIỀN THÀNH CÔNG! (MÃ GD: {txCode})";
+            lblStatus.Text = $"✔ ĐÃ NHẬN ĐỦ {amount:N0}đ! (MÃ GD: {txCode})";
 
             // Phát âm thanh Ting Ting
             try

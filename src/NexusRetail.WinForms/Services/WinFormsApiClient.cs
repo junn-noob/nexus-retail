@@ -12,6 +12,7 @@ namespace NexusRetail.WinForms.Services
         public string MaHdb { get; set; } = "";
         public bool IsPaid { get; set; }
         public decimal PaidAmount { get; set; }
+        public decimal ExpectedAmount { get; set; }
         public string? TransactionCode { get; set; }
         public DateTime? PaidAt { get; set; }
         public string Message { get; set; } = "";
@@ -237,12 +238,17 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
-        // 4. KIỂM TRA TRẠNG THÁI WEBHOOK NGÂN HÀNG
-        public async Task<PaymentCheckResult> CheckBankPaymentStatusAsync(string maHdb)
+        // 4. KIỂM TRA TRẠNG THÁI WEBHOOK NGÂN HÀNG (KÈM SO SÁNH SỐ TIỀN)
+        public async Task<PaymentCheckResult> CheckBankPaymentStatusAsync(string maHdb, decimal? expectedAmount = null)
         {
             try
             {
-                var res = await _client.GetFromJsonAsync<PaymentCheckResult>($"api/webhook/bank/status/{Uri.EscapeDataString(maHdb)}");
+                string url = $"api/webhook/bank/status/{Uri.EscapeDataString(maHdb)}";
+                if (expectedAmount.HasValue && expectedAmount.Value > 0)
+                {
+                    url += $"?expectedAmount={expectedAmount.Value}";
+                }
+                var res = await _client.GetFromJsonAsync<PaymentCheckResult>(url);
                 return res ?? new PaymentCheckResult { IsPaid = false };
             }
             catch
