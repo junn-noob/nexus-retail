@@ -549,6 +549,54 @@ function formatMoney(value) {
                 }
             }
         );
-    }
-
 })();
+
+// ==========================================
+// CART HELPER FUNCTIONS
+// ==========================================
+function quickAddToCart(e, maSp) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    const formData = new FormData();
+    formData.append("maSp", maSp);
+    formData.append("quantity", 1);
+
+    fetch("/Cart/AddToCart", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const badge = document.getElementById("cartCount");
+            if (badge) badge.textContent = data.totalItems;
+            showCartToast("✅ " + data.message);
+        } else {
+            alert(data.message || "Lỗi khi thêm giỏ hàng");
+        }
+    })
+    .catch(() => alert("Không thể kết nối đến máy chủ!"));
+}
+
+function addToCartFromModal(maSp) {
+    quickAddToCart(null, maSp);
+}
+
+function showCartToast(msg) {
+    let toast = document.getElementById("cartToast");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "cartToast";
+        toast.style.cssText = "position:fixed; bottom:24px; right:24px; background:#1e1e2f; color:#fff; padding:14px 22px; border-radius:12px; font-weight:600; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; transition:all .3s ease; opacity:0; transform:translateY(20px); border-left:4px solid #16a34a;";
+        document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(20px)";
+    }, 2500);
+}

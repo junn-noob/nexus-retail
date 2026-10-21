@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+    var maHdb = ViewBag.MaHdb ?? "HDB01";
+    var tongTien = ViewBag.TongTien != null ? ((decimal)ViewBag.TongTien).ToString("N0") : "0";
+    var tenKhach = ViewBag.TenKhach ?? "Quý khách";
+}
+
+<div class="wrap" style="max-width: 650px; margin: 40px auto; padding: 0 16px;">
+    <div style="background: var(--card); border-radius: var(--r); padding: 40px 24px; box-shadow: var(--sh); border: 1px solid var(--line); text-align: center;">
+        <div style="width: 72px; height: 72px; background: #dcfce7; color: var(--ok); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 20px;">
+            ✓
+        </div>
+
+        <h1 style="font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 8px;">Đặt hàng thành công!</h1>
+        <p style="color: var(--mute); font-size: 15px; margin-bottom: 24px;">
+            Cảm ơn bạn <strong>@tenKhach</strong> đã tin tưởng mua sắm tại <strong>Duy Mobile</strong>.
+        </p>
+
+        <div style="background: var(--bg); border-radius: 14px; padding: 20px; margin-bottom: 24px; text-align: left; border: 1px solid var(--line);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                <span style="color: var(--mute);">Mã hóa đơn:</span>
+                <span style="font-weight: 800; color: var(--ac); font-size: 16px;">@maHdb</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                <span style="color: var(--mute);">Thời gian đặt:</span>
+                <span style="font-weight: 600; color: var(--ink);">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                <span style="color: var(--mute);">Hình thức thanh toán:</span>
+                <span style="font-weight: 600; color: var(--ink);">Tiền mặt khi nhận hàng (COD)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 15px; border-top: 1px dashed var(--line); padding-top: 12px;">
+                <span style="font-weight: 600; color: var(--ink);">Tổng số tiền cần trả:</span>
+                <span style="font-weight: 800; color: var(--ac); font-size: 18px;">@tongTien đ</span>
+            </div>
+        </div>
+
+        <p style="color: var(--mute); font-size: 13px; line-height: 1.6; margin-bottom: 28px;">
+            📞 Nhân viên bán hàng sẽ sớm liên hệ qua số điện thoại để xác nhận địa chỉ và thời gian giao máy cho bạn trong vòng 15-30 phút.
+        </p>
+
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a asp-controller="Home" asp-action="Index" class="btn" style="padding: 12px 28px; font-size: 15px; font-weight: 600;">
+                ← Về trang chủ mua sắm
+            </a>
+        </div>
+    </div>
+</div>

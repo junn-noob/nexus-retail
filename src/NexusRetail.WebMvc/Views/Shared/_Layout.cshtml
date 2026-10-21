@@ -1,4 +1,4 @@
-﻿@{
+@{
     var signedIn = User.Identity?.IsAuthenticated == true;
 }
 
@@ -7,19 +7,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@ViewData["Title"] — TechStore</title>
+    <title>@ViewData["Title"] — Duy Mobile</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
 </head>
 <body>
     <header>
         <div class="nav">
-            <a class="logo" asp-controller="Home" asp-action="Index">Tech<b>Store</b></a>
+            <a class="logo" asp-controller="Home" asp-action="Index">Duy<b>Mobile</b></a>
             <nav class="menu">
                 @await Component.InvokeAsync("NhanHieu")
             </nav>
             <form class="search" method="get" asp-controller="Home" asp-action="Index" asp-fragment="products">
                 <input name="q" type="search" placeholder="Tìm sản phẩm…" aria-label="Tìm sản phẩm" value="@Context.Request.Query["q"]">
             </form>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <a class="btn ghost" asp-controller="Cart" asp-action="Index" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                    🛒 Giỏ hàng (<span id="cartCount" style="color: var(--ac);">0</span>)
+                </a>
+            </div>
             <div class="user">
                 @if (signedIn)
                 {
@@ -45,7 +50,7 @@
         <p>Khám phá sản phẩm, xem cấu hình nhanh và hỏi AI để tìm thiết bị phù hợp.</p>
       </div>
       <div class="aibox">
-        <h3>✨ AI tư vấn TechStore</h3>
+        <h3>✨ AI tư vấn Duy Mobile</h3>
         <p>Nói nhu cầu và ngân sách, AI sẽ gợi ý vài thiết bị đáng cân nhắc.</p>
         <button class="btn" id="heroAI">Hỏi AI ngay</button>
       </div>
@@ -57,6 +62,18 @@
     @* <partial name="_Chat" /> *@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        function updateCartBadge() {
+            fetch('/Cart/GetCartCount')
+                .then(r => r.json())
+                .then(d => {
+                    const el = document.getElementById('cartCount');
+                    if (el) el.textContent = d.totalItems || 0;
+                })
+                .catch(() => {});
+        }
+        document.addEventListener('DOMContentLoaded', updateCartBadge);
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,4 +1,4 @@
-﻿@using NexusRetail.Shared.DTOs.SanPham
+@using NexusRetail.Shared.DTOs.SanPham
 @using NexusRetail.Shared.DTOs.Common
 @model PagedResultDto<SanPhamDto>
 
@@ -33,7 +33,10 @@
             <h3>@p.TenSp</h3>
             <span class="tag">@p.GhiChu</span>
             <div class="price">@p.GiaBan.ToString("N0") đ</div>
-            <button class="btn ghost" type="button">Xem nhanh</button>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button class="btn ghost" type="button" style="flex: 1;">Xem nhanh</button>
+              <button class="btn" type="button" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ" style="padding: 0 14px; background: var(--soft); color: var(--ac); font-weight: 700; border-radius: 10px;">🛒</button>
+            </div>
           </div>
         </article>
       }
