@@ -6,6 +6,11 @@
 # dotenv files
 .env
 
+# Private scripts & Bank crawler bots
+scripts/
+login_data.json
+history.json
+
 # User-specific files
 *.rsuser
 *.suo

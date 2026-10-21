@@ -10,6 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<NexusRetail.Core.Api.Services.Export.IExcelExportService, NexusRetail.Core.Api.Services.Export.ExcelExportService>();
 builder.Services.AddScoped<NexusRetail.Core.Api.Services.Chat.IGeminiChatService, NexusRetail.Core.Api.Services.Chat.GeminiChatService>();
+builder.Services.AddSingleton<NexusRetail.Core.Api.Services.Payment.IBankPaymentService, NexusRetail.Core.Api.Services.Payment.BankPaymentService>();
 builder.Services.AddDbContext<RetailDbContext>(x =>
     x.UseSqlServer(builder.Configuration.GetConnectionString("RetailDb")));
 

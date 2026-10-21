@@ -59,6 +59,32 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         /// <summary>
+        /// Danh sách nhà cung cấp cho ComboBox
+        /// </summary>
+        [HttpGet("nha-cung-cap")]
+        public async Task<IActionResult> layDanhSachNhaCungCap()
+        {
+            var list = await _db.NhaCungCaps
+                .AsNoTracking()
+                .Select(x => new { x.MaNcc, x.TenNcc, x.DiaChi, x.DienThoai })
+                .ToListAsync();
+            return Ok(list);
+        }
+
+        /// <summary>
+        /// Danh sách nhân viên cho ComboBox
+        /// </summary>
+        [HttpGet("nhan-vien")]
+        public async Task<IActionResult> layDanhSachNhanVien()
+        {
+            var list = await _db.NhanViens
+                .AsNoTracking()
+                .Select(x => new { x.MaNv, x.TenNv, x.DienThoai })
+                .ToListAsync();
+            return Ok(list);
+        }
+
+        /// <summary>
         /// Xem chi tiết một hóa đơn nhập hàng
         /// </summary>
         [HttpGet("{maHdn}")]

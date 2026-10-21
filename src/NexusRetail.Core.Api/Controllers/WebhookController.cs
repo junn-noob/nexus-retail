@@ -1,0 +1,79 @@
+using Microsoft.AspNetCore.Mvc;
+using NexusRetail.Core.Api.DTOs;
+using NexusRetail.Core.Api.Services.Payment;
+
+namespace NexusRetail.Core.Api.Controllers
+{
+    [ApiController]
+    [Route("api/webhook")]
+    public class WebhookController : ControllerBase
+    {
+        private readonly IBankPaymentService _paymentService;
+        private readonly ILogger<WebhookController> _logger;
+
+        public WebhookController(IBankPaymentService paymentService, ILogger<WebhookController> logger)
+        {
+            _paymentService = paymentService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Endpoint đón Webhook biến động số dư từ script bot MBBank (hoặc SePay / Casso / PayOS)
+        /// </summary>
+        [HttpPost("bank")]
+        public IActionResult ReceiveBankWebhook([FromBody] BankWebhookDto dto)
+        {
+            if (dto == null || dto.TransferAmount <= 0)
+            {
+                return BadRequest(new { success = false, message = "Dữ liệu webhook không hợp lệ hoặc số tiền <= 0" });
+            }
+
+            var result = _paymentService.ProcessWebhook(dto);
+            return Ok(new
+            {
+                success = result.IsPaid,
+                data = result
+            });
+        }
+
+        /// <summary>
+        /// Endpoint cho WinForms POS hoặc Web kiểm tra trạng thái thanh toán của hóa đơn
+        /// </summary>
+        [HttpGet("bank/status/{maHdb}")]
+        public IActionResult CheckPaymentStatus(string maHdb)
+        {
+            var status = _paymentService.GetPaymentStatus(maHdb);
+            return Ok(status);
+        }
+
+        /// <summary>
+        /// Endpoint giả lập bắn Webhook thanh toán (Dùng để demo chấm điểm trên Swagger hoặc phím tắt F9)
+        /// </summary>
+        [HttpPost("bank/simulate")]
+        public IActionResult SimulateWebhookPayment([FromBody] SimulatePaymentRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req?.MaHdb))
+            {
+                return BadRequest(new { success = false, message = "Vui lòng cung cấp mã hóa đơn MaHdb" });
+            }
+
+            var result = _paymentService.SimulatePayment(req.MaHdb, req.Amount > 0 ? req.Amount : 10000000m);
+            return Ok(new
+            {
+                success = true,
+                message = $"Đã giả lập Webhook MBBank thanh toán thành công cho đơn {req.MaHdb}!",
+                data = result
+            });
+        }
+
+        /// <summary>
+        /// Xem lịch sử các Webhook ngân hàng đã nhận
+        /// </summary>
+        [HttpGet("bank/history")]
+        public IActionResult GetWebhookHistory()
+        {
+            var history = _paymentService.GetRecentTransactions();
+            return Ok(history);
+        }
+    }
+}
