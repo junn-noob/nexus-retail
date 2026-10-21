@@ -36,10 +36,13 @@
                 {
                     @if (User.IsInRole("Admin"))
                     {
-                        <a class="btn ghost" asp-controller="Admin" asp-action="Index">Quản trị</a>
+                        <a class="btn ghost" asp-controller="Admin" asp-action="Index" style="background: rgba(220, 38, 38, 0.08); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.25); font-weight: 600;">⚙️ Quản trị</a>
                     }
-                    <span>@User.Identity!.Name</span>
-                    <form method="post" asp-controller="Account" asp-action="Logout"><button class="btn ghost">Đăng xuất</button></form>
+                    <span style="font-weight: 500; font-size: 13.5px;">👤 @User.Identity!.Name</span>
+                    <form method="post" asp-controller="Account" asp-action="Logout" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn ghost" style="padding: 6px 12px; font-size: 13px;">Đăng xuất</button>
+                    </form>
                 }
                 else
                 {

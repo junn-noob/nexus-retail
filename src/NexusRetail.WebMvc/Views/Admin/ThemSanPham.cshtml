@@ -1,0 +1,135 @@
+@model NexusRetail.WebMvc.Models.AdminProductViewModel
+
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới (Admin)";
+    var loais = ViewBag.Loais as List<NexusRetail.WebMvc.Models.CategoryOption> ?? new();
+    var nhanHieus = ViewBag.NhanHieus as List<NexusRetail.WebMvc.Models.BrandOption> ?? new();
+    var manHinhs = ViewBag.ManHinhs as List<NexusRetail.WebMvc.Models.ScreenOption> ?? new();
+}
+
+<partial name="_AdminNav" />
+
+<div style="max-width: 800px; margin: 0 auto; padding: 0 20px 60px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Thêm sản phẩm mới</h1>
+            <p style="color: #64748b; font-size: 13.5px;">Tự động thực thi <b>BR-03: Giá bán = Giá nhập × 1.1</b></p>
+        </div>
+        <a asp-action="SanPham" class="btn ghost" style="padding: 8px 14px; font-size: 13px;">← Quay lại danh sách</a>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div style="background: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 12px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 20px;">
+            @Html.ValidationSummary(false, "")
+        </div>
+    }
+
+    <form method="post" asp-action="ThemSanPham" enctype="multipart/form-data" style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 28px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+        @Html.AntiForgeryToken()
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+            <div style="grid-column: span 2;">
+                <label asp-for="TenSp" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <input asp-for="TenSp" placeholder="Ví dụ: iPhone 16 Pro Max 256GB" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" required />
+                <span asp-validation-for="TenSp" style="color: #dc2626; font-size: 12px;"></span>
+            </div>
+
+            <div>
+                <label asp-for="MaLoai" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <select asp-for="MaLoai" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" required>
+                    <option value="">-- Chọn loại sản phẩm --</option>
+                    @foreach (var l in loais)
+                    {
+                        <option value="@l.MaLoai">@l.TenLoai</option>
+                    }
+                </select>
+                <span asp-validation-for="MaLoai" style="color: #dc2626; font-size: 12px;"></span>
+            </div>
+
+            <div>
+                <label asp-for="MaNhanHieu" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <select asp-for="MaNhanHieu" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" required>
+                    <option value="">-- Chọn nhãn hiệu --</option>
+                    @foreach (var nh in nhanHieus)
+                    {
+                        <option value="@nh.MaNhanHieu">@nh.TenNhanHieu</option>
+                    }
+                </select>
+                <span asp-validation-for="MaNhanHieu" style="color: #dc2626; font-size: 12px;"></span>
+            </div>
+
+            <div>
+                <label asp-for="MaManHinh" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <select asp-for="MaManHinh" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" required>
+                    <option value="">-- Chọn màn hình --</option>
+                    @foreach (var mh in manHinhs)
+                    {
+                        <option value="@mh.MaManHinh">@mh.TenManHinh</option>
+                    }
+                </select>
+                <span asp-validation-for="MaManHinh" style="color: #dc2626; font-size: 12px;"></span>
+            </div>
+
+            <div>
+                <label asp-for="SoLuong" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <input asp-for="SoLuong" type="number" min="0" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" required />
+            </div>
+
+            <!-- BR-03 Giá Nhập & Tự tính Giá Bán -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px;">
+                <label asp-for="GiaNhap" style="display: block; font-weight: 700; font-size: 13.5px; margin-bottom: 6px; color: #0f172a;"></label>
+                <input asp-for="GiaNhap" id="txtGiaNhap" type="number" step="10000" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: 600;" required oninput="calculateGiaBan(this.value)" />
+                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display: block;">Giá vốn nhập kho từ nhà cung cấp</span>
+            </div>
+
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px;">
+                <label style="display: block; font-weight: 700; font-size: 13.5px; margin-bottom: 6px; color: #1d4ed8;">⚡ Giá bán tự động (BR-03 = × 1.1)</label>
+                <div id="txtGiaBanPreview" style="font-size: 20px; font-weight: 800; color: #dc2626; padding: 6px 0;">11,000,000 ₫</div>
+                <span style="font-size: 11.5px; color: #1e40af; display: block;">Hệ thống tự động tính niêm yết theo quy định môn học.</span>
+            </div>
+
+            <div>
+                <label asp-for="ThoiGianBaoHanh" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <input asp-for="ThoiGianBaoHanh" type="number" min="1" max="60" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" required />
+            </div>
+
+            <div>
+                <label asp-for="FileAnh" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;">🖼️ Tải lên hình ảnh (.jpg, .png, .webp < 5MB)</label>
+                <input asp-for="FileAnh" type="file" accept=".jpg,.jpeg,.png,.webp" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;" />
+            </div>
+
+            <div>
+                <label asp-for="AmThanh" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <input asp-for="AmThanh" placeholder="Loa kép Stereo, Dolby Atmos..." style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" />
+            </div>
+
+            <div>
+                <label asp-for="ChupAnh" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <input asp-for="ChupAnh" placeholder="Chính 48MP, Siêu rộng 12MP..." style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" />
+            </div>
+
+            <div style="grid-column: span 2;">
+                <label asp-for="GhiChu" style="display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: #1e293b;"></label>
+                <textarea asp-for="GhiChu" rows="3" placeholder="Mô tả cấu hình nổi bật phục vụ tư vấn AI..." style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;"></textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <a asp-action="SanPham" class="btn ghost" style="padding: 10px 20px;">Hủy bỏ</a>
+            <button type="submit" class="btn" style="padding: 10px 24px; font-size: 14px;">💾 Lưu sản phẩm</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function calculateGiaBan(giaNhap) {
+            const val = parseFloat(giaNhap) || 0;
+            const giaBan = Math.round(val * 1.1);
+            document.getElementById("txtGiaBanPreview").textContent = giaBan.toLocaleString('vi-VN') + " ₫";
+        }
+        // Run on load
+        calculateGiaBan(document.getElementById("txtGiaNhap").value);
+    </script>
+}

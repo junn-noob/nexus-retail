@@ -17,13 +17,41 @@ namespace NexusRetail.Core.Api.Controllers
         public SanPhamController(RetailDbContext db) { this._db = db; }
 
         [HttpGet]
-        public async Task<IActionResult> layDanhSach([FromQuery] int page, [FromQuery] int pageSize = 9)
+        public async Task<IActionResult> layDanhSach(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 9,
+            [FromQuery] string? q = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] string? maLoai = null,
+            [FromQuery] string? maNhanHieu = null)
         {
             page = Math.Max(page, 1);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
             var query = _db.VwDanhSachSanPhams
-                .AsNoTracking();
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var kw = q.Trim().ToLower();
+                query = query.Where(x => x.TenSp.ToLower().Contains(kw) ||
+                                         (x.GhiChu != null && x.GhiChu.ToLower().Contains(kw)) ||
+                                         x.MaSp.ToLower().Contains(kw));
+            }
+
+            if (minPrice.HasValue && minPrice.Value > 0)
+                query = query.Where(x => x.GiaBan >= minPrice.Value);
+
+            if (maxPrice.HasValue && maxPrice.Value > 0)
+                query = query.Where(x => x.GiaBan <= maxPrice.Value);
+
+            if (!string.IsNullOrWhiteSpace(maLoai))
+                query = query.Where(x => x.TenLoai == maLoai);
+
+            if (!string.IsNullOrWhiteSpace(maNhanHieu))
+                query = query.Where(x => x.MaNhanHieu == maNhanHieu);
 
             var totalItems = await query.CountAsync();
 
@@ -54,7 +82,7 @@ namespace NexusRetail.Core.Api.Controllers
                 Page = page,
                 PageSize = pageSize,
                 TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                TotalPages = (int)Math.Ceiling((double)totalItems / (double)pageSize),
                 Items = items,
             };
 

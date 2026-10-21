@@ -65,10 +65,13 @@ namespace NexusRetail.Identity.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _userManager.FindByNameAsync(dto.Username);
+            var user = await _userManager.FindByNameAsync(dto.Username)
+                ?? await _userManager.FindByEmailAsync(dto.Username)
+                ?? await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_userManager.Users, u => u.PhoneNumber == dto.Username);
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             {
-                return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không chính xác!" });
+                return Unauthorized(new { message = "Tên đăng nhập / Số điện thoại hoặc mật khẩu không chính xác!" });
             }
 
             var roles = await _userManager.GetRolesAsync(user);

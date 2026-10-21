@@ -49,6 +49,82 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var db = services.GetRequiredService<AppIdentityDbContext>();
+        await db.Database.EnsureCreatedAsync();
+
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+
+        string[] roles = { "Admin", "Staff", "Customer" };
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole(role));
+        }
+
+        // Default Admin
+        if (await userManager.FindByNameAsync("admin") == null)
+        {
+            var adminUser = new IdentityUser
+            {
+                UserName = "admin",
+                Email = "admin@duymobile.vn",
+                EmailConfirmed = true,
+                PhoneNumber = "0900000001"
+            };
+            var createRes = await userManager.CreateAsync(adminUser, "Admin@123");
+            if (createRes.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
+
+        // Default Staff
+        if (await userManager.FindByNameAsync("staff") == null)
+        {
+            var staffUser = new IdentityUser
+            {
+                UserName = "staff",
+                Email = "staff@duymobile.vn",
+                EmailConfirmed = true,
+                PhoneNumber = "0900000002"
+            };
+            var createRes = await userManager.CreateAsync(staffUser, "Staff@123");
+            if (createRes.Succeeded)
+            {
+                await userManager.AddToRoleAsync(staffUser, "Staff");
+            }
+        }
+
+        // Default Customer
+        if (await userManager.FindByNameAsync("customer") == null)
+        {
+            var custUser = new IdentityUser
+            {
+                UserName = "customer",
+                Email = "customer@duymobile.vn",
+                EmailConfirmed = true,
+                PhoneNumber = "0912345678"
+            };
+            var createRes = await userManager.CreateAsync(custUser, "Cust@123");
+            if (createRes.Succeeded)
+            {
+                await userManager.AddToRoleAsync(custUser, "Customer");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Lỗi khởi tạo CSDL Identity");
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

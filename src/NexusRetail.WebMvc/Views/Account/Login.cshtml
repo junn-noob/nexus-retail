@@ -10,12 +10,22 @@
             <p class="auth-sub">Đăng nhập để tiếp tục mua sắm</p>
         </div>
 
-        <form class="auth-form" method="post" id="loginForm">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div style="background:#fee2e2; border:1px solid #f87171; color:#b91c1c; padding:10px 14px; border-radius:8px; font-size:13.5px; margin-bottom:16px;">
+                @Html.ValidationSummary(false, "")
+            </div>
+        }
+
+        <form class="auth-form" method="post" asp-controller="Account" asp-action="Login" id="loginForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+
             <div class="form-field">
-                <label for="loginPhone">Số điện thoại</label>
+                <label for="loginPhone">Tên đăng nhập hoặc Số điện thoại</label>
                 <div class="input-wrap">
                     <span class="input-icon">📱</span>
-                    <input id="loginPhone" name="phone" type="tel" placeholder="Ví dụ: 0912 345 678" autocomplete="tel" required />
+                    <input id="loginPhone" name="phone" type="text" placeholder="Ví dụ: admin hoặc 0912345678" autocomplete="username" required />
                 </div>
             </div>
 
@@ -33,11 +43,17 @@
 
             <div class="form-check">
                 <label>
-                    <input type="checkbox" name="remember" /> Ghi nhớ đăng nhập
+                    <input type="checkbox" name="remember" value="true" /> Ghi nhớ đăng nhập
                 </label>
             </div>
 
             <button type="submit" class="btn auth-btn">Đăng nhập →</button>
+
+            <div style="margin-top:14px; font-size:12px; color:#475569; background:#f1f5f9; padding:10px 14px; border-radius:8px; line-height:1.5;">
+                🔑 <b>Tài khoản kiểm thử chấm điểm:</b><br />
+                • Quản trị viên: <code>admin</code> / <code>Admin@123</code> (Vào trang Quản trị)<br />
+                • Khách hàng: <code>customer</code> / <code>Cust@123</code> (Mua sắm)
+            </div>
 
             <div class="auth-divider"><span>hoặc</span></div>
 
@@ -58,24 +74,27 @@
             <h2>Trải nghiệm mua sắm thông minh</h2>
             <p>Được tư vấn bởi AI, hàng chính hãng, bảo hành 12 tháng toàn quốc.</p>
             <ul class="auth-perks">
-                <li>🚀 Giao hàng miễn phí toàn quốc</li>
-                <li>🛡️ Bảo hành chính hãng 12 tháng</li>
-                <li>🤖 AI tư vấn chọn máy 24/7</li>
-                <li>🔍 Tra cứu đơn hàng & bảo hành</li>
+                <li><span>⚡</span> <span>Hỏi đáp cấu hình tức thời với AI</span></li>
+                <li><span>🛡️</span> <span>Bảo hành chính hãng 12 tháng</span></li>
+                <li><span>🚚</span> <span>Miễn phí giao hàng toàn quốc</span></li>
+                <li><span>🔄</span> <span>Đổi trả 1-1 trong 30 ngày nếu lỗi</span></li>
             </ul>
         </div>
     </div>
 </div>
 
-<script>
-function togglePass(id, btn) {
-    const inp = document.getElementById(id);
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        btn.textContent = '🙈';
-    } else {
-        inp.type = 'password';
-        btn.textContent = '👁';
-    }
+@section Scripts {
+    <script>
+        function togglePass(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "🙈";
+            } else {
+                input.type = "password";
+                btn.textContent = "👁";
+            }
+        }
+    </script>
 }
-</script>

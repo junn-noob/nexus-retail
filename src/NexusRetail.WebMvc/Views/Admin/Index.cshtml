@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Trang quản trị (Admin Dashboard)";
+    int totalProducts = ViewBag.TotalProducts ?? 0;
+    int totalOrders = ViewBag.TotalOrders ?? 0;
+}
+
+<partial name="_AdminNav" />
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 20px 60px;">
+    <div style="margin-bottom: 28px;">
+        <h1 style="font-size: 26px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">Bảng điều khiển Quản trị viên</h1>
+        <p style="color: #64748b; font-size: 14.5px;">Chào mừng bạn đến với hệ thống quản lý Duy Mobile. Phân quyền Admin: Toàn quyền thêm, sửa, xóa sản phẩm, duyệt đơn và xuất báo cáo môn học.</p>
+    </div>
+
+    <!-- Quick Stat Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 32px;">
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 13.5px; font-weight: 600; color: #64748b; text-transform: uppercase;">Tổng số sản phẩm</span>
+                <span style="font-size: 24px; background: #eff6ff; padding: 8px; border-radius: 10px;">📱</span>
+            </div>
+            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">@totalProducts</div>
+            <a asp-action="SanPham" style="font-size: 13px; color: #2563eb; font-weight: 600; text-decoration: none;">Xem danh sách sản phẩm →</a>
+        </div>
+
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 13.5px; font-weight: 600; color: #64748b; text-transform: uppercase;">Tổng số hóa đơn bán</span>
+                <span style="font-size: 24px; background: #f0fdf4; padding: 8px; border-radius: 10px;">🛍️</span>
+            </div>
+            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">@totalOrders</div>
+            <a asp-action="DonHang" style="font-size: 13px; color: #16a34a; font-weight: 600; text-decoration: none;">Xem lịch sử đơn hàng →</a>
+        </div>
+
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 13.5px; font-weight: 600; color: #64748b; text-transform: uppercase;">Báo cáo & Thống kê</span>
+                <span style="font-size: 24px; background: #fef2f2; padding: 8px; border-radius: 10px;">📊</span>
+            </div>
+            <div style="font-size: 32px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">4 Báo cáo</div>
+            <a asp-action="BaoCao" style="font-size: 13px; color: #dc2626; font-weight: 600; text-decoration: none;">Xem & Xuất file Excel →</a>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+        <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">Thao tác nhanh</h3>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <a asp-action="ThemSanPham" class="btn" style="padding: 10px 18px; font-size: 14px;">
+                ➕ Thêm sản phẩm mới (Tự tính Giá Bán)
+            </a>
+            <a asp-action="SanPham" class="btn ghost" style="padding: 10px 18px; font-size: 14px;">
+                📋 Xem danh mục sản phẩm
+            </a>
+            <a asp-action="DonHang" class="btn ghost" style="padding: 10px 18px; font-size: 14px;">
+                🧾 Kiểm tra hóa đơn khách mua
+            </a>
+            <a asp-action="BaoCao" asp-route-loai="sp-ban-chay" class="btn ghost" style="padding: 10px 18px; font-size: 14px;">
+                📥 Xuất Excel Top sản phẩm bán chạy
+            </a>
+        </div>
+    </div>
+</div>

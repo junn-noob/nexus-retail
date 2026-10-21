@@ -9,7 +9,16 @@
             <p class="auth-sub">Tạo tài khoản để theo dõi đơn hàng & nhận ưu đãi</p>
         </div>
 
-        <form class="auth-form" method="post" id="registerForm">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div style="background:#fee2e2; border:1px solid #f87171; color:#b91c1c; padding:10px 14px; border-radius:8px; font-size:13.5px; margin-bottom:16px;">
+                @Html.ValidationSummary(false, "")
+            </div>
+        }
+
+        <form class="auth-form" method="post" asp-controller="Account" asp-action="Register" id="registerForm">
+            @Html.AntiForgeryToken()
+
             <div class="form-field">
                 <label for="regName">Họ và tên</label>
                 <div class="input-wrap">
@@ -22,7 +31,7 @@
                 <label for="regPhone">Số điện thoại</label>
                 <div class="input-wrap">
                     <span class="input-icon">📱</span>
-                    <input id="regPhone" name="phone" type="tel" placeholder="Ví dụ: 0912 345 678" autocomplete="tel" required />
+                    <input id="regPhone" name="phone" type="tel" placeholder="Ví dụ: 0912345678" autocomplete="tel" required />
                 </div>
             </div>
 
@@ -30,7 +39,7 @@
                 <label for="regPass">Mật khẩu</label>
                 <div class="input-wrap">
                     <span class="input-icon">🔒</span>
-                    <input id="regPass" name="password" type="password" placeholder="Tối thiểu 8 ký tự..." autocomplete="new-password" required minlength="8" />
+                    <input id="regPass" name="password" type="password" placeholder="Tối thiểu 6 ký tự..." autocomplete="new-password" required minlength="6" />
                     <button type="button" class="toggle-pass" onclick="togglePass('regPass', this)" title="Hiện/ẩn mật khẩu">👁</button>
                 </div>
             </div>
@@ -46,7 +55,7 @@
 
             <div class="form-check">
                 <label>
-                    <input type="checkbox" required /> Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a>
+                    <input type="checkbox" required checked /> Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a>
                 </label>
             </div>
 
@@ -60,34 +69,38 @@
         </form>
 
         <p class="auth-footer">
-            Duy Mobile cam kết bảo mật thông tin cá nhân của bạn.
+            Bằng cách tạo tài khoản, bạn đồng ý với
+            <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a> của Duy Mobile.
         </p>
     </div>
 
     <div class="auth-visual">
         <div class="auth-visual-inner">
-            <div class="auth-badge">🛡️ Bảo mật</div>
-            <h2>Tham gia cộng đồng Duy Mobile</h2>
-            <p>Hàng ngàn khách hàng tin tưởng mua sắm tại Duy Mobile mỗi ngày.</p>
+            <div class="auth-badge">🎁 Ưu đãi thành viên</div>
+            <h2>Gia nhập cộng đồng Duy Mobile</h2>
+            <p>Trải nghiệm dịch vụ chăm sóc khách hàng hàng đầu và hưởng trọn vẹn đặc quyền thành viên.</p>
             <ul class="auth-perks">
-                <li>📦 Theo dõi đơn hàng real-time</li>
-                <li>🎁 Nhận ưu đãi thành viên độc quyền</li>
-                <li>🔔 Thông báo khi hàng về</li>
-                <li>📋 Lịch sử mua hàng đầy đủ</li>
+                <li><span>🎯</span> <span>Tích điểm giảm giá đến 5% cho đơn sau</span></li>
+                <li><span>🎁</span> <span>Quà tặng sinh nhật độc quyền</span></li>
+                <li><span>⚡</span> <span>Ưu tiên giao hàng hỏa tốc trong 2 giờ</span></li>
+                <li><span>🔧</span> <span>Miễn phí vệ sinh & dán màn hình trọn đời</span></li>
             </ul>
         </div>
     </div>
 </div>
 
-<script>
-function togglePass(id, btn) {
-    const inp = document.getElementById(id);
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        btn.textContent = '🙈';
-    } else {
-        inp.type = 'password';
-        btn.textContent = '👁';
-    }
+@section Scripts {
+    <script>
+        function togglePass(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "🙈";
+            } else {
+                input.type = "password";
+                btn.textContent = "👁";
+            }
+        }
+    </script>
 }
-</script>
