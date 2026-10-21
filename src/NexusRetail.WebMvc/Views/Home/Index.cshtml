@@ -136,7 +136,7 @@
             <span class="page-indicator">Trang @Model.Page / @Math.Max(1, Model.TotalPages)</span>
         </div>
 
-        <div id="products" class="grid">
+        <div id="productGrid" class="grid">
             @foreach (var p in Model.Items)
             {
                 var fallbackImg = Url.Content("~/images/products/" + (string.IsNullOrEmpty(p.Anh) ? "iphone_16_plus_black_37a9bceca0.png" : p.Anh));
@@ -170,7 +170,7 @@
                         <div class="price">@p.GiaBan.ToString("N0") ₫</div>
 
                         <div class="card-actions">
-                            <button class="btn ghost quick-view-btn" type="button" title="Xem thông số kỹ thuật chi tiết">Xem nhanh</button>
+                            <button class="btn ghost quick-view-btn" type="button" onclick="openProduct('@p.MaSp')" title="Xem thông số kỹ thuật chi tiết">Xem nhanh</button>
                             <button class="btn add-cart-btn" type="button" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ hàng">
                                 🛒
                             </button>
