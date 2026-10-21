@@ -1,20 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
 using NexusRetail.Shared.DTOs.BanHang;
-using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WebMvc.Extensions;
 using NexusRetail.WebMvc.Models;
+using NexusRetail.WebMvc.Services.Catalog;
+using NexusRetail.WebMvc.Services.Orders;
 
 namespace NexusRetail.WebMvc.Controllers
 {
     public class CartController : Controller
     {
         private const string CART_KEY = "NEXUS_CART_SESSION";
-        private readonly IHttpClientFactory _factory;
+        private readonly ICatalogApiClient _catalogClient;
+        private readonly IOrderApiClient _orderClient;
         private readonly ILogger<CartController> _logger;
 
-        public CartController(IHttpClientFactory factory, ILogger<CartController> logger)
+        public CartController(ICatalogApiClient catalogClient, IOrderApiClient orderClient, ILogger<CartController> logger)
         {
-            _factory = factory;
+            _catalogClient = catalogClient;
+            _orderClient = orderClient;
             _logger = logger;
         }
 
@@ -50,14 +53,9 @@ namespace NexusRetail.WebMvc.Controllers
             }
             else
             {
-                var client = _factory.CreateClient("CoreApi");
-                var response = await client.GetAsync($"api/san-pham/{maSp}");
-                if (!response.IsSuccessStatusCode)
-                    return Json(new { success = false, message = "Không tìm thấy thông tin sản phẩm trên hệ thống!" });
-
-                var sp = await response.Content.ReadFromJsonAsync<SanPhamDto>();
+                var sp = await _catalogClient.GetProductByIdAsync(maSp);
                 if (sp == null)
-                    return Json(new { success = false, message = "Dữ liệu sản phẩm rỗng!" });
+                    return Json(new { success = false, message = "Không tìm thấy thông tin sản phẩm trên hệ thống!" });
 
                 cart.Add(new CartItem
                 {
@@ -176,10 +174,9 @@ namespace NexusRetail.WebMvc.Controllers
                 return View("Checkout", model);
             }
 
-            // Chuẩn bị DTO thanh toán gửi sang Core API
             var dto = new HoaDonBanDto
             {
-                MaNv = "NV01", // Nhân viên online mặc định
+                MaNv = "NV01",
                 TenKhachVangLai = model.TenKhach,
                 DienThoai = model.DienThoai,
                 DanhSachMon = cart.Select(c => new ChiTietHdbDto
@@ -191,40 +188,23 @@ namespace NexusRetail.WebMvc.Controllers
                 }).ToList()
             };
 
-            try
+            var (success, message, maHdb, tongTien) = await _orderClient.CreateOrderAsync(dto);
+            if (success)
             {
-                var client = _factory.CreateClient("CoreApi");
-                var response = await client.PostAsJsonAsync("api/ban-hang/thanh-toan", dto);
+                HttpContext.Session.Remove(CART_KEY);
+                _logger.LogInformation("Khách {TenKhach} ({Phone}) đặt hàng thành công: {MaHdb}", model.TenKhach, model.DienThoai, maHdb);
 
-                if (response.IsSuccessStatusCode)
+                return RedirectToAction(nameof(OrderSuccess), new
                 {
-                    var hdb = await response.Content.ReadFromJsonAsync<HoaDonBanResponseDto>();
-                    // Xóa giỏ hàng sau khi đặt thành công
-                    HttpContext.Session.Remove(CART_KEY);
-                    _logger.LogInformation("Khách {TenKhach} ({Phone}) đặt hàng thành công: {MaHdb}", model.TenKhach, model.DienThoai, hdb?.MaHdb);
+                    maHdb = maHdb ?? "HDB01",
+                    tongTien = tongTien > 0 ? tongTien : model.TongTien,
+                    tenKhach = model.TenKhach,
+                    dienThoai = model.DienThoai
+                });
+            }
 
-                    return RedirectToAction(nameof(OrderSuccess), new
-                    {
-                        maHdb = hdb?.MaHdb ?? "HDB01",
-                        tongTien = hdb?.TongTien ?? model.TongTien,
-                        tenKhach = model.TenKhach,
-                        dienThoai = model.DienThoai
-                    });
-                }
-                else
-                {
-                    var errorResult = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Lỗi thanh toán: {Err}", errorResult);
-                    ModelState.AddModelError("", $"Lỗi khi đặt hàng: {errorResult}");
-                    return View("Checkout", model);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi kết nối khi thanh toán giỏ hàng");
-                ModelState.AddModelError("", "Không thể kết nối đến máy chủ xử lý đơn hàng. Vui lòng thử lại!");
-                return View("Checkout", model);
-            }
+            ModelState.AddModelError("", message);
+            return View("Checkout", model);
         }
 
         [HttpGet]

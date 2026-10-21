@@ -1,101 +1,56 @@
 using Microsoft.AspNetCore.Mvc;
-using NexusRetail.Shared.DTOs.Common;
-using NexusRetail.Shared.DTOs.SanPham;
-using System.Net.Http.Json;
+using NexusRetail.WebMvc.Services.Catalog;
 
-namespace NexusRetail.WebMvc.Controllers;
-
-public class ProductsController : Controller
+namespace NexusRetail.WebMvc.Controllers
 {
-    private readonly IHttpClientFactory _factory;
-
-    public ProductsController(IHttpClientFactory factory)
+    public class ProductsController : Controller
     {
-        _factory = factory;
-    }
+        private readonly ICatalogApiClient _catalogClient;
 
-    [HttpGet]
-    [Route("Products/Quick/{id?}")]
-    public async Task<IActionResult> Quick(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id)) return NotFound();
-
-        var client = _factory.CreateClient("CoreApi");
-
-        var response = await client.GetAsync(
-            $"api/san-pham/{Uri.EscapeDataString(id.Trim())}"
-        );
-
-        if (!response.IsSuccessStatusCode)
-            return NotFound();
-
-        var data = await response.Content
-            .ReadFromJsonAsync<SanPhamDto>();
-
-        if (data == null)
-            return NotFound();
-
-        return PartialView("_Modal", data);
-    }
-
-
-    // Lấy danh sách SP cho dropdown so sánh
-    [HttpGet]
-    public async Task<IActionResult> CompareProducts()
-    {
-        var client = _factory.CreateClient("CoreApi");
-
-        var response = await client.GetAsync(
-            "api/san-pham?page=1&pageSize=100"
-        );
-
-        if (!response.IsSuccessStatusCode)
-            return StatusCode((int)response.StatusCode);
-
-        var data = await response.Content
-            .ReadFromJsonAsync<PagedResultDto<SanPhamDto>>();
-
-        return Json(data);
-    }
-
-
-    // So sánh 2 sản phẩm
-    [HttpGet]
-    public async Task<IActionResult> Compare(
-        string id,
-        string otherId)
-    {
-        var client = _factory.CreateClient("CoreApi");
-
-        var responseA = await client.GetAsync(
-            $"api/san-pham/{id}"
-        );
-
-        var responseB = await client.GetAsync(
-            $"api/san-pham/{otherId}"
-        );
-
-        if (!responseA.IsSuccessStatusCode ||
-            !responseB.IsSuccessStatusCode)
+        public ProductsController(ICatalogApiClient catalogClient)
         {
-            return NotFound();
+            _catalogClient = catalogClient;
         }
 
-        var a = await responseA.Content
-            .ReadFromJsonAsync<SanPhamDto>();
-
-        var b = await responseB.Content
-            .ReadFromJsonAsync<SanPhamDto>();
-
-        if (a == null || b == null)
-            return NotFound();
-
-        var data = new List<SanPhamDto>
+        [HttpGet]
+        [Route("Products/Quick/{id?}")]
+        public async Task<IActionResult> Quick(string id)
         {
-            a,
-            b
-        };
+            if (string.IsNullOrWhiteSpace(id)) return NotFound();
 
-        return PartialView("_Compare", data);
+            var data = await _catalogClient.GetProductByIdAsync(id);
+            if (data == null) return NotFound();
+
+            return PartialView("_Modal", data);
+        }
+
+        // Lấy danh sách SP cho dropdown so sánh
+        [HttpGet]
+        public async Task<IActionResult> CompareProducts()
+        {
+            var data = await _catalogClient.GetCompareProductsAsync();
+            return Json(data);
+        }
+
+        // So sánh 2 sản phẩm
+        [HttpGet]
+        public async Task<IActionResult> Compare(string id, string otherId)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(otherId))
+                return NotFound();
+
+            var taskA = _catalogClient.GetProductByIdAsync(id);
+            var taskB = _catalogClient.GetProductByIdAsync(otherId);
+
+            await Task.WhenAll(taskA, taskB);
+
+            var a = await taskA;
+            var b = await taskB;
+
+            if (a == null || b == null)
+                return NotFound();
+
+            return PartialView("_Compare", (a, b));
+        }
     }
 }

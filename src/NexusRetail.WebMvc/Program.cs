@@ -5,16 +5,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddHttpClient("CoreApi", client =>
+Action<HttpClient> configureCoreClient = client =>
 {
     var baseUrl = builder.Configuration["ApiEndpoints:CoreApi"] ?? "https://localhost:7143/";
     client.BaseAddress = new Uri(baseUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-})
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+};
+
+Func<HttpMessageHandler> createBypassHandler = () => new HttpClientHandler
 {
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-});
+};
+
+// 1. Named HttpClients
+builder.Services.AddHttpClient("CoreApi", configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
 
 builder.Services.AddHttpClient("IdentityApi", client =>
 {
@@ -22,10 +27,31 @@ builder.Services.AddHttpClient("IdentityApi", client =>
     client.BaseAddress = new Uri(baseUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 })
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+.ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+
+// 2. Typed Modular Service Clients (Separation of Concerns)
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Catalog.ICatalogApiClient, NexusRetail.WebMvc.Services.Catalog.CatalogApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Orders.IOrderApiClient, NexusRetail.WebMvc.Services.Orders.OrderApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Reports.IReportApiClient, NexusRetail.WebMvc.Services.Reports.ReportApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Admin.IAdminProductApiClient, NexusRetail.WebMvc.Services.Admin.AdminProductApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Chat.IChatApiClient, NexusRetail.WebMvc.Services.Chat.ChatApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Auth.IAuthApiClient, NexusRetail.WebMvc.Services.Auth.AuthApiClient>(client =>
 {
-    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-});
+    var baseUrl = builder.Configuration["ApiEndpoints:IdentityApi"] ?? "http://localhost:5001/";
+    client.BaseAddress = new Uri(baseUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.ConfigurePrimaryHttpMessageHandler(createBypassHandler);
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

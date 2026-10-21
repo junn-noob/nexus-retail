@@ -8,6 +8,8 @@ builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, relo
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<NexusRetail.Core.Api.Services.Export.IExcelExportService, NexusRetail.Core.Api.Services.Export.ExcelExportService>();
+builder.Services.AddScoped<NexusRetail.Core.Api.Services.Chat.IGeminiChatService, NexusRetail.Core.Api.Services.Chat.GeminiChatService>();
 builder.Services.AddDbContext<RetailDbContext>(x =>
     x.UseSqlServer(builder.Configuration.GetConnectionString("RetailDb")));
 

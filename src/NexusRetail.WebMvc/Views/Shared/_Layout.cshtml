@@ -289,7 +289,10 @@
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Site Scripts -->
+    <!-- Modular Client Scripts (Separation of Concerns) -->
+    <script src="~/js/modules/cart.js" asp-append-version="true"></script>
+    <script src="~/js/modules/product-modal.js" asp-append-version="true"></script>
+    <script src="~/js/modules/chatbot.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     
     @await RenderSectionAsync("Scripts", required: false)
