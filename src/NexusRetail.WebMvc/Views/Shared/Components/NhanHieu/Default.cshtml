@@ -15,114 +15,131 @@
     let currentBrand = null;
 
     function laySanPhamTheoNhanHieu(maNhanHieu, element, page = 1) {
-        // Chỉ đổi brand khi click brand
-        if (element) {
-            $('.brand-item').removeClass('on');
-            $(element).addClass('on');
+        // Nếu không ở trang chủ (không có phần tử #products), chuyển hướng về trang chủ lọc theo brand
+        const productGrid = document.getElementById('products');
+        if (!productGrid) {
+            window.location.href = '/?brand=' + encodeURIComponent(maNhanHieu) + '#products';
+            return;
+        }
 
+        // Đổi trạng thái active
+        if (element) {
+            document.querySelectorAll('.brand-item').forEach(el => el.classList.remove('on'));
+            element.classList.add('on');
             currentBrand = maNhanHieu;
         }
+
         $.ajax({
             url: '/Home/LaySanPhamTheoNhanHieu',
             type: 'GET',
-
             data: {
                 maNhanHieu: maNhanHieu,
                 page: page
             },
-
             success: function (data) {
-
                 renderProducts(data.items);
                 renderPagination(data);
+                // Cuộn mượt đến danh sách sản phẩm
+                const anchor = document.getElementById('products');
+                if (anchor) {
+                    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             },
-
             error: function (xhr) {
-                console.log(xhr);
+                console.error("Lỗi khi tải sản phẩm theo nhãn hiệu", xhr);
             }
         });
     }
 
-
     function renderProducts(items) {
         let html = '';
         if (!items || items.length === 0) {
-            html = '<div class="empty" style="grid-column:1/-1; text-align:center; padding: 40px; background:var(--card); border-radius:16px;">Không có sản phẩm nào thuộc nhãn hiệu này.</div>';
+            html = `
+                <div class="empty-state" style="grid-column: 1 / -1; padding: 48px 20px; text-align: center; background: var(--card); border-radius: var(--r); border: 1px solid var(--line);">
+                    <div style="font-size: 40px; margin-bottom: 12px;">📱</div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 6px;">Không có sản phẩm nào thuộc nhãn hiệu này!</h3>
+                    <p style="color: var(--mute); font-size: 14px;">Kho hàng đang cập nhật thêm sản phẩm mới. Vui lòng quay lại sau.</p>
+                    <a href="/" class="btn" style="margin-top: 16px; display: inline-block;">Xem tất cả sản phẩm</a>
+                </div>
+            `;
             $('#products').html(html);
             return;
         }
+
         items.forEach(sp => {
-            const imgSrc = sp.anh ? `/images/products/${sp.anh}` : '/images/products/default.jpg';
-            html += `<article class="card" data-id="${sp.maSp}">
-                        <div class="img" style="background-image: url('${imgSrc}')"></div>
-                        <div class="cb">
-                        <h3>${sp.tenSp}</h3>
-                        <span class="tag">${sp.ghiChu ?? ''}</span>
-                        <div class="price">${sp.giaBan.toLocaleString('vi-VN')} đ</div>
-                        <div style="display: flex; gap: 8px; margin-top: 10px;">
-                            <button class="btn ghost" type="button" style="flex: 1;">Xem nhanh</button>
-                            <button class="btn" type="button" onclick="quickAddToCart(event, '${sp.maSp}')" title="Thêm vào giỏ" style="padding: 0 14px; background: var(--soft); color: var(--ac); font-weight: 700; border-radius: 10px;">🛒</button>
+            const imgSrc = sp.anh ? `/images/products/${sp.anh}` : '/images/products/iphone_16_plus_black_37a9bceca0.png';
+            const isFlagship = sp.giaBan > 25000000;
+            const badgeHtml = isFlagship 
+                ? '<span class="badge badge-flagship">👑 Flagship</span>' 
+                : '<span class="badge badge-hot">🔥 Bán chạy</span>';
+            const brandText = sp.tenNhanHieu || 'Chính hãng';
+            const noteText = sp.ghiChu || 'Bảo hành 12 tháng';
+            const formattedPrice = Number(sp.giaBan).toLocaleString('vi-VN') + ' ₫';
+
+            html += `
+                <article class="card" data-id="${sp.maSp}">
+                    <div class="card-badges">
+                        ${badgeHtml}
+                    </div>
+                    <div class="img" style="background-image: url('${imgSrc}')" title="${sp.tenSp}"></div>
+                    <div class="cb">
+                        <span class="card-brand">${brandText}</span>
+                        <h3 title="${sp.tenSp}">${sp.tenSp}</h3>
+                        <span class="tag">${noteText}</span>
+                        <div class="price">${formattedPrice}</div>
+                        <div class="card-actions">
+                            <button class="btn ghost quick-view-btn" type="button" title="Xem thông số kỹ thuật chi tiết">Xem nhanh</button>
+                            <button class="btn add-cart-btn" type="button" onclick="quickAddToCart(event, '${sp.maSp}')" title="Thêm vào giỏ hàng">
+                                🛒
+                            </button>
                         </div>
-                        </div>
-                    </article>`;
+                    </div>
+                </article>
+            `;
         });
+
         $('#products').html(html);
     }
 
-
     function renderPagination(data) {
         let html = '';
-        if (data.totalPages <= 1) {
+        if (!data || data.totalPages <= 1) {
             $('#pagination').html('');
             return;
         }
+
         // Previous
         if (data.page > 1) {
-            html += `
-                <a onclick="laySanPhamTheoNhanHieu(
-                    '${currentBrand}',
-                    null,
-                    ${data.page - 1}
-                )">
-                    ←
-                </a>
-            `;
-        }
-        else {
-            html += `<a class="off">←</a>`;
+            html += `<a onclick="laySanPhamTheoNhanHieu('${currentBrand}', null, ${data.page - 1})">← Trước</a>`;
+        } else {
+            html += `<a class="off">← Trước</a>`;
         }
 
         // Page numbers
         for (let i = 1; i <= data.totalPages; i++) {
-
-            html += `
-                <a class="${i === data.page ? 'on' : ''}"
-                   onclick="laySanPhamTheoNhanHieu(
-                        '${currentBrand}',
-                        null,
-                        ${i}
-                   )">
-                    ${i}
-                </a>
-            `;
+            html += `<a class="${i === data.page ? 'on' : ''}" onclick="laySanPhamTheoNhanHieu('${currentBrand}', null, ${i})">${i}</a>`;
         }
 
         // Next
         if (data.page < data.totalPages) {
-            html += `
-                <a onclick="laySanPhamTheoNhanHieu(
-                    '${currentBrand}',
-                    null,
-                    ${data.page + 1}
-                )">
-                    →
-                </a>
-            `;
-        }
-        else {
-            html += `<a class="off">→</a>`;
+            html += `<a onclick="laySanPhamTheoNhanHieu('${currentBrand}', null, ${data.page + 1})">Sau →</a>`;
+        } else {
+            html += `<a class="off">Sau →</a>`;
         }
 
         $('#pagination').html(html);
     }
+
+    // Tự động highlight thương hiệu nếu có query string brand
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const brandParam = urlParams.get('brand');
+        if (brandParam) {
+            currentBrand = brandParam;
+            const targetBtn = document.querySelector(`.brand-item[data-id="${brandParam}"]`);
+            if (targetBtn) {
+                targetBtn.classList.add('on');
+            }
+        }
+    });
 </script>

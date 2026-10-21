@@ -9,16 +9,55 @@ namespace NexusRetail.WebMvc.Controllers;
 public class HomeController : Controller
 {
     private readonly IHttpClientFactory _factory;
+    private readonly ILogger<HomeController> _logger;
 
-    public HomeController(IHttpClientFactory factory) { this._factory = factory; }
+    public HomeController(IHttpClientFactory factory, ILogger<HomeController> logger)
+    {
+        _factory = factory;
+        _logger = logger;
+    }
 
-    public async Task<IActionResult> Index(int page = 1)
+    public async Task<IActionResult> Index(int page = 1, string? q = null, string? price = null, string? brand = null)
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>($"api/san-pham?page={page}&pageSize=6");
+        string url;
+        if (!string.IsNullOrWhiteSpace(brand))
+        {
+            url = $"api/san-pham/nhan-hieu/{Uri.EscapeDataString(brand)}?page={page}&pageSize=9";
+        }
+        else
+        {
+            url = $"api/san-pham?page={page}&pageSize=9";
+            if (!string.IsNullOrWhiteSpace(q))
+                url += $"&q={Uri.EscapeDataString(q)}";
 
-        return View(data);
+            if (!string.IsNullOrWhiteSpace(price))
+            {
+                url += price switch
+                {
+                    "lt20" => "&maxPrice=20000000",
+                    "mid"  => "&minPrice=20000000&maxPrice=30000000",
+                    "gt30" => "&minPrice=30000000",
+                    _ => ""
+                };
+            }
+        }
+
+        ViewBag.CurrentPrice = price;
+        ViewBag.CurrentQ = q;
+        ViewBag.CurrentBrand = brand;
+
+        try
+        {
+            var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(url);
+            return View(data ?? new PagedResultDto<SanPhamDto>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi lấy danh sách sản phẩm từ CoreApi (url: {Url})", url);
+            return View(new PagedResultDto<SanPhamDto>());
+        }
     }
 
     [HttpGet]
@@ -26,10 +65,18 @@ public class HomeController : Controller
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(
-            $"api/san-pham/nhan-hieu/{maNhanHieu}?page={page}&pageSize=2");
+        try
+        {
+            var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(
+                $"api/san-pham/nhan-hieu/{maNhanHieu}?page={page}&pageSize=9");
 
-        return Json(data);
+            return Json(data);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi lấy sản phẩm theo nhãn hiệu: {MaNhanHieu}", maNhanHieu);
+            return Json(new PagedResultDto<SanPhamDto>());
+        }
     }
 
     public IActionResult Privacy()

@@ -5,7 +5,7 @@
     var loais = ViewBag.Loais as List<NexusRetail.WebMvc.Models.CategoryOption> ?? new();
     var nhanHieus = ViewBag.NhanHieus as List<NexusRetail.WebMvc.Models.BrandOption> ?? new();
     var manHinhs = ViewBag.ManHinhs as List<NexusRetail.WebMvc.Models.ScreenOption> ?? new();
-    var imgUrl = string.IsNullOrWhiteSpace(Model.Anh) ? "/img/default.webp" : $"/img/{Model.Anh}";
+    var imgUrl = string.IsNullOrWhiteSpace(Model.Anh) ? "/images/products/iphone_16_plus_black_37a9bceca0.png" : $"/images/products/{Model.Anh}";
 }
 
 <partial name="_AdminNav" />

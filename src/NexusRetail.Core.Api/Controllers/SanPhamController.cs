@@ -17,13 +17,32 @@ namespace NexusRetail.Core.Api.Controllers
         public SanPhamController(RetailDbContext db) { this._db = db; }
 
         [HttpGet]
-        public async Task<IActionResult> layDanhSach([FromQuery] int page, [FromQuery] int pageSize = 9)
+        public async Task<IActionResult> layDanhSach(
+            [FromQuery] int page,
+            [FromQuery] int pageSize = 9,
+            [FromQuery] string? q = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null)
         {
             page = Math.Max(page, 1);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
-            var query = _db.VwDanhSachSanPhams
-                .AsNoTracking();
+            var query = _db.VwDanhSachSanPhams.AsNoTracking();
+
+            // FR-6.1 / BR-04: Tìm kiếm theo tên hoặc mã SP
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                query = query.Where(x =>
+                    x.TenSp.Contains(q) ||
+                    x.MaSp.Contains(q));
+            }
+
+            // FR-6.1: Lọc theo khoảng giá bán
+            if (minPrice.HasValue)
+                query = query.Where(x => x.GiaBan >= minPrice.Value);
+            if (maxPrice.HasValue)
+                query = query.Where(x => x.GiaBan <= maxPrice.Value);
 
             var totalItems = await query.CountAsync();
 

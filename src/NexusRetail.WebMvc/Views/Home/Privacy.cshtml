@@ -1,6 +1,45 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+@{
+    ViewData["Title"] = "Chính sách bảo mật & Điều khoản dịch vụ";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="wrap" style="max-width: 900px; margin: 40px auto; padding: 0 16px;">
+    <div style="background: var(--card); border-radius: var(--r); padding: 40px; box-shadow: var(--sh); border: 1px solid var(--line);">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--soft); color: var(--ac); font-size: 24px; display: flex; align-items: center; justify-content: center;">
+                🛡️
+            </div>
+            <div>
+                <h1 style="font-size: 26px; font-weight: 800; color: var(--ink); margin-bottom: 4px;">Chính sách bảo mật & Điều khoản</h1>
+                <p style="color: var(--mute); font-size: 14px;">Hệ thống bán lẻ thiết bị di động chính hãng Duy Mobile</p>
+            </div>
+        </div>
+
+        <section style="margin-bottom: 28px;">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 12px;">1. Mục đích và phạm vi thu thập thông tin</h2>
+            <p style="color: #475569; font-size: 14.5px; line-height: 1.7; margin-bottom: 12px;">
+                Duy Mobile cam kết bảo vệ sự riêng tư của khách hàng. Chúng tôi chỉ thu thập các thông tin cần thiết phục vụ cho việc xử lý đơn hàng, giao nhận thiết bị và kích hoạt bảo hành điện tử (bao gồm: Họ tên, Số điện thoại liên hệ, Địa chỉ giao hàng).
+            </p>
+        </section>
+
+        <section style="margin-bottom: 28px;">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 12px;">2. Cam kết bảo mật thông tin (Security & Hashing)</h2>
+            <p style="color: #475569; font-size: 14.5px; line-height: 1.7; margin-bottom: 12px;">
+                Mọi thông tin tài khoản người dùng được lưu trữ an toàn theo tiêu chuẩn mã hóa ASP.NET Core Identity (PBKDF2). Hệ thống được bảo vệ chống các lỗ hổng phổ biến như CSRF (Cross-Site Request Forgery) và xác thực quyền hạn nghiêm ngặt tại Server-side theo yêu cầu kỹ thuật của đề bài môn học.
+            </p>
+        </section>
+
+        <section style="margin-bottom: 28px;">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 12px;">3. Chính sách bảo hành & Đổi trả thiết bị</h2>
+            <ul style="color: #475569; font-size: 14.5px; line-height: 1.8; padding-left: 20px;">
+                <li><strong>1 đổi 1 trong 30 ngày:</strong> Áp dụng cho các sản phẩm smartphone có lỗi từ nhà sản xuất.</li>
+                <li><strong>Bảo hành chính hãng:</strong> Tối thiểu 12 tháng tại các trung tâm bảo hành ủy quyền toàn quốc.</li>
+                <li><strong>Tra cứu trực tuyến:</strong> Khách hàng có thể dễ dàng kiểm tra lịch sử mua sắm và hạn bảo hành bằng số điện thoại bất cứ lúc nào qua cổng thông tin Duy Mobile hoặc Chatbot AI.</li>
+            </ul>
+        </section>
+
+        <section style="border-top: 1px solid var(--line); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <span style="font-size: 13px; color: var(--mute);">© 2026 Duy Mobile • Khoa CNTT - ĐH Giao thông Vận tải</span>
+            <a asp-action="Index" class="btn ghost" style="padding: 8px 18px; font-size: 13.5px;">← Quay lại trang chủ</a>
+        </section>
+    </div>
+</div>

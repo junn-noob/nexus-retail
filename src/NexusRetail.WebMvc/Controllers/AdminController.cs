@@ -110,7 +110,7 @@ namespace NexusRetail.WebMvc.Controllers
             }
 
             // Xử lý upload ảnh (Validate định dạng & dung lượng < 5MB)
-            string fileName = "default.webp";
+            string fileName = "iphone_16_plus_black_37a9bceca0.png";
             if (model.FileAnh != null && model.FileAnh.Length > 0)
             {
                 var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
@@ -131,7 +131,7 @@ namespace NexusRetail.WebMvc.Controllers
                 }
 
                 fileName = $"sp_{DateTime.UtcNow.Ticks}{ext}";
-                var uploadDir = Path.Combine(_env.WebRootPath, "img");
+                var uploadDir = Path.Combine(_env.WebRootPath, "images", "products");
                 if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
                 var filePath = Path.Combine(uploadDir, fileName);
 
@@ -209,7 +209,7 @@ namespace NexusRetail.WebMvc.Controllers
                 return View(model);
             }
 
-            string fileName = model.Anh ?? "default.webp";
+            string fileName = model.Anh ?? "iphone_16_plus_black_37a9bceca0.png";
             if (model.FileAnh != null && model.FileAnh.Length > 0)
             {
                 var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
@@ -223,7 +223,7 @@ namespace NexusRetail.WebMvc.Controllers
                 }
 
                 fileName = $"sp_{DateTime.UtcNow.Ticks}{ext}";
-                var uploadDir = Path.Combine(_env.WebRootPath, "img");
+                var uploadDir = Path.Combine(_env.WebRootPath, "images", "products");
                 if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
                 var filePath = Path.Combine(uploadDir, fileName);
 

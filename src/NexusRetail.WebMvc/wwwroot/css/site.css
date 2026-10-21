@@ -1754,7 +1754,7 @@ a.opt {
 }
 
 /* Responsive adjustments */
-@@media (max-width: 960px) {
+@media (max-width: 960px) {
     .footer-inner {
         grid-template-columns: 1fr 1fr;
         gap: 32px;
@@ -1764,7 +1764,7 @@ a.opt {
         padding: 36px 24px;
     }
 }
-@@media (max-width: 600px) {
+@media (max-width: 600px) {
     .footer-inner {
         grid-template-columns: 1fr;
     }

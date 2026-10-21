@@ -10,7 +10,10 @@
         ("mid", "20 – 30 triệu"), 
         ("gt30", "Trên 30 triệu") 
     };
-    var currentQuery = Context.Request.Query["q"].ToString();
+    var currentPrice = ViewBag.CurrentPrice as string;
+    var currentBrand = ViewBag.CurrentBrand as string;
+    var currentQuery = ViewBag.CurrentQ as string ?? Context.Request.Query["q"].ToString();
+    var hasActiveFilters = !string.IsNullOrEmpty(currentPrice) || !string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(currentQuery);
 }
 
 <!-- Hero Banner Section -->
@@ -75,16 +78,23 @@
         <div class="filter-card">
             <div class="filter-header">
                 <h3>Bộ lọc sản phẩm</h3>
-                @if (!string.IsNullOrEmpty(currentQuery))
+                @if (hasActiveFilters)
                 {
-                    <a asp-action="Index" class="filter-clear">Xóa tìm kiếm</a>
+                    <a asp-action="Index" asp-fragment="products" class="filter-clear">Xóa bộ lọc ✕</a>
                 }
             </div>
 
             @if (!string.IsNullOrEmpty(currentQuery))
             {
                 <div class="filter-query-info">
-                    <span>Kết quả cho: <strong>"@currentQuery"</strong></span>
+                    <span>Từ khóa: <strong>"@currentQuery"</strong></span>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(currentBrand))
+            {
+                <div class="filter-query-info" style="margin-top: 6px;">
+                    <span>Mã thương hiệu: <strong>@currentBrand</strong></span>
                 </div>
             }
 
@@ -93,7 +103,14 @@
                 <div class="price-options">
                     @foreach (var (k, t) in prices)
                     {
-                        <a class="opt" asp-action="Index" asp-route-page="1">
+                        var isSelected = (k == null && string.IsNullOrEmpty(currentPrice)) || (k != null && k == currentPrice);
+                        <a class="opt @(isSelected ? "on" : "")" 
+                           asp-action="Index" 
+                           asp-route-page="1"
+                           asp-route-price="@k"
+                           asp-route-q="@currentQuery"
+                           asp-route-brand="@currentBrand"
+                           asp-fragment="products">
                             <span class="opt-bullet"></span> @t
                         </a>
                     }
@@ -179,20 +196,29 @@
                 <a class="@(Model.Page <= 1 ? "off" : "")" 
                    asp-action="Index" 
                    asp-route-page="@(Model.Page - 1)"
-                   asp-route-q="@currentQuery">← Trước</a>
+                   asp-route-q="@currentQuery"
+                   asp-route-price="@currentPrice"
+                   asp-route-brand="@currentBrand"
+                   asp-fragment="products">← Trước</a>
 
                 @for (var i = 1; i <= Model.TotalPages; i++)
                 {
                     <a class="@(i == Model.Page ? "on" : "")" 
                        asp-action="Index" 
                        asp-route-page="@i"
-                       asp-route-q="@currentQuery">@i</a>
+                       asp-route-q="@currentQuery"
+                       asp-route-price="@currentPrice"
+                       asp-route-brand="@currentBrand"
+                       asp-fragment="products">@i</a>
                 }
 
                 <a class="@(Model.Page >= Model.TotalPages ? "off" : "")" 
                    asp-action="Index" 
                    asp-route-page="@(Model.Page + 1)"
-                   asp-route-q="@currentQuery">Sau →</a>
+                   asp-route-q="@currentQuery"
+                   asp-route-price="@currentPrice"
+                   asp-route-brand="@currentBrand"
+                   asp-fragment="products">Sau →</a>
             </div>
         }
     </div>

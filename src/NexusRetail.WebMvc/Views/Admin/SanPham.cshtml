@@ -49,10 +49,10 @@
                     {
                         foreach (var sp in Model.Items)
                         {
-                            var imgUrl = string.IsNullOrWhiteSpace(sp.Anh) ? "/img/default.webp" : $"/img/{sp.Anh}";
+                            var imgUrl = string.IsNullOrWhiteSpace(sp.Anh) ? "/images/products/iphone_16_plus_black_37a9bceca0.png" : $"/images/products/{sp.Anh}";
                             <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                                 <td style="padding: 10px 16px;">
-                                    <img src="@imgUrl" alt="@sp.TenSp" style="width: 44px; height: 44px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #fafafa;" onerror="this.src='/img/default.webp'" />
+                                    <img src="@imgUrl" alt="@sp.TenSp" style="width: 44px; height: 44px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #fafafa;" onerror="this.src='/images/products/iphone_16_plus_black_37a9bceca0.png'" />
                                 </td>
                                 <td style="padding: 10px 16px; font-weight: 600; color: #1e293b;">@sp.MaSp</td>
                                 <td style="padding: 10px 16px; font-weight: 600; color: #0f172a;">

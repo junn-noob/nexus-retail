@@ -39,8 +39,14 @@
             📞 Nhân viên bán hàng sẽ sớm liên hệ qua số điện thoại để xác nhận địa chỉ và thời gian giao máy cho bạn trong vòng 15-30 phút.
         </p>
 
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <a asp-controller="Home" asp-action="Index" class="btn" style="padding: 12px 28px; font-size: 15px; font-weight: 600;">
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            @if (!string.IsNullOrEmpty(ViewBag.DienThoai as string))
+            {
+                <a asp-controller="Home" asp-action="TraCuu" asp-route-sdt="@ViewBag.DienThoai" class="btn" style="padding: 12px 24px; font-size: 15px; font-weight: 600;">
+                    🔍 Tra cứu & theo dõi đơn hàng
+                </a>
+            }
+            <a asp-controller="Home" asp-action="Index" class="btn ghost" style="padding: 12px 24px; font-size: 15px; font-weight: 600;">
                 ← Về trang chủ mua sắm
             </a>
         </div>

@@ -10,10 +10,12 @@ namespace NexusRetail.WebMvc.Controllers
     {
         private const string CART_KEY = "NEXUS_CART_SESSION";
         private readonly IHttpClientFactory _factory;
+        private readonly ILogger<CartController> _logger;
 
-        public CartController(IHttpClientFactory factory)
+        public CartController(IHttpClientFactory factory, ILogger<CartController> logger)
         {
             _factory = factory;
+            _logger = logger;
         }
 
         private List<CartItem> GetCartFromSession()
@@ -148,10 +150,16 @@ namespace NexusRetail.WebMvc.Controllers
                 DanhSachMon = cart
             };
 
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                model.TenKhach = User.Identity.Name ?? "";
+            }
+
             return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProcessCheckout(CheckoutViewModel model)
         {
             var cart = GetCartFromSession();
@@ -171,7 +179,7 @@ namespace NexusRetail.WebMvc.Controllers
             // Chuẩn bị DTO thanh toán gửi sang Core API
             var dto = new HoaDonBanDto
             {
-                MaNv = "NV01", // Mặc định nhân viên quản lý đơn Online
+                MaNv = "NV01", // Nhân viên online mặc định
                 TenKhachVangLai = model.TenKhach,
                 DienThoai = model.DienThoai,
                 DanhSachMon = cart.Select(c => new ChiTietHdbDto
@@ -183,36 +191,49 @@ namespace NexusRetail.WebMvc.Controllers
                 }).ToList()
             };
 
-            var client = _factory.CreateClient("CoreApi");
-            var response = await client.PostAsJsonAsync("api/ban-hang/thanh-toan", dto);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var hdb = await response.Content.ReadFromJsonAsync<HoaDonBanResponseDto>();
-                // Xóa giỏ hàng sau khi đặt thành công
-                HttpContext.Session.Remove(CART_KEY);
+                var client = _factory.CreateClient("CoreApi");
+                var response = await client.PostAsJsonAsync("api/ban-hang/thanh-toan", dto);
 
-                return RedirectToAction(nameof(OrderSuccess), new
+                if (response.IsSuccessStatusCode)
                 {
-                    maHdb = hdb?.MaHdb ?? "HDB01",
-                    tongTien = hdb?.TongTien ?? model.TongTien,
-                    tenKhach = model.TenKhach
-                });
+                    var hdb = await response.Content.ReadFromJsonAsync<HoaDonBanResponseDto>();
+                    // Xóa giỏ hàng sau khi đặt thành công
+                    HttpContext.Session.Remove(CART_KEY);
+                    _logger.LogInformation("Khách {TenKhach} ({Phone}) đặt hàng thành công: {MaHdb}", model.TenKhach, model.DienThoai, hdb?.MaHdb);
+
+                    return RedirectToAction(nameof(OrderSuccess), new
+                    {
+                        maHdb = hdb?.MaHdb ?? "HDB01",
+                        tongTien = hdb?.TongTien ?? model.TongTien,
+                        tenKhach = model.TenKhach,
+                        dienThoai = model.DienThoai
+                    });
+                }
+                else
+                {
+                    var errorResult = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Lỗi thanh toán: {Err}", errorResult);
+                    ModelState.AddModelError("", $"Lỗi khi đặt hàng: {errorResult}");
+                    return View("Checkout", model);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorResult = await response.Content.ReadAsStringAsync();
-                ModelState.AddModelError("", $"Lỗi khi đặt hàng: {errorResult}");
+                _logger.LogError(ex, "Lỗi kết nối khi thanh toán giỏ hàng");
+                ModelState.AddModelError("", "Không thể kết nối đến máy chủ xử lý đơn hàng. Vui lòng thử lại!");
                 return View("Checkout", model);
             }
         }
 
         [HttpGet]
-        public IActionResult OrderSuccess(string maHdb, decimal tongTien, string tenKhach)
+        public IActionResult OrderSuccess(string maHdb, decimal tongTien, string tenKhach, string? dienThoai = null)
         {
             ViewBag.MaHdb = maHdb;
             ViewBag.TongTien = tongTien;
             ViewBag.TenKhach = tenKhach;
+            ViewBag.DienThoai = dienThoai;
             return View();
         }
     }
