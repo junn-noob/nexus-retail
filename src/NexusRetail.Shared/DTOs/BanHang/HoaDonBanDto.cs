@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -7,6 +7,9 @@ namespace NexusRetail.Shared.DTOs.BanHang
 {
     public class HoaDonBanDto
     {
+        [StringLength(20, ErrorMessage = "Mã hóa đơn bán chỉ được nhập tối đa 20 ký tự")]
+        public string? MaHdb { get; set; }
+
         [Required]
         [StringLength(20, ErrorMessage = "Mã nhân viên chỉ được nhập tối đa 20 ký tự")]
         public string MaNv { get; set; } = null!;

@@ -80,7 +80,18 @@ namespace NexusRetail.Core.Api.Controllers
                 var nvHopLe = await _db.NhanViens.AnyAsync(x => x.MaNv == dto.MaNv);
                 var maNv = nvHopLe ? dto.MaNv : (await _db.NhanViens.Select(x => x.MaNv).FirstOrDefaultAsync() ?? "NV01");
 
-                var maHdb = await sinhMaHdb();
+                string maHdb;
+                if (!string.IsNullOrWhiteSpace(dto.MaHdb))
+                {
+                    var reqMa = dto.MaHdb.Trim().ToUpper();
+                    // Nếu mã chưa tồn tại trong DB thì dùng luôn để khớp với mã QR giao dịch ngân hàng
+                    bool daTonTai = await _db.HoaDonBans.AnyAsync(x => x.MaHdb == reqMa);
+                    maHdb = daTonTai ? await sinhMaHdb() : reqMa;
+                }
+                else
+                {
+                    maHdb = await sinhMaHdb();
+                }
                 decimal tongTienHoaDon = 0m;
                 var chiTietList = new List<ChiTietHdb>();
 

@@ -189,6 +189,7 @@ namespace NexusRetail.WinForms.Forms
 
             var dto = new HoaDonBanDto
             {
+                MaHdb = maHdbGiaoDich, // Đồng bộ mã đơn hàng với mã QR giao dịch ngân hàng
                 MaNv = _nhanVien,
                 TenKhachVangLai = string.IsNullOrWhiteSpace(txtTenKhach.Text) ? "Khách Mua Tại Quầy" : txtTenKhach.Text.Trim(),
                 DienThoai = string.IsNullOrWhiteSpace(txtDienThoai.Text) ? "0900000000" : txtDienThoai.Text.Trim(),
