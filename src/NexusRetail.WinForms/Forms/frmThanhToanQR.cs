@@ -1,10 +1,10 @@
 using NexusRetail.WinForms.Services;
 using QRCoder;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
 using System.Media;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace NexusRetail.WinForms.Forms
 {
@@ -38,14 +38,15 @@ namespace NexusRetail.WinForms.Forms
 
             picQr.BringToFront();
 
-            // 1. Sinh ngay lập tức mã QR bằng QRCoder (0ms, 100% offline, hiện tức thì)
-            string quickEmv = $"00020101021138550010A000000727012500069704220111{_accountNumber}0208QRIBFTTA5303704540{((long)_soTien).ToString().Length:D2}{(long)_soTien}5802VN62{($"08{($"DUYMOBILE {_maHdb}".Length):D2}DUYMOBILE {_maHdb}").Length:D2}08{($"DUYMOBILE {_maHdb}".Length):D2}DUYMOBILE {_maHdb}6304";
-            RenderQrCodeWithQRCoder(quickEmv);
+            // 1. Sinh ngay lập tức mã VietQR EMVCo chuẩn NAPAS 100% OFFLINE (0ms, không phụ thuộc mạng hay API ngoài)
+            GenerateAndDisplayQrOffline();
 
-            // 2. Khi form hiện lên, tải ảnh VietQR chính thức từ server để nâng cấp
-            this.Shown += async (s, e) =>
+            this.Shown += (s, e) =>
             {
-                await LoadVietQrImageAsync();
+                if (picQr.Image == null)
+                {
+                    GenerateAndDisplayQrOffline();
+                }
             };
 
             // Khởi động Timer lắng nghe Webhook (1.5 giây/lần)
@@ -54,106 +55,156 @@ namespace NexusRetail.WinForms.Forms
             _pollingTimer.Start();
         }
 
-        private static Image LoadImageFromBytes(byte[] bytes)
+        /// <summary>
+        /// Tạo và hiển thị mã VietQR EMVCo chuẩn NAPAS hoàn toàn offline bằng code C#
+        /// </summary>
+        private void GenerateAndDisplayQrOffline()
         {
-            using var ms = new MemoryStream(bytes);
-            using var temp = Image.FromStream(ms);
-            return new Bitmap(temp);
-        }
-
-        private async Task LoadVietQrImageAsync()
-        {
-            // 1. Ưu tiên 1: Lấy trực tiếp từ img.vietqr.io (SVG nhúng PNG base64 480x480 chính thức)
             try
             {
-                string encodedContent = Uri.EscapeDataString($"DUYMOBILE {_maHdb}");
-                string svgUrl = $"https://img.vietqr.io/image/MB-{_accountNumber}-qr_only.svg?amount={(long)_soTien}&addInfo={encodedContent}";
+                // Xây dựng chuỗi EMVCo chuẩn VietQR MBBank
+                string emvPayload = BuildVietQrEmvCoString(
+                    bin: "970422", // MBBank NAPAS BIN
+                    accountNumber: _accountNumber,
+                    amount: (long)_soTien,
+                    content: $"DUYMOBILE {_maHdb}"
+                );
 
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-                string svgContent = await http.GetStringAsync(svgUrl);
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrCodeData = qrGenerator.CreateQrCode(emvPayload, QRCodeGenerator.ECCLevel.M);
 
-                var match = Regex.Match(svgContent, @"href=""data:image/png;base64,([^""]+)""");
-                if (match.Success)
+                // Ưu tiên 1: Tạo trực tiếp Bitmap chuẩn GDI+ từ QRCoder
+                using var qrCode = new QRCode(qrCodeData);
+                using var bmp = qrCode.GetGraphic(12, Color.Black, Color.White, true);
+
+                var oldImg = picQr.Image;
+                picQr.Image = (Image)bmp.Clone();
+                oldImg?.Dispose();
+                picQr.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[VietQR] Lỗi render bằng QRCode: " + ex.Message);
+
+                // Ưu tiên 2: Fallback với PngByteQRCode (tạo Bitmap độc lập an toàn bộ nhớ)
+                try
                 {
-                    byte[] pngBytes = Convert.FromBase64String(match.Groups[1].Value);
+                    string emvPayload = BuildVietQrEmvCoString("970422", _accountNumber, (long)_soTien, $"DUYMOBILE {_maHdb}");
+                    using var qrGen = new QRCodeGenerator();
+                    using var qrData = qrGen.CreateQrCode(emvPayload, QRCodeGenerator.ECCLevel.M);
+                    using var pngQr = new PngByteQRCode(qrData);
+                    byte[] bytes = pngQr.GetGraphic(12);
+
+                    using var ms = new MemoryStream(bytes);
+                    using var temp = Image.FromStream(ms);
+                    var detachedBmp = new Bitmap(temp.Width, temp.Height);
+                    using (var g = Graphics.FromImage(detachedBmp))
+                    {
+                        g.DrawImage(temp, 0, 0, temp.Width, temp.Height);
+                    }
+
                     var oldImg = picQr.Image;
-                    picQr.Image = LoadImageFromBytes(pngBytes);
+                    picQr.Image = detachedBmp;
                     oldImg?.Dispose();
                     picQr.Refresh();
-                    return;
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("[VietQR] Không thể tải SVG: " + ex.Message);
-            }
-
-            // 2. Ưu tiên 2: Gọi POST API vietqr.vn/api/vietqr/generate lấy chuỗi EMVCo qrCode
-            try
-            {
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-                var reqObj = new
+                catch (Exception ex2)
                 {
-                    bankAccount = _accountNumber,
-                    userBankName = _userBankName,
-                    bankCode = "MB",
-                    amount = ((long)_soTien).ToString(),
-                    content = $"DUYMOBILE {_maHdb}"
-                };
-
-                var res = await http.PostAsJsonAsync("https://vietqr.vn/api/vietqr/generate", reqObj);
-                if (res.IsSuccessStatusCode)
-                {
-                    var jsonDoc = await res.Content.ReadFromJsonAsync<JsonElement>();
-                    if (jsonDoc.TryGetProperty("qrCode", out var qrEl) && !string.IsNullOrEmpty(qrEl.GetString()))
-                    {
-                        RenderQrCodeWithQRCoder(qrEl.GetString()!);
-                        return;
-                    }
+                    Debug.WriteLine("[VietQR] Lỗi fallback render: " + ex2.Message);
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("[VietQR] Không thể gọi API vietqr.vn: " + ex.Message);
-            }
-
-            // 3. Ưu tiên 3: QuickChart API
-            try
-            {
-                string emvString = $"https://vietqr.me/MB/{_accountNumber}/{(long)_soTien}/DUYMOBILE%20{_maHdb}";
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
-                byte[] qrBytes = await http.GetByteArrayAsync($"https://quickchart.io/qr?text={Uri.EscapeDataString(emvString)}&size=300");
-                var oldImg = picQr.Image;
-                picQr.Image = LoadImageFromBytes(qrBytes);
-                oldImg?.Dispose();
-                picQr.Refresh();
-            }
-            catch
-            {
-                // Fallback offline với thư viện QRCoder cục bộ
-                RenderQrCodeWithQRCoder($"https://vietqr.me/MB/{_accountNumber}/{(long)_soTien}/DUYMOBILE%20{_maHdb}");
             }
         }
 
-        private void RenderQrCodeWithQRCoder(string text)
+        #region Thuật toán tạo chuỗi VietQR EMVCo (NAPAS 247) 100% Offline
+
+        private static string Tlv(string tag, string value)
         {
-            try
-            {
-                using var qrGenerator = new QRCodeGenerator();
-                using var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.M);
-                using var qrCode = new PngByteQRCode(qrCodeData);
-                byte[] qrBytes = qrCode.GetGraphic(20);
-
-                var oldImg = picQr.Image;
-                picQr.Image = LoadImageFromBytes(qrBytes);
-                oldImg?.Dispose();
-                picQr.Refresh();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("[VietQR] RenderQrCodeWithQRCoder error: " + ex.Message);
-            }
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+            return $"{tag}{value.Length:D2}{value}";
         }
+
+        public static string BuildVietQrEmvCoString(string bin, string accountNumber, long amount, string content)
+        {
+            // Tag 00: Version (01)
+            string payload = "000201";
+
+            // Tag 01: Phương thức khởi tạo (11: Động có số tiền, 12: Tĩnh)
+            payload += amount > 0 ? "010211" : "010212";
+
+            // Tag 38: Thông tin tài khoản thụ hưởng NAPAS
+            string sub00 = "0010A000000727"; // GUID NAPAS
+            string subSub00 = Tlv("00", bin); // Mã định danh ngân hàng (MB: 970422)
+            string subSub01 = Tlv("01", accountNumber); // Số tài khoản thụ hưởng
+            string sub01 = Tlv("01", subSub00 + subSub01);
+            string sub02 = "0208QRIBFTTA"; // Mã dịch vụ chuyển nhanh NAPAS 24/7 đến tài khoản
+            payload += Tlv("38", sub00 + sub01 + sub02);
+
+            // Tag 53: Mã tiền tệ (704 = VND)
+            payload += "5303704";
+
+            // Tag 54: Số tiền giao dịch
+            if (amount > 0)
+            {
+                payload += Tlv("54", amount.ToString());
+            }
+
+            // Tag 58: Mã quốc gia (VN)
+            payload += "5802VN";
+
+            // Tag 62: Thông tin bổ sung (Nội dung chuyển khoản)
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                string cleanContent = RemoveDiacritics(content.Trim());
+                string sub62_08 = Tlv("08", cleanContent);
+                payload += Tlv("62", sub62_08);
+            }
+
+            // Tag 63: Khai báo trường CRC (Độ dài 04)
+            payload += "6304";
+
+            // Tính mã kiểm tra CRC-16/CCITT-FALSE (Đa thức 0x1021, Khởi tạo 0xFFFF)
+            string crc = ComputeCrc16(payload);
+            return payload + crc;
+        }
+
+        public static string RemoveDiacritics(string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString().Normalize(NormalizationForm.FormC).Replace('đ', 'd').Replace('Đ', 'D');
+        }
+
+        public static string ComputeCrc16(string data)
+        {
+            ushort crc = 0xFFFF;
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+
+            foreach (byte b in bytes)
+            {
+                crc ^= (ushort)(b << 8);
+                for (int i = 0; i < 8; i++)
+                {
+                    if ((crc & 0x8000) != 0)
+                        crc = (ushort)((crc << 1) ^ 0x1021);
+                    else
+                        crc = (ushort)(crc << 1);
+                }
+            }
+
+            return crc.ToString("X4");
+        }
+
+        #endregion
 
         private async void PollingTimer_Tick(object? sender, EventArgs e)
         {
