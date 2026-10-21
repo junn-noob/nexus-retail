@@ -36,8 +36,17 @@ namespace NexusRetail.WinForms.Forms
             lblChuTk.Text = _userBankName;
             lblNganHang.Text = "MB Bank (Ngân hàng TMCP Quân đội)";
 
-            // Nạp mã VietQR động
-            LoadVietQrImage();
+            picQr.BringToFront();
+
+            // 1. Sinh ngay lập tức mã QR bằng QRCoder (0ms, 100% offline, hiện tức thì)
+            string quickEmv = $"00020101021138550010A000000727012500069704220111{_accountNumber}0208QRIBFTTA5303704540{((long)_soTien).ToString().Length:D2}{(long)_soTien}5802VN62{($"08{($"DUYMOBILE {_maHdb}".Length):D2}DUYMOBILE {_maHdb}").Length:D2}08{($"DUYMOBILE {_maHdb}".Length):D2}DUYMOBILE {_maHdb}6304";
+            RenderQrCodeWithQRCoder(quickEmv);
+
+            // 2. Khi form hiện lên, tải ảnh VietQR chính thức từ server để nâng cấp
+            this.Shown += async (s, e) =>
+            {
+                await LoadVietQrImageAsync();
+            };
 
             // Khởi động Timer lắng nghe Webhook (1.5 giây/lần)
             _pollingTimer.Interval = 1500;
@@ -45,7 +54,14 @@ namespace NexusRetail.WinForms.Forms
             _pollingTimer.Start();
         }
 
-        private async void LoadVietQrImage()
+        private static Image LoadImageFromBytes(byte[] bytes)
+        {
+            using var ms = new MemoryStream(bytes);
+            using var temp = Image.FromStream(ms);
+            return new Bitmap(temp);
+        }
+
+        private async Task LoadVietQrImageAsync()
         {
             // 1. Ưu tiên 1: Lấy trực tiếp từ img.vietqr.io (SVG nhúng PNG base64 480x480 chính thức)
             try
@@ -60,8 +76,10 @@ namespace NexusRetail.WinForms.Forms
                 if (match.Success)
                 {
                     byte[] pngBytes = Convert.FromBase64String(match.Groups[1].Value);
-                    using var ms = new MemoryStream(pngBytes);
-                    picQr.Image = Image.FromStream(ms);
+                    var oldImg = picQr.Image;
+                    picQr.Image = LoadImageFromBytes(pngBytes);
+                    oldImg?.Dispose();
+                    picQr.Refresh();
                     return;
                 }
             }
@@ -105,9 +123,10 @@ namespace NexusRetail.WinForms.Forms
                 string emvString = $"https://vietqr.me/MB/{_accountNumber}/{(long)_soTien}/DUYMOBILE%20{_maHdb}";
                 using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
                 byte[] qrBytes = await http.GetByteArrayAsync($"https://quickchart.io/qr?text={Uri.EscapeDataString(emvString)}&size=300");
-                using var ms = new MemoryStream(qrBytes);
-                picQr.Image = Image.FromStream(ms);
-                return;
+                var oldImg = picQr.Image;
+                picQr.Image = LoadImageFromBytes(qrBytes);
+                oldImg?.Dispose();
+                picQr.Refresh();
             }
             catch
             {
@@ -124,20 +143,15 @@ namespace NexusRetail.WinForms.Forms
                 using var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.M);
                 using var qrCode = new PngByteQRCode(qrCodeData);
                 byte[] qrBytes = qrCode.GetGraphic(20);
-                using var ms = new MemoryStream(qrBytes);
-                picQr.Image = Image.FromStream(ms);
+
+                var oldImg = picQr.Image;
+                picQr.Image = LoadImageFromBytes(qrBytes);
+                oldImg?.Dispose();
+                picQr.Refresh();
             }
-            catch
+            catch (Exception ex)
             {
-                var bmp = new Bitmap(260, 260);
-                using (var g = Graphics.FromImage(bmp))
-                {
-                    g.Clear(Color.White);
-                    using var font = new Font("Segoe UI", 11, FontStyle.Bold);
-                    g.DrawString($"VIETQR MBBANK\n\nDUYMOBILE {_maHdb}\n{_soTien:N0} ₫", font, Brushes.DarkBlue, new PointF(30, 90));
-                    g.DrawRectangle(Pens.DarkBlue, 10, 10, 240, 240);
-                }
-                picQr.Image = bmp;
+                Debug.WriteLine("[VietQR] RenderQrCodeWithQRCoder error: " + ex.Message);
             }
         }
 
