@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NexusRetail.Core.Api.Data;
@@ -95,9 +95,11 @@ namespace NexusRetail.Core.Api.Controllers
 
                     if (sp.SoLuong < i.SoLuong)
                     {
+                        await tx.RollbackAsync();
                         return BadRequest(new { message = $"Sản phẩm '{sp.TenSp}' chỉ còn {sp.SoLuong} chiếc trong kho, không đủ để bán!" });
                     }
                     
+                    sp.SoLuong -= i.SoLuong; // BR-01: Trừ tồn kho khi xuất bán
                     var chiTietHdb = new ChiTietHdb
                     {
                         MaHdb = maHdb,

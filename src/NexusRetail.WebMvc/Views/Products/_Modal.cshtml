@@ -64,7 +64,7 @@
                 }
 
 
-                @if (Model.ThoiGianBaoHanh != null)
+                @if (Model.ThoiGianBaoHanh > 0)
                 {
                     <span>
                         Bảo hành @Model.ThoiGianBaoHanh tháng
@@ -222,7 +222,7 @@
                 <th>Bảo hành</th>
 
                 <td>
-                    @(Model.ThoiGianBaoHanh != null
+                    @(Model.ThoiGianBaoHanh > 0
                         ? $"{Model.ThoiGianBaoHanh} tháng"
                         : "Đang cập nhật")
                 </td>

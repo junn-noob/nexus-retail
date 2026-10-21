@@ -46,11 +46,11 @@
 
         (
             "Bảo hành",
-            a.ThoiGianBaoHanh != null
+            a.ThoiGianBaoHanh > 0
                 ? $"{a.ThoiGianBaoHanh} tháng"
                 : "—",
 
-            b.ThoiGianBaoHanh != null
+            b.ThoiGianBaoHanh > 0
                 ? $"{b.ThoiGianBaoHanh} tháng"
                 : "—"
         ),
