@@ -12,18 +12,11 @@ public class HomeController : Controller
 
     public HomeController(IHttpClientFactory factory) { this._factory = factory; }
 
-    public async Task<IActionResult> Index(int page = 1, string? q = null, string? price = null)
+    public async Task<IActionResult> Index(int page = 1)
     {
         var client = _factory.CreateClient("CoreApi");
 
-        var url = $"api/san-pham?page={page}&pageSize=9";
-        if (!string.IsNullOrWhiteSpace(q))
-            url += $"&q={Uri.EscapeDataString(q)}";
-        if (!string.IsNullOrWhiteSpace(price))
-            url += $"&price={price}";
-
-        var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(url)
-                   ?? new PagedResultDto<SanPhamDto>();
+        var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>($"api/san-pham?page={page}&pageSize=6");
 
         return View(data);
     }
@@ -34,7 +27,7 @@ public class HomeController : Controller
         var client = _factory.CreateClient("CoreApi");
 
         var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(
-            $"api/san-pham/nhan-hieu/{maNhanHieu}?page={page}&pageSize=9");
+            $"api/san-pham/nhan-hieu/{maNhanHieu}?page={page}&pageSize=2");
 
         return Json(data);
     }
@@ -62,7 +55,7 @@ public class HomeController : Controller
                 return View(data);
             }
         }
-        catch { }
+        catch { /* CoreApi not reachable */ }
 
         return View();
     }

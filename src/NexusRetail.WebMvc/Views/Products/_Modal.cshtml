@@ -94,12 +94,20 @@
             <!-- Actions -->
             <div class="acts">
 
-                <button type="button"
-                        class="btn"
-                        onclick="addToCartFromModal('@Model.MaSp')"
-                        style="background: var(--ok); color: #fff; font-weight: 700; width: 100%; margin-bottom: 4px;">
-                    🛒 Thêm vào giỏ hàng
-                </button>
+                <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
+                    <button type="button"
+                            class="btn"
+                            onclick="addToCartFromModal('@Model.MaSp')"
+                            style="background: var(--soft); color: var(--ac); font-weight: 700; flex: 1;">
+                        🛒 Thêm vào giỏ
+                    </button>
+                    <button type="button"
+                            class="btn"
+                            onclick="buyNowFromModal('@Model.MaSp')"
+                            style="background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #fff; font-weight: 700; flex: 1.2;">
+                        ⚡ Mua ngay
+                    </button>
+                </div>
 
                 <button type="button"
                         class="btn ghost"

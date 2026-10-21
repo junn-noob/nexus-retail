@@ -1,5 +1,9 @@
 @{
     var signedIn = User.Identity?.IsAuthenticated == true;
+    var userName = User.Identity?.Name ?? "";
+    var currentRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Customer";
+    var isHome = string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Home", StringComparison.OrdinalIgnoreCase) 
+                 && string.Equals(ViewContext.RouteData.Values["action"]?.ToString(), "Index", StringComparison.OrdinalIgnoreCase);
 }
 
 <!DOCTYPE html>
@@ -7,101 +11,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Duy Mobile — Chuỗi cửa hàng điện thoại chính hãng. Tư vấn bởi AI, bảo hành 12 tháng, giao hàng miễn phí toàn quốc.">
-    <title>@ViewData["Title"] — Duy Mobile</title>
+    <title>@ViewData["Title"] — Duy Mobile • Hệ Thống Bán Lẻ Công Nghệ</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
+    <!-- Top Announcement Bar -->
+    <div class="top-bar">
+        <div class="top-bar-inner">
+            <div class="top-bar-left">
+                <span>🔥 Thu cũ đổi mới trợ giá tới <strong>3.000.000₫</strong></span>
+                <span class="sep">•</span>
+                <span>🚚 Giao hàng miễn phí toàn quốc</span>
+                <span class="sep">•</span>
+                <span>🛡️ Bảo hành chính hãng 12 tháng</span>
+            </div>
+            <div class="top-bar-right">
+                <a href="tel:18006868" class="top-link">📞 Hotline: 1800.6868 (Miễn phí)</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="main-header">
         <div class="nav">
-            <a class="logo" asp-controller="Home" asp-action="Index">Duy<b>Mobile</b></a>
-            <nav class="menu">
+            <a class="logo" asp-controller="Home" asp-action="Index">
+                <span class="logo-mark">⚡</span>Duy<b>Mobile</b>
+            </a>
+
+            <nav class="menu" aria-label="Danh mục thương hiệu">
                 @await Component.InvokeAsync("NhanHieu")
             </nav>
+
             <form class="search" method="get" asp-controller="Home" asp-action="Index" asp-fragment="products">
-                <input name="q" type="search" placeholder="Tìm sản phẩm…" aria-label="Tìm sản phẩm" value="@Context.Request.Query["q"]">
+                <input name="q" type="search" placeholder="Tìm kiếm điện thoại, phụ kiện…" aria-label="Tìm sản phẩm" value="@Context.Request.Query["q"]">
+                <button type="submit" class="search-btn" title="Tìm kiếm">🔍</button>
             </form>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <a class="btn ghost" asp-controller="Home" asp-action="TraCuu" style="display: flex; align-items: center; gap: 4px; font-size: 13.5px;">
-                    🔍 Tra cứu
+
+            <div class="nav-actions">
+                <a class="btn ghost nav-action-btn" asp-controller="Home" asp-action="TraCuu" title="Tra cứu đơn hàng và hạn bảo hành">
+                    <span class="action-icon">📋</span>
+                    <span class="action-label">Tra cứu đơn</span>
                 </a>
-                <a class="btn ghost" asp-controller="Cart" asp-action="Index" style="display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13.5px;">
-                    🛒 <span id="cartCount" style="color: var(--ac);">0</span>
+
+                <a class="btn ghost nav-action-btn cart-btn" asp-controller="Cart" asp-action="Index" title="Xem giỏ hàng của bạn">
+                    <span class="action-icon">🛒</span>
+                    <span class="action-label">Giỏ hàng</span>
+                    <span id="cartCount" class="cart-badge">0</span>
                 </a>
             </div>
-            <div class="user">
+
+            <div class="user-area">
                 @if (signedIn)
                 {
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a class="btn ghost" asp-controller="Admin" asp-action="Index" style="background: rgba(220, 38, 38, 0.08); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.25); font-weight: 600;">⚙️ Quản trị</a>
-                    }
-                    <span style="font-weight: 500; font-size: 13.5px;">👤 @User.Identity!.Name</span>
-                    <form method="post" asp-controller="Account" asp-action="Logout" style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn ghost" style="padding: 6px 12px; font-size: 13px;">Đăng xuất</button>
-                    </form>
+                    <div class="user-dropdown">
+                        <button type="button" class="user-btn" id="userMenuToggle">
+                            <span class="user-avatar">@userName.Substring(0, 1).ToUpper()</span>
+                            <span class="user-name">@userName</span>
+                            <span class="user-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-panel" id="userMenuPanel">
+                            <div class="dropdown-header">
+                                <strong>@userName</strong>
+                                <span class="role-tag">@currentRole</span>
+                            </div>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                👤 Hồ sơ tài khoản
+                            </a>
+                            <a class="dropdown-item" asp-controller="Home" asp-action="TraCuu">
+                                📦 Đơn hàng của tôi
+                            </a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="Index" style="color: var(--ac); font-weight: 700;">
+                                    ⚙️ Trang quản trị
+                                </a>
+                            }
+                            <hr class="dropdown-divider" />
+                            <form method="post" asp-controller="Account" asp-action="Logout" style="margin: 0;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer;">
+                                    🚪 Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 }
                 else
                 {
-                    <a class="btn ghost" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                    <a class="btn" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                    <div class="auth-buttons">
+                        <a class="btn ghost login-link" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        <a class="btn register-link" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                    </div>
                 }
             </div>
         </div>
     </header>
 
-    <section class="hero">
-      <div>
-        <h1>Công nghệ phù hợp<br>với nhu cầu của bạn.</h1>
-        <p>Khám phá sản phẩm, xem cấu hình nhanh và hỏi AI để tìm thiết bị phù hợp.</p>
-      </div>
-      <div class="aibox">
-        <h3>✨ AI tư vấn Duy Mobile</h3>
-        <p>Nói nhu cầu và ngân sách, AI sẽ gợi ý vài thiết bị đáng cân nhắc.</p>
-        <button class="btn" id="heroAI">Hỏi AI ngay</button>
-      </div>
-    </section>
+    <!-- Global Toast Alert if any -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flash-toast flash-toast-success" id="flashToast">
+            <span>✓</span> @TempData["SuccessMessage"]
+        </div>
+    }
 
-    @RenderBody()
+    <!-- Main Content Body -->
+    <main class="page-body">
+        @RenderBody()
+    </main>
 
-    <footer class="site-footer">
+    <!-- Modern Luxury Footer -->
+    <footer class="main-footer">
         <div class="footer-inner">
-            <div class="footer-brand">
-                <a class="logo" asp-controller="Home" asp-action="Index">Duy<b>Mobile</b></a>
-                <p>Chuỗi cửa hàng điện thoại chính hãng hàng đầu. Tư vấn bởi AI, bảo hành 12 tháng, giao hàng miễn phí toàn quốc.</p>
+            <div class="footer-col brand-col">
+                <a class="logo footer-logo" asp-controller="Home" asp-action="Index">
+                    <span class="logo-mark">⚡</span>Duy<b>Mobile</b>
+                </a>
+                <p class="footer-desc">
+                    Hệ thống bán lẻ điện thoại, thiết bị di động và công nghệ thông minh chính hãng hàng đầu Việt Nam. Tận tâm phục vụ, bảo hành siêu tốc.
+                </p>
+                <div class="footer-badges">
+                    <span class="trust-badge">🛡️ 100% Chính hãng</span>
+                    <span class="trust-badge">⚡ AI Advisor 24/7</span>
+                    <span class="trust-badge">🔄 1 đổi 1 30 ngày</span>
+                </div>
             </div>
+
             <div class="footer-col">
-                <h5>Mua sắm</h5>
-                <a asp-controller="Home" asp-action="Index">Tất cả sản phẩm</a>
-                <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
-                <a asp-controller="Home" asp-action="TraCuu">Tra cứu đơn hàng</a>
+                <h4>Hỗ trợ khách hàng</h4>
+                <ul class="footer-links">
+                    <li><a asp-controller="Home" asp-action="TraCuu">Tra cứu đơn hàng & bảo hành</a></li>
+                    <li><a href="javascript:void(0)" onclick="alert('Chính sách giao hàng: Miễn phí toàn quốc cho mọi đơn hàng điện thoại chính hãng.')">Chính sách vận chuyển</a></li>
+                    <li><a href="javascript:void(0)" onclick="alert('Chính sách đổi trả: 1 đổi 1 trong 30 ngày đầu nếu có lỗi phần cứng từ nhà sản xuất.')">Chính sách đổi trả & bảo hành</a></li>
+                    <li><a href="javascript:void(0)" onclick="alert('Phương thức thanh toán: Hỗ trợ tiền mặt khi nhận hàng (COD), quẹt thẻ ngân hàng, chuyển khoản.')">Phương thức thanh toán</a></li>
+                </ul>
             </div>
+
             <div class="footer-col">
-                <h5>Hỗ trợ</h5>
-                <a href="#">Chính sách bảo hành</a>
-                <a href="#">Hướng dẫn mua hàng</a>
-                <a href="#">Liên hệ cửa hàng</a>
+                <h4>Về Duy Mobile</h4>
+                <ul class="footer-links">
+                    <li><a asp-controller="Home" asp-action="Index">Hệ thống sản phẩm</a></li>
+                    <li><a href="javascript:void(0)" onclick="alert('Showroom chính: Tầng 1, Tòa nhà Công Nghệ Nexus, Hà Nội.')">Hệ thống Showroom</a></li>
+                    <li><a asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a></li>
+                    <li><a asp-controller="Account" asp-action="Login">Đăng nhập tài khoản</a></li>
+                </ul>
             </div>
-            <div class="footer-col">
-                <h5>Về chúng tôi</h5>
-                <a href="#">Giới thiệu</a>
-                <a href="#">Chính sách bảo mật</a>
-                <a href="#">Điều khoản sử dụng</a>
+
+            <div class="footer-col contact-col">
+                <h4>Tổng đài hỗ trợ</h4>
+                <div class="contact-card">
+                    <div class="contact-item">
+                        <span class="contact-label">Tư vấn mua hàng:</span>
+                        <a href="tel:18006868" class="contact-number">1800.6868</a>
+                        <span class="contact-time">(7:30 - 22:00 miễn phí)</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">Bảo hành kỹ thuật:</span>
+                        <a href="tel:18008686" class="contact-number">1800.8686</a>
+                        <span class="contact-time">(8:00 - 21:00)</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">Email hỗ trợ:</span>
+                        <span class="contact-email">support@duymobile.vn</span>
+                    </div>
+                </div>
             </div>
         </div>
+
         <div class="footer-bottom">
-            <span>© 2026 Duy Mobile. Tất cả quyền được bảo lưu.</span>
-            <span>🇻🇳 Hàng chính hãng — Bảo hành toàn quốc</span>
+            <div class="footer-bottom-inner">
+                <p>© 2026 Duy Mobile — Nền tảng bán lẻ công nghệ thông minh. Bản quyền thuộc về Duy Mobile Retail Group.</p>
+                <div class="footer-payment-icons">
+                    <span>💵 Tiền mặt COD</span>
+                    <span>💳 Thẻ ATM / Visa / Master</span>
+                    <span>📱 Chuyển khoản QR</span>
+                </div>
+            </div>
         </div>
     </footer>
 
+    <!-- Modals & AI Chat -->
     <div class="ov" id="ov" role="dialog" aria-modal="true"><div class="modal" id="modal"></div></div>
     <partial name="_Chat" />
-
-    <button id="scrollTop" title="Lên đầu trang" aria-label="Lên đầu trang">↑</button>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -115,14 +209,32 @@
                 })
                 .catch(() => {});
         }
-        document.addEventListener('DOMContentLoaded', updateCartBadge);
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartBadge();
 
-        const scrollTopBtn = document.getElementById('scrollTop');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) scrollTopBtn.classList.add('show');
-            else scrollTopBtn.classList.remove('show');
+            // User dropdown menu toggle
+            const userToggle = document.getElementById('userMenuToggle');
+            const userPanel = document.getElementById('userMenuPanel');
+            if (userToggle && userPanel) {
+                userToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userPanel.classList.toggle('show');
+                });
+                document.addEventListener('click', () => {
+                    userPanel.classList.remove('show');
+                });
+            }
+
+            // Auto dismiss flash toast
+            const toast = document.getElementById('flashToast');
+            if (toast) {
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    setTimeout(() => toast.remove(), 400);
+                }, 3500);
+            }
         });
-        scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

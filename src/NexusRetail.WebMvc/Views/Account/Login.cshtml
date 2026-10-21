@@ -1,100 +1,462 @@
+@model NexusRetail.Shared.DTOs.Auth.LoginDto
 @{
-    ViewData["Title"] = "Đăng nhập";
-    var returnUrl = ViewBag.ReturnUrl as string ?? "/";
+    ViewData["Title"] = "Đăng nhập tài khoản";
+    var returnUrl = ViewData["ReturnUrl"] as string;
 }
 
-<div class="auth-page">
-    <div class="auth-card">
+<div class="auth-wrapper">
+    <div class="auth-container">
+        <!-- Visual Brand Side -->
         <div class="auth-brand">
-            <span class="auth-logo">Duy<b>Mobile</b></span>
-            <p class="auth-sub">Đăng nhập để tiếp tục mua sắm</p>
+            <div class="brand-badge">⚡ Nền tảng bán lẻ công nghệ 2026</div>
+            <h2>Trải nghiệm công nghệ đỉnh cao cùng Duy Mobile</h2>
+            <p>Đăng nhập để nhận ưu đãi thành viên, tra cứu bảo hành trọn đời và trò chuyện với trợ lý AI thông minh.</p>
+            
+            <div class="auth-features">
+                <div class="feature-item">
+                    <span class="icon">🛡️</span>
+                    <div>
+                        <strong>Bảo hành chính hãng 12 tháng</strong>
+                        <span>Đổi mới 30 ngày đầu tiên nếu lỗi</span>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">✨</span>
+                    <div>
+                        <strong>Trợ lý AI tư vấn thông minh</strong>
+                        <span>Chọn máy đúng nhu cầu và tài chính</span>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🚚</span>
+                    <div>
+                        <strong>Giao hàng miễn phí toàn quốc</strong>
+                        <span>Kiểm tra hàng trước khi thanh toán</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-footer">
+                <span>© 2026 Duy Mobile • Hệ thống bán lẻ ủy quyền</span>
+            </div>
         </div>
 
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div style="background:#fee2e2; border:1px solid #f87171; color:#b91c1c; padding:10px 14px; border-radius:8px; font-size:13.5px; margin-bottom:16px;">
-                @Html.ValidationSummary(false, "")
+        <!-- Form Side -->
+        <div class="auth-form-card">
+            <div class="form-header">
+                <h3>Đăng nhập</h3>
+                <p>Nhập thông tin tài khoản của bạn để tiếp tục</p>
             </div>
-        }
 
-        <form class="auth-form" method="post" asp-controller="Account" asp-action="Login" id="loginForm">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    <span>✓</span> @TempData["SuccessMessage"]
+                </div>
+            }
 
-            <div class="form-field">
-                <label for="loginPhone">Tên đăng nhập hoặc Số điện thoại</label>
-                <div class="input-wrap">
-                    <span class="input-icon">📱</span>
-                    <input id="loginPhone" name="phone" type="text" placeholder="Ví dụ: admin hoặc 0912345678" autocomplete="username" required />
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
+            <form asp-action="Login" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="form-group">
+                    <label asp-for="Username">Tên đăng nhập hoặc Email</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">👤</span>
+                        <input asp-for="Username" id="loginUsername" placeholder="Nhập tên đăng nhập..." autocomplete="username" autofocus />
+                    </div>
+                    <span asp-validation-for="Username" class="field-validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label asp-for="Password">Mật khẩu</label>
+                        <a href="javascript:void(0)" onclick="alert('Vui lòng liên hệ hotline 1800.6868 hoặc thử các tài khoản Demo phía dưới để khôi phục mật khẩu.');" class="forgot-link">Quên mật khẩu?</a>
+                    </div>
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input asp-for="Password" id="loginPassword" type="password" placeholder="Nhập mật khẩu..." autocomplete="current-password" />
+                        <button type="button" class="pwd-toggle" id="togglePwd" title="Ẩn/Hiện mật khẩu">👁️</button>
+                    </div>
+                    <span asp-validation-for="Password" class="field-validation-error"></span>
+                </div>
+
+                <div class="form-remember">
+                    <label class="checkbox-label">
+                        <input asp-for="RememberMe" type="checkbox" />
+                        <span>Ghi nhớ đăng nhập trong 7 ngày</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-auth">Đăng nhập ngay →</button>
+            </form>
+
+            <!-- Quick Demo Fill -->
+            <div class="demo-box">
+                <div class="demo-title">⚡ Điền nhanh tài khoản kiểm thử (Demo):</div>
+                <div class="demo-buttons">
+                    <button type="button" class="demo-btn" onclick="fillDemo('admin', 'admin123')">
+                        👑 <strong>Admin</strong> (admin / admin123)
+                    </button>
+                    <button type="button" class="demo-btn" onclick="fillDemo('khachhang', '123456')">
+                        👤 <strong>Khách hàng</strong> (khachhang / 123456)
+                    </button>
                 </div>
             </div>
 
-            <div class="form-field">
-                <div class="field-header">
-                    <label for="loginPass">Mật khẩu</label>
-                    <a href="#" class="forgot-link">Quên mật khẩu?</a>
-                </div>
-                <div class="input-wrap">
-                    <span class="input-icon">🔒</span>
-                    <input id="loginPass" name="password" type="password" placeholder="Nhập mật khẩu..." autocomplete="current-password" required />
-                    <button type="button" class="toggle-pass" onclick="togglePass('loginPass', this)" title="Hiện/ẩn mật khẩu">👁</button>
-                </div>
+            <div class="form-switch">
+                Chưa có tài khoản? <a asp-action="Register">Đăng ký thành viên mới</a>
             </div>
-
-            <div class="form-check">
-                <label>
-                    <input type="checkbox" name="remember" value="true" /> Ghi nhớ đăng nhập
-                </label>
-            </div>
-
-            <button type="submit" class="btn auth-btn">Đăng nhập →</button>
-
-            <div style="margin-top:14px; font-size:12px; color:#475569; background:#f1f5f9; padding:10px 14px; border-radius:8px; line-height:1.5;">
-                🔑 <b>Tài khoản kiểm thử chấm điểm:</b><br />
-                • Quản trị viên: <code>admin</code> / <code>Admin@123</code> (Vào trang Quản trị)<br />
-                • Khách hàng: <code>customer</code> / <code>Cust@123</code> (Mua sắm)
-            </div>
-
-            <div class="auth-divider"><span>hoặc</span></div>
-
-            <a asp-controller="Account" asp-action="Register" class="btn ghost auth-btn">
-                Tạo tài khoản mới
-            </a>
-        </form>
-
-        <p class="auth-footer">
-            Bằng cách đăng nhập, bạn đồng ý với
-            <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a> của Duy Mobile.
-        </p>
-    </div>
-
-    <div class="auth-visual">
-        <div class="auth-visual-inner">
-            <div class="auth-badge">✨ AI Tư vấn</div>
-            <h2>Trải nghiệm mua sắm thông minh</h2>
-            <p>Được tư vấn bởi AI, hàng chính hãng, bảo hành 12 tháng toàn quốc.</p>
-            <ul class="auth-perks">
-                <li><span>⚡</span> <span>Hỏi đáp cấu hình tức thời với AI</span></li>
-                <li><span>🛡️</span> <span>Bảo hành chính hãng 12 tháng</span></li>
-                <li><span>🚚</span> <span>Miễn phí giao hàng toàn quốc</span></li>
-                <li><span>🔄</span> <span>Đổi trả 1-1 trong 30 ngày nếu lỗi</span></li>
-            </ul>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        function togglePass(inputId, btn) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            if (input.type === "password") {
-                input.type = "text";
-                btn.textContent = "🙈";
-            } else {
-                input.type = "password";
-                btn.textContent = "👁";
-            }
+<style>
+    .auth-wrapper {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+        background: radial-gradient(circle at 10% 20%, rgba(91, 75, 219, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(124, 108, 240, 0.08) 0%, transparent 40%),
+                    var(--bg);
+    }
+    .auth-container {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        max-width: 980px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(23, 23, 43, 0.1);
+        border: 1px solid var(--line);
+    }
+    .auth-brand {
+        background: linear-gradient(135deg, #181534, #272052 60%, #3e327a);
+        color: #fff;
+        padding: 48px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+    .brand-badge {
+        display: inline-block;
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        padding: 6px 14px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .5px;
+        color: #d1c9ff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        margin-bottom: 24px;
+    }
+    .auth-brand h2 {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.3;
+        margin-bottom: 14px;
+        background: linear-gradient(to right, #fff, #c8c2fe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .auth-brand p {
+        color: #b5b0db;
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin-bottom: 32px;
+    }
+    .auth-features {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        margin-bottom: 32px;
+    }
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .feature-item .icon {
+        font-size: 24px;
+        background: rgba(255, 255, 255, 0.08);
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .feature-item strong {
+        display: block;
+        font-size: 14.5px;
+        color: #f1effe;
+    }
+    .feature-item span {
+        font-size: 12.5px;
+        color: #9f9ac6;
+    }
+    .brand-footer {
+        font-size: 12px;
+        color: #79749f;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 20px;
+    }
+    .auth-form-card {
+        padding: 44px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .form-header {
+        margin-bottom: 24px;
+    }
+    .form-header h3 {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: 6px;
+    }
+    .form-header p {
+        font-size: 14px;
+        color: var(--mute);
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 7px;
+    }
+    .label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .forgot-link {
+        font-size: 12.5px;
+        color: var(--ac);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+    .input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        font-size: 16px;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    .input-wrap input {
+        width: 100%;
+        padding: 12px 14px 12px 42px;
+        border: 1.5px solid var(--line);
+        border-radius: 12px;
+        font-size: 14.5px;
+        outline: none;
+        transition: all 0.2s ease;
+        background: #fafafc;
+    }
+    .input-wrap input:focus {
+        border-color: var(--ac);
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(91, 75, 219, 0.12);
+    }
+    .pwd-toggle {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 16px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    .pwd-toggle:hover {
+        opacity: 1;
+    }
+    .field-validation-error {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+    .form-remember {
+        margin-bottom: 22px;
+    }
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        color: var(--mute);
+        cursor: pointer;
+    }
+    .checkbox-label input {
+        width: 17px;
+        height: 17px;
+        accent-color: var(--ac);
+        cursor: pointer;
+    }
+    .btn-auth {
+        width: 100%;
+        padding: 13px;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--ac), var(--ac2));
+        color: #fff;
+        border: none;
+        box-shadow: 0 6px 18px rgba(91, 75, 219, 0.35);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(91, 75, 219, 0.45);
+    }
+    .demo-box {
+        margin-top: 24px;
+        padding: 14px;
+        background: var(--soft);
+        border-radius: 12px;
+        border: 1px dashed rgba(91, 75, 219, 0.3);
+    }
+    .demo-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ac);
+        margin-bottom: 8px;
+    }
+    .demo-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .demo-btn {
+        flex: 1;
+        min-width: 130px;
+        padding: 8px 10px;
+        background: #fff;
+        border: 1px solid rgba(91, 75, 219, 0.2);
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--ink);
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .demo-btn:hover {
+        background: #f4f2ff;
+        border-color: var(--ac);
+        transform: translateY(-1px);
+    }
+    .form-switch {
+        margin-top: 22px;
+        text-align: center;
+        font-size: 13.5px;
+        color: var(--mute);
+    }
+    .form-switch a {
+        color: var(--ac);
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .form-switch a:hover {
+        text-decoration: underline;
+    }
+    .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        margin-bottom: 18px;
+    }
+    .alert-success {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #065f46;
+    }
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+    }
+    .alert-danger ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    @@media (max-width: 820px) {
+        .auth-container {
+            grid-template-columns: 1fr;
+            max-width: 480px;
         }
-    </script>
-}
+        .auth-brand {
+            padding: 32px 24px;
+        }
+        .auth-form-card {
+            padding: 32px 24px;
+        }
+    }
+</style>
+
+<script>
+    function fillDemo(username, password) {
+        const u = document.getElementById('loginUsername');
+        const p = document.getElementById('loginPassword');
+        if (u && p) {
+            u.value = username;
+            p.value = password;
+            u.focus();
+            
+            // Hiệu ứng highlight nhẹ
+            u.style.borderColor = 'var(--ok)';
+            p.style.borderColor = 'var(--ok)';
+            setTimeout(() => {
+                u.style.borderColor = '';
+                p.style.borderColor = '';
+            }, 1000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.getElementById('togglePwd');
+        const pwdInput = document.getElementById('loginPassword');
+        if (toggleBtn && pwdInput) {
+            toggleBtn.addEventListener('click', () => {
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    toggleBtn.textContent = '🙈';
+                } else {
+                    pwdInput.type = 'password';
+                    toggleBtn.textContent = '👁️';
+                }
+            });
+        }
+    });
+</script>

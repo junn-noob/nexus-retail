@@ -17,12 +17,6 @@ builder.Services.AddHttpClient("IdentityApi", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-builder.Services.AddHttpClient("Gateway", client =>
-{
-    client.BaseAddress = new Uri("http://localhost:5000/");
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
-
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -31,24 +25,17 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Authentication & Server-side Role-based Authorization (Section 3.1 & 3.5)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
+        options.Cookie.Name = "NexusRetail.AuthCookie";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Lax;
     });
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireStaffOrAdmin", policy => policy.RequireRole("Admin", "Staff"));
-});
 
 var app = builder.Build();
 

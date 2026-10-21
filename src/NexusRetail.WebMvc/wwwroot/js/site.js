@@ -544,7 +544,6 @@ function formatMoney(value) {
                 }
             }
         );
-    }
 })();
 
 // ==========================================
@@ -578,6 +577,22 @@ function quickAddToCart(e, maSp) {
 
 function addToCartFromModal(maSp) {
     quickAddToCart(null, maSp);
+}
+
+function buyNowFromModal(maSp) {
+    const formData = new FormData();
+    formData.append("maSp", maSp);
+    formData.append("quantity", 1);
+    fetch("/Cart/AddToCart", {
+        method: "POST",
+        body: formData
+    })
+    .then(() => {
+        window.location.href = "/Cart/Index";
+    })
+    .catch(() => {
+        window.location.href = "/Cart/Index";
+    });
 }
 
 function showCartToast(msg) {

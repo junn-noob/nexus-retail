@@ -1,4 +1,4 @@
-﻿@using NexusRetail.Shared.Entities
+@using NexusRetail.Shared.Entities
 @model List<NhanHieu>
 
 @foreach (var i in Model)
@@ -46,14 +46,23 @@
 
     function renderProducts(items) {
         let html = '';
+        if (!items || items.length === 0) {
+            html = '<div class="empty" style="grid-column:1/-1; text-align:center; padding: 40px; background:var(--card); border-radius:16px;">Không có sản phẩm nào thuộc nhãn hiệu này.</div>';
+            $('#products').html(html);
+            return;
+        }
         items.forEach(sp => {
+            const imgSrc = sp.anh ? `/images/products/${sp.anh}` : '/images/products/default.jpg';
             html += `<article class="card" data-id="${sp.maSp}">
-                        <div class="img" style="background-image: url('/images/products/${sp.anh}')"></div>
+                        <div class="img" style="background-image: url('${imgSrc}')"></div>
                         <div class="cb">
                         <h3>${sp.tenSp}</h3>
                         <span class="tag">${sp.ghiChu ?? ''}</span>
                         <div class="price">${sp.giaBan.toLocaleString('vi-VN')} đ</div>
-                        <button class="btn ghost" type="button">Xem nhanh</button>
+                        <div style="display: flex; gap: 8px; margin-top: 10px;">
+                            <button class="btn ghost" type="button" style="flex: 1;">Xem nhanh</button>
+                            <button class="btn" type="button" onclick="quickAddToCart(event, '${sp.maSp}')" title="Thêm vào giỏ" style="padding: 0 14px; background: var(--soft); color: var(--ac); font-weight: 700; border-radius: 10px;">🛒</button>
+                        </div>
                         </div>
                     </article>`;
         });

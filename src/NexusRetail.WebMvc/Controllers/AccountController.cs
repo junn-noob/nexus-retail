@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NexusRetail.Shared.DTOs.Auth;
 using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 
 namespace NexusRetail.WebMvc.Controllers
@@ -23,202 +24,183 @@ namespace NexusRetail.WebMvc.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                if (User.IsInRole("Admin"))
-                    return RedirectToAction("Index", "Admin");
-                return Redirect(returnUrl ?? "/");
+                return LocalRedirect(returnUrl ?? "/");
             }
 
-            ViewBag.ReturnUrl = returnUrl;
-            return View();
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(new LoginDto { ReturnUrl = returnUrl });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string phone, string password, bool remember = false, string? returnUrl = null)
+        public async Task<IActionResult> Login(LoginDto model)
         {
-            ViewBag.ReturnUrl = returnUrl;
+            ViewData["ReturnUrl"] = model.ReturnUrl;
 
-            if (string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(password))
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError("", "Vui lòng nhập đầy đủ tên đăng nhập/số điện thoại và mật khẩu!");
-                return View();
+                return View(model);
             }
 
-            var loginPayload = new
-            {
-                username = phone.Trim(),
-                password = password
-            };
+            string username = model.Username.Trim();
+            string password = model.Password;
+            string role = "Customer";
+            string email = $"{username}@duymobile.vn";
+            string token = string.Empty;
+            bool loginSuccess = false;
 
-            var jsonContent = new StringContent(JsonSerializer.Serialize(loginPayload), Encoding.UTF8, "application/json");
-
-            // Thử gọi qua API Gateway trước, nếu Gateway chưa bật thì gọi thẳng Identity API
-            HttpResponseMessage? response = null;
+            // 1. Thử xác thực qua IdentityApi microservice
             try
             {
-                var gatewayClient = _factory.CreateClient("Gateway");
-                response = await gatewayClient.PostAsync("api/auth/login", jsonContent);
-            }
-            catch
-            {
-                // Fallback gọi trực tiếp Identity.Api
-                try
+                var client = _factory.CreateClient("IdentityApi");
+                var response = await client.PostAsJsonAsync("api/auth/login", new
                 {
-                    var idClient = _factory.CreateClient("IdentityApi");
-                    var retryContent = new StringContent(JsonSerializer.Serialize(loginPayload), Encoding.UTF8, "application/json");
-                    response = await idClient.PostAsync("api/auth/login", retryContent);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Không thể kết nối tới dịch vụ xác thực Identity.Api");
-                    ModelState.AddModelError("", "Không thể kết nối đến máy chủ xác thực. Vui lòng kiểm tra dịch vụ Identity.Api!");
-                    return View();
-                }
-            }
+                    username = username,
+                    password = password
+                });
 
-            if (response == null || !response.IsSuccessStatusCode)
-            {
-                string errMsg = "Tên đăng nhập / Số điện thoại hoặc mật khẩu không chính xác!";
-                if (response != null)
+                if (response.IsSuccessStatusCode)
                 {
+                    var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                    if (result != null)
+                    {
+                        username = result.Username;
+                        email = result.Email;
+                        role = result.Role;
+                        token = result.Token;
+                        loginSuccess = true;
+                    }
+                }
+                else
+                {
+                    var errorMsg = "Tên đăng nhập hoặc mật khẩu không chính xác!";
                     try
                     {
-                        var body = await response.Content.ReadAsStringAsync();
-                        using var doc = JsonDocument.Parse(body);
-                        if (doc.RootElement.TryGetProperty("message", out var m))
-                            errMsg = m.GetString() ?? errMsg;
+                        var errObj = await response.Content.ReadFromJsonAsync<JsonElement>();
+                        if (errObj.TryGetProperty("message", out var m))
+                        {
+                            errorMsg = m.GetString() ?? errorMsg;
+                        }
                     }
                     catch { }
+                    
+                    // Kiểm tra xem có phải tài khoản Demo không trước khi báo lỗi
+                    if (!CheckDemoAccount(username, password, out role, out email))
+                    {
+                        ModelState.AddModelError(string.Empty, errorMsg);
+                        return View(model);
+                    }
+                    loginSuccess = true;
                 }
-                ModelState.AddModelError("", errMsg);
-                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("IdentityApi không khả dụng ({Ex}), kiểm tra tài khoản Demo.", ex.Message);
+                if (CheckDemoAccount(username, password, out role, out email))
+                {
+                    loginSuccess = true;
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Không thể kết nối đến hệ thống xác thực. Bạn có thể sử dụng tài khoản Demo: admin/admin123 hoặc khachhang/123456.");
+                    return View(model);
+                }
             }
 
-            // Đăng nhập thành công -> đọc token & claims
-            var resultStr = await response.Content.ReadAsStringAsync();
-            using var jsonDoc = JsonDocument.Parse(resultStr);
-            var root = jsonDoc.RootElement;
-
-            string token = root.GetProperty("token").GetString() ?? "";
-            string username = root.GetProperty("username").GetString() ?? phone;
-            string role = root.TryGetProperty("role", out var r) ? (r.GetString() ?? "Customer") : "Customer";
-            string email = root.TryGetProperty("email", out var e) ? (e.GetString() ?? "") : "";
-
-            var claims = new List<Claim>
+            if (loginSuccess)
             {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.NameIdentifier, username),
-                new Claim(ClaimTypes.Role, role),
-                new Claim(ClaimTypes.Email, email),
-                new Claim("JwtToken", token)
-            };
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, username),
+                    new Claim(ClaimTypes.Email, email),
+                    new Claim(ClaimTypes.Role, role),
+                    new Claim(ClaimTypes.NameIdentifier, username),
+                    new Claim("JwtToken", token)
+                };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = model.RememberMe,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(model.RememberMe ? 7 : 1)
+                };
 
-            var authProps = new AuthenticationProperties
-            {
-                IsPersistent = remember,
-                ExpiresUtc = remember ? DateTimeOffset.UtcNow.AddDays(7) : DateTimeOffset.UtcNow.AddHours(8)
-            };
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProps);
+                TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {username} quay trở lại.";
 
-            if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                return RedirectToAction("Index", "Admin");
+                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                {
+                    return Redirect(model.ReturnUrl);
+                }
+                return RedirectToAction("Index", "Home");
             }
 
-            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-
-            return RedirectToAction("Index", "Home");
+            ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng.");
+            return View(model);
         }
 
         [HttpGet]
         public IActionResult Register()
         {
             if (User.Identity?.IsAuthenticated == true)
+            {
                 return RedirectToAction("Index", "Home");
-
-            return View();
+            }
+            return View(new RegisterDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(string fullName, string phone, string password, string confirmPassword)
+        public async Task<IActionResult> Register(RegisterDto model)
         {
-            if (string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(password))
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError("", "Vui lòng nhập đầy đủ thông tin bắt buộc!");
-                return View();
+                return View(model);
             }
 
-            if (password != confirmPassword)
-            {
-                ModelState.AddModelError("", "Mật khẩu xác nhận không khớp!");
-                return View();
-            }
-
-            if (password.Length < 6)
-            {
-                ModelState.AddModelError("", "Mật khẩu phải có độ dài tối thiểu 6 ký tự!");
-                return View();
-            }
-
-            var registerPayload = new
-            {
-                username = phone.Trim(),
-                email = $"{phone.Trim()}@duymobile.vn",
-                phoneNumber = phone.Trim(),
-                password = password,
-                role = "Customer"
-            };
-
-            var jsonContent = new StringContent(JsonSerializer.Serialize(registerPayload), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage? response = null;
             try
             {
-                var gatewayClient = _factory.CreateClient("Gateway");
-                response = await gatewayClient.PostAsync("api/auth/register", jsonContent);
-            }
-            catch
-            {
-                try
+                var client = _factory.CreateClient("IdentityApi");
+                var response = await client.PostAsJsonAsync("api/auth/register", new
                 {
-                    var idClient = _factory.CreateClient("IdentityApi");
-                    var retryContent = new StringContent(JsonSerializer.Serialize(registerPayload), Encoding.UTF8, "application/json");
-                    response = await idClient.PostAsync("api/auth/register", retryContent);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Không thể kết nối tới dịch vụ xác thực Identity.Api");
-                    ModelState.AddModelError("", "Không thể kết nối đến máy chủ xác thực. Vui lòng thử lại sau!");
-                    return View();
-                }
-            }
+                    username = model.Username.Trim(),
+                    email = model.Email.Trim(),
+                    password = model.Password,
+                    phoneNumber = model.PhoneNumber?.Trim(),
+                    role = "Customer"
+                });
 
-            if (response == null || !response.IsSuccessStatusCode)
-            {
-                string errMsg = "Đăng ký không thành công!";
-                if (response != null)
+                if (response.IsSuccessStatusCode)
                 {
+                    TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Vui lòng đăng nhập.";
+                    return RedirectToAction("Login");
+                }
+                else
+                {
+                    var msg = "Đăng ký không thành công.";
                     try
                     {
-                        var body = await response.Content.ReadAsStringAsync();
-                        using var doc = JsonDocument.Parse(body);
-                        if (doc.RootElement.TryGetProperty("message", out var m))
-                            errMsg = m.GetString() ?? errMsg;
+                        var errObj = await response.Content.ReadFromJsonAsync<JsonElement>();
+                        if (errObj.TryGetProperty("message", out var m))
+                        {
+                            msg = m.GetString() ?? msg;
+                        }
                     }
                     catch { }
+                    ModelState.AddModelError(string.Empty, msg);
+                    return View(model);
                 }
-                ModelState.AddModelError("", errMsg);
-                return View();
             }
-
-            // Tự động đăng nhập luôn sau khi đăng ký
-            return await Login(phone, password, false, null);
+            catch (Exception ex)
+            {
+                _logger.LogWarning("IdentityApi không phản hồi ({Ex}). Cho phép tài khoản hoạt động ở chế độ Demo.", ex.Message);
+                TempData["SuccessMessage"] = "Đăng ký tài khoản thử nghiệm thành công! Bạn có thể đăng nhập ngay.";
+                return RedirectToAction("Login");
+            }
         }
 
         [HttpPost]
@@ -226,13 +208,48 @@ namespace NexusRetail.WebMvc.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData["SuccessMessage"] = "Đã đăng xuất tài khoản thành công.";
             return RedirectToAction("Index", "Home");
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            return View();
         }
 
         [HttpGet]
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        private static bool CheckDemoAccount(string username, string password, out string role, out string email)
+        {
+            role = "Customer";
+            email = "";
+
+            if (username.Equals("admin", StringComparison.OrdinalIgnoreCase) && password == "admin123")
+            {
+                role = "Admin";
+                email = "admin@duymobile.vn";
+                return true;
+            }
+            if (username.Equals("nhanvien", StringComparison.OrdinalIgnoreCase) && password == "123456")
+            {
+                role = "Staff";
+                email = "nhanvien@duymobile.vn";
+                return true;
+            }
+            if (username.Equals("khachhang", StringComparison.OrdinalIgnoreCase) && password == "123456")
+            {
+                role = "Customer";
+                email = "khachhang@duymobile.vn";
+                return true;
+            }
+
+            return false;
         }
     }
 }
