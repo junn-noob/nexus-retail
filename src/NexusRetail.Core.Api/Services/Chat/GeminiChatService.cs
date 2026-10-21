@@ -31,13 +31,13 @@ namespace NexusRetail.Core.Api.Services.Chat
                 return (GenerateSmartRecommendation(userMessage), "local_smart_catalog", "Chưa cấu hình API Key");
             }
 
-            var configuredModel = _config["Gemini:Model"] ?? "gemini-3.8-flash";
+            var configuredModel = _config["Gemini:Model"] ?? "gemini-flash-lite-latest";
             var modelsToTry = new List<string>();
             if (!string.IsNullOrWhiteSpace(configuredModel)) modelsToTry.Add(configuredModel);
+            if (!modelsToTry.Contains("gemini-flash-lite-latest")) modelsToTry.Add("gemini-flash-lite-latest");
+            if (!modelsToTry.Contains("gemini-3.5-flash-lite")) modelsToTry.Add("gemini-3.5-flash-lite");
             if (!modelsToTry.Contains("gemini-3.8-flash")) modelsToTry.Add("gemini-3.8-flash");
-            if (!modelsToTry.Contains("gemini-2.5-flash")) modelsToTry.Add("gemini-2.5-flash");
-            if (!modelsToTry.Contains("gemini-2.0-flash")) modelsToTry.Add("gemini-2.0-flash");
-            if (!modelsToTry.Contains("gemini-1.5-flash")) modelsToTry.Add("gemini-1.5-flash");
+            if (!modelsToTry.Contains("gemini-flash-latest")) modelsToTry.Add("gemini-flash-latest");
 
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(15);
@@ -101,14 +101,15 @@ namespace NexusRetail.Core.Api.Services.Chat
                         lastError = $"HTTP {(int)response.StatusCode}: {errorBody}";
                         _logger.LogWarning("[GeminiChatService] Google Gemini API trả lỗi ({Model}): {Error}", model, lastError);
 
-                        var recMatch = Regex.Match(errorBody, @"models/(gemini-[a-zA-Z0-9.\-_]+)");
-                        if (recMatch.Success)
+                        var recMatches = Regex.Matches(errorBody, @"models/(gemini-[a-zA-Z0-9.\-_]+)");
+                        foreach (Match recMatch in recMatches)
                         {
-                            string recommendedModel = recMatch.Groups[1].Value;
-                            if (!modelsToTry.Contains(recommendedModel))
+                            string candidateModel = recMatch.Groups[1].Value;
+                            if (!string.Equals(candidateModel, model, StringComparison.OrdinalIgnoreCase) && !modelsToTry.Contains(candidateModel))
                             {
-                                _logger.LogInformation("[GeminiChatService] Khuyến nghị model mới: {RecModel}. Thử ngay...", recommendedModel);
-                                modelsToTry.Insert(index, recommendedModel);
+                                _logger.LogInformation("[GeminiChatService] Tìm thấy model thay thế: {RecModel}. Thử ngay...", candidateModel);
+                                modelsToTry.Insert(index, candidateModel);
+                                break;
                             }
                         }
                     }
