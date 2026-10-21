@@ -126,16 +126,23 @@ namespace NexusRetail.Core.Api.Controllers
             var (geminiReply, source, note) = await CallGeminiAsync(systemPrompt, request.Message, catalogText, sanPhams);
 
             // 4. Trích xuất tên sản phẩm được đề cập trong reply để tạo nút quick-view
-            var matchedItems = sanPhams
-                .Where(sp => geminiReply.Contains(sp.TenSp, StringComparison.OrdinalIgnoreCase))
-                .Take(3)
-                .Select(sp => new
+            var matchedItems = new List<object>();
+            foreach (var sp in sanPhams)
+            {
+                string tenSp = (string)sp.TenSp;
+                string tenRong = Regex.Replace(tenSp, @"\s+\d+\s*(GB|TB)", "", RegexOptions.IgnoreCase).Trim();
+                if (geminiReply.Contains(tenSp, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(tenRong) && geminiReply.Contains(tenRong, StringComparison.OrdinalIgnoreCase)))
                 {
-                    id = sp.MaSp,
-                    name = sp.TenSp,
-                    price = sp.GiaBan.ToString("N0") + " đ"
-                })
-                .ToList<object>();
+                    matchedItems.Add(new
+                    {
+                        id = (string)sp.MaSp,
+                        name = tenSp,
+                        price = ((decimal)sp.GiaBan).ToString("N0") + " đ"
+                    });
+                    if (matchedItems.Count >= 3) break;
+                }
+            }
 
             // 5. Ghi log tư vấn
             try
@@ -212,7 +219,7 @@ namespace NexusRetail.Core.Api.Controllers
                 generationConfig = new
                 {
                     temperature = 0.7,
-                    maxOutputTokens = 512
+                    maxOutputTokens = 2048
                 }
             };
 
