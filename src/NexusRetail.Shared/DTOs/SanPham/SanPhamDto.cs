@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,13 +10,19 @@ namespace NexusRetail.Shared.DTOs.SanPham
 
         public string TenSp { get; set; } = null!;
 
+        public string? MaLoai { get; set; }
+
         public string TenLoai { get; set; } = null!;
 
         public string MaNhanHieu { get; set; } = null!;
 
         public string TenNhanHieu { get; set; } = null!;
 
+        public string? MaManHinh { get; set; }
+
         public string TenManHinh { get; set; } = null!;
+
+        public decimal GiaNhap { get; set; }
 
         public decimal GiaBan { get; set; }
 

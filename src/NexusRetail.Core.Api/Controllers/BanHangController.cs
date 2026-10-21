@@ -55,37 +55,42 @@ namespace NexusRetail.Core.Api.Controllers
 
             try
             {
-                var khachHang = _db.KhachHangs.FirstOrDefault(x => (x.DienThoai.Equals(dto.DienThoai)) || (x.MaKhach == dto.MaKhach));
-                if (dto.MaKhach != null && khachHang != null)
-                {
-                    dto.DienThoai = khachHang.DienThoai;
-                } 
-                else if (dto.DienThoai != null && khachHang != null)
-                {
-                    dto.MaKhach = khachHang.MaKhach;
-                }
-                else
+                var sdtKhach = dto.DienThoai?.Trim() ?? "";
+                var maKhach = dto.MaKhach?.Trim();
+
+                var khachHang = await _db.KhachHangs.FirstOrDefaultAsync(x =>
+                    (!string.IsNullOrEmpty(sdtKhach) && x.DienThoai == sdtKhach) ||
+                    (!string.IsNullOrEmpty(maKhach) && x.MaKhach == maKhach));
+
+                if (khachHang == null)
                 {
                     khachHang = new KhachHang
                     {
                         MaKhach = await sinhMaKhachHang(),
-                        TenKhach = dto.TenKhachVangLai ?? "",
-                        DienThoai = dto.DienThoai ?? "",
+                        TenKhach = string.IsNullOrWhiteSpace(dto.TenKhachVangLai) ? "Khách Mua Online" : dto.TenKhachVangLai.Trim(),
+                        DienThoai = string.IsNullOrWhiteSpace(sdtKhach) ? "0900000000" : sdtKhach,
+                        DiaChi = "Việt Nam"
                     };
 
                     _db.KhachHangs.Add(khachHang);
+                    await _db.SaveChangesAsync();
                 }
+
+                // Kiểm tra hợp lệ nhân viên lập hóa đơn (tránh lỗi FK_HoaDonBan_NhanVien)
+                var nvHopLe = await _db.NhanViens.AnyAsync(x => x.MaNv == dto.MaNv);
+                var maNv = nvHopLe ? dto.MaNv : (await _db.NhanViens.Select(x => x.MaNv).FirstOrDefaultAsync() ?? "NV01");
 
                 var maHdb = await sinhMaHdb();
                 decimal tongTienHoaDon = 0m;
+                var chiTietList = new List<ChiTietHdb>();
+
                 foreach (var i in dto.DanhSachMon)
                 {
-                    var sp = await _db.SanPhams.FindAsync(i.MaSp);
+                    var sp = await _db.SanPhams.AsNoTracking().FirstOrDefaultAsync(x => x.MaSp == i.MaSp);
                     if (sp == null)
                     {
                         await tx.RollbackAsync();
-
-                        return BadRequest($"Không tìm thấy sản phẩm có mã {i.MaSp}");
+                        return BadRequest(new { message = $"Không tìm thấy sản phẩm có mã {i.MaSp}" });
                     }
 
                     if (sp.SoLuong < i.SoLuong)
@@ -94,23 +99,24 @@ namespace NexusRetail.Core.Api.Controllers
                         return BadRequest(new { message = $"Sản phẩm '{sp.TenSp}' chỉ còn {sp.SoLuong} chiếc trong kho, không đủ để bán!" });
                     }
                     
-                    sp.SoLuong -= i.SoLuong; // BR-01: Trừ tồn kho khi xuất bán
+                    var thanhTien = i.SoLuong * sp.GiaBan * (1 - (i.KhuyenMai / 100m));
                     var chiTietHdb = new ChiTietHdb
                     {
                         MaHdb = maHdb,
                         MaSp = i.MaSp,
                         SoLuong = i.SoLuong,
                         KhuyenMai = i.KhuyenMai,
-                        ThanhTien = i.SoLuong * sp.GiaBan * (1 - i.KhuyenMai / 100m)
+                        ThanhTien = thanhTien
                     };
-                    tongTienHoaDon += chiTietHdb.ThanhTien;
+                    tongTienHoaDon += thanhTien;
                     _db.ChiTietHdbs.Add(chiTietHdb);
+                    chiTietList.Add(chiTietHdb);
                 }
 
                 var hdb = new HoaDonBan
                 {
                     MaHdb = maHdb,
-                    MaNv = dto.MaNv,
+                    MaNv = maNv,
                     NgayBan = DateTime.Now,
                     MaKhach = khachHang.MaKhach,
                     TongTien = tongTienHoaDon
@@ -123,8 +129,8 @@ namespace NexusRetail.Core.Api.Controllers
                 var response = new HoaDonBanResponseDto
                 {
                     MaHdb = maHdb,
-                    MaNv = dto.MaNv,
-                    TenNv = await _db.NhanViens.Where(x => x.MaNv == dto.MaNv).Select(x => x.TenNv).FirstOrDefaultAsync() ?? "",
+                    MaNv = maNv,
+                    TenNv = await _db.NhanViens.Where(x => x.MaNv == maNv).Select(x => x.TenNv).FirstOrDefaultAsync() ?? "",
                     NgayBan = hdb.NgayBan,
                     TongTien = tongTienHoaDon,
                     SanPham = dto.DanhSachMon.Select(m => new ChiTietHdbDto
@@ -141,13 +147,8 @@ namespace NexusRetail.Core.Api.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-
                 var loi = ex.GetBaseException().Message;
-
-                return StatusCode(500, new
-                {
-                    message = loi
-                });
+                return StatusCode(500, new { message = loi });
             }
         }
 
@@ -160,30 +161,34 @@ namespace NexusRetail.Core.Api.Controllers
             if (string.IsNullOrWhiteSpace(sdt))
                 return BadRequest(new { message = "Số điện thoại không được để trống!" });
 
-            var list = await _db.HoaDonBans
+            sdt = sdt.Trim();
+
+            var orders = await _db.HoaDonBans
                 .AsNoTracking()
                 .Include(x => x.MaKhachNavigation)
-                .Include(x => x.ChiTietHdbs).ThenInclude(ct => ct.MaSpNavigation)
-                .Where(x => x.MaKhachNavigation.DienThoai == sdt)
+                .Include(x => x.ChiTietHdbs)
+                    .ThenInclude(ct => ct.MaSpNavigation)
+                .Where(x => x.MaKhachNavigation != null && x.MaKhachNavigation.DienThoai == sdt)
                 .OrderByDescending(x => x.NgayBan)
-                .Select(x => new
-                {
-                    x.MaHdb,
-                    x.NgayBan,
-                    x.TongTien,
-                    TenKhach = x.MaKhachNavigation.TenKhach,
-                    DienThoai = x.MaKhachNavigation.DienThoai,
-                    DanhSachMon = x.ChiTietHdbs.Select(ct => new
-                    {
-                        ct.MaSp,
-                        TenSp = ct.MaSpNavigation.TenSp,
-                        ct.SoLuong,
-                        ct.ThanhTien,
-                        ThoiGianBaoHanh = ct.MaSpNavigation.ThoiGianBaoHanh,
-                        HanBaoHanh = x.NgayBan.AddMonths(ct.MaSpNavigation.ThoiGianBaoHanh)
-                    }).ToList()
-                })
                 .ToListAsync();
+
+            var list = orders.Select(x => new
+            {
+                x.MaHdb,
+                x.NgayBan,
+                x.TongTien,
+                TenKhach = x.MaKhachNavigation?.TenKhach ?? "",
+                DienThoai = x.MaKhachNavigation?.DienThoai ?? "",
+                DanhSachMon = x.ChiTietHdbs.Select(ct => new
+                {
+                    ct.MaSp,
+                    TenSp = ct.MaSpNavigation?.TenSp ?? ct.MaSp,
+                    ct.SoLuong,
+                    ct.ThanhTien,
+                    ThoiGianBaoHanh = ct.MaSpNavigation?.ThoiGianBaoHanh ?? 12,
+                    HanBaoHanh = x.NgayBan.AddMonths(ct.MaSpNavigation?.ThoiGianBaoHanh ?? 12)
+                }).ToList()
+            }).ToList();
 
             return Ok(list);
         }

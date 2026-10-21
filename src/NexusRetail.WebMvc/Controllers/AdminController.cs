@@ -185,8 +185,10 @@ namespace NexusRetail.WebMvc.Controllers
             {
                 MaSp = sp.MaSp,
                 TenSp = sp.TenSp,
+                MaLoai = sp.MaLoai ?? "",
                 MaNhanHieu = sp.MaNhanHieu,
-                GiaNhap = Math.Round(sp.GiaBan / 1.1m, 0), // Tính lại giá nhập từ giá bán theo BR-03
+                MaManHinh = sp.MaManHinh ?? "",
+                GiaNhap = sp.GiaNhap > 0 ? sp.GiaNhap : Math.Round(sp.GiaBan / 1.1m, 0),
                 SoLuong = sp.SoLuong,
                 ThoiGianBaoHanh = sp.ThoiGianBaoHanh,
                 AmThanh = sp.AmThanh,
@@ -195,7 +197,6 @@ namespace NexusRetail.WebMvc.Controllers
                 GhiChu = sp.GhiChu
             };
 
-            // Mapping mã loại / mã màn hình nếu có
             return View(vm);
         }
 

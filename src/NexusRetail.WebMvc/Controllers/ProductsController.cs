@@ -15,12 +15,15 @@ public class ProductsController : Controller
     }
 
     [HttpGet]
+    [Route("Products/Quick/{id?}")]
     public async Task<IActionResult> Quick(string id)
     {
+        if (string.IsNullOrWhiteSpace(id)) return NotFound();
+
         var client = _factory.CreateClient("CoreApi");
 
         var response = await client.GetAsync(
-            $"api/san-pham/{id}"
+            $"api/san-pham/{Uri.EscapeDataString(id.Trim())}"
         );
 
         if (!response.IsSuccessStatusCode)

@@ -20,6 +20,7 @@
     }
 
     <form asp-action="ProcessCheckout" method="post" class="row g-4">
+        @Html.AntiForgeryToken()
         <!-- Delivery info -->
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">

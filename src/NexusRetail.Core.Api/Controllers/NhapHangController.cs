@@ -122,22 +122,14 @@ namespace NexusRetail.Core.Api.Controllers
 
                 foreach (var item in dto.DanhSachMon)
                 {
-                    var sp = await _db.SanPhams.FindAsync(item.MaSp);
+                    var sp = await _db.SanPhams.AsNoTracking().FirstOrDefaultAsync(x => x.MaSp == item.MaSp);
                     if (sp == null)
                     {
                         await tx.RollbackAsync();
                         return BadRequest(new { message = $"Không tìm thấy sản phẩm mã '{item.MaSp}' để nhập hàng!" });
                     }
 
-                    // BR-01: Tự động TĂNG số lượng tồn kho
-                    sp.SoLuong += item.SoLuong;
-
-                    // BR-02: Cập nhật giá nhập mới nhất
-                    sp.GiaNhap = item.DonGia;
-
-                    // BR-03: Tự động cập nhật giá bán = giá nhập * 1.10 (làm tròn nguyên)
-                    sp.GiaBan = Math.Round(item.DonGia * 1.10m, 0);
-
+                    // BR-01, BR-02, BR-03: Được thực thi tự động qua trigger trg_ChiTietHDN_Change (Tăng tồn kho, cập nhật giá nhập và tính giá bán = 1.1 * giá nhập)
                     // Tính thành tiền có chiết khấu/khuyến mãi nếu có
                     decimal thanhTien = item.SoLuong * item.DonGia * (1 - item.KhuyenMai / 100m);
                     tongTienHoaDon += thanhTien;

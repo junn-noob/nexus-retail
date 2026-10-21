@@ -8,11 +8,14 @@
         Tất cả
     </a>
 
-    @foreach (var i in Model)
+    @if (Model != null)
     {
-        <a class="dm-brand-pill" data-id="@i.MaNhanHieu" onclick="locTheoNhanHieu('@i.MaNhanHieu', this, 1)">
-            @i.TenNhanHieu
-        </a>
+        @foreach (var i in Model)
+        {
+            <a class="dm-brand-pill" data-id="@i.MaNhanHieu" onclick="locTheoNhanHieu('@i.MaNhanHieu', this, 1)">
+                @i.TenNhanHieu
+            </a>
+        }
     }
 </div>
 

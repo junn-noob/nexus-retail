@@ -92,27 +92,34 @@ namespace NexusRetail.Core.Api.Controllers
         [HttpGet("{maSP}")]
         public async Task<IActionResult> chiTietSanPham(string maSP)
         {
-            var sanPham = await _db.VwDanhSachSanPhams
+            var raw = await _db.SanPhams
+                .Include(s => s.MaLoaiNavigation)
+                .Include(s => s.MaNhanHieuNavigation)
+                .Include(s => s.MaManHinhNavigation)
                 .AsNoTracking()
-                .Select(sp => new SanPhamDto
-                {
-                    MaSp = sp.MaSp,
-                    TenSp = sp.TenSp,
-                    TenLoai = sp.TenLoai,
-                    MaNhanHieu = sp.MaNhanHieu,
-                    TenNhanHieu = sp.TenNhanHieu,
-                    TenManHinh = sp.TenManHinh,
-                    GiaBan = sp.GiaBan,
-                    SoLuong = sp.SoLuong,
-                    ThoiGianBaoHanh = sp.ThoiGianBaoHanh,
-                    AmThanh = sp.AmThanh,
-                    ChupAnh = sp.ChupAnh,
-                    Anh = sp.Anh,
-                    GhiChu = sp.GhiChu
-                })
                 .FirstOrDefaultAsync(x => x.MaSp == maSP);
 
-            if (sanPham == null) return NotFound();
+            if (raw == null) return NotFound();
+
+            var sanPham = new SanPhamDto
+            {
+                MaSp = raw.MaSp,
+                TenSp = raw.TenSp,
+                MaLoai = raw.MaLoai,
+                TenLoai = raw.MaLoaiNavigation != null ? raw.MaLoaiNavigation.TenLoai : "",
+                MaNhanHieu = raw.MaNhanHieu,
+                TenNhanHieu = raw.MaNhanHieuNavigation != null ? raw.MaNhanHieuNavigation.TenNhanHieu : "",
+                MaManHinh = raw.MaManHinh,
+                TenManHinh = raw.MaManHinhNavigation != null ? raw.MaManHinhNavigation.TenManHinh : "",
+                GiaNhap = raw.GiaNhap,
+                GiaBan = raw.GiaBan,
+                SoLuong = raw.SoLuong,
+                ThoiGianBaoHanh = raw.ThoiGianBaoHanh,
+                AmThanh = raw.AmThanh,
+                ChupAnh = raw.ChupAnh,
+                Anh = raw.Anh,
+                GhiChu = raw.GhiChu
+            };
 
             return Ok(sanPham);
         }
