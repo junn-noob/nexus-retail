@@ -22,7 +22,7 @@
             <div class="col-sm-8">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-telephone text-secondary"></i></span>
-                    <input name="sdt" type="tel" value="@sdt" class="form-control border-start-0 rounded-end-3 py-2" placeholder="Ví dụ: 0912345678..." required />
+                    <input name="sdt" type="tel" value="@sdt" class="form-control border-start-0 rounded-end-3 py-2" placeholder="Ví dụ: 0988776655..." required />
                 </div>
             </div>
             <div class="col-sm-4">
@@ -31,6 +31,13 @@
                 </button>
             </div>
         </form>
+
+        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap small">
+            <span class="text-secondary"><i class="bi bi-info-circle me-1"></i> Gợi ý số điện thoại mẫu có sẵn đơn hàng:</span>
+            <a href="/Home/TraCuu?sdt=0988776655" class="badge bg-primary-subtle text-primary text-decoration-none px-2 py-1">0988776655 (HDB01)</a>
+            <a href="/Home/TraCuu?sdt=0977665544" class="badge bg-primary-subtle text-primary text-decoration-none px-2 py-1">0977665544 (HDB02)</a>
+            <a href="/Home/TraCuu?sdt=0966554433" class="badge bg-primary-subtle text-primary text-decoration-none px-2 py-1">0966554433 (HDB03)</a>
+        </div>
     </div>
 
     <!-- Search Results -->
@@ -88,8 +95,11 @@
 
                                     <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
                                         <div>
-                                            <div class="fw-bold text-dark mb-1">
-                                                <i class="bi bi-phone text-primary me-1"></i> @tenSp <span class="text-secondary fw-normal">(Số lượng: x@soLuong)</span>
+                                            <div class="fw-bold text-dark mb-1 d-flex align-items-center flex-wrap gap-2">
+                                                <span><i class="bi bi-phone text-primary me-1"></i> @tenSp</span>
+                                                <span class="badge bg-white text-dark border px-2 py-1 small fw-semibold">
+                                                    Số lượng: @soLuong
+                                                </span>
                                             </div>
                                             <div class="small">
                                                 <span class="text-secondary">Hạn bảo hành đến: <strong>@hanBh.ToString("dd/MM/yyyy")</strong></span>

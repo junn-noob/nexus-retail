@@ -22,12 +22,20 @@ namespace NexusRetail.Core.Api.Controllers
             [FromQuery] int pageSize = 9,
             [FromQuery] string? q = null,
             [FromQuery] decimal? minPrice = null,
-            [FromQuery] decimal? maxPrice = null)
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] string? brand = null)
         {
             page = Math.Max(page, 1);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
             var query = _db.VwDanhSachSanPhams.AsNoTracking();
+
+            // Lọc theo nhãn hiệu (brand / maNhanHieu / tenNhanHieu)
+            if (!string.IsNullOrWhiteSpace(brand))
+            {
+                brand = brand.Trim();
+                query = query.Where(x => x.MaNhanHieu == brand || x.TenNhanHieu.Contains(brand));
+            }
 
             // FR-6.1 / BR-04: Tìm kiếm theo tên hoặc mã SP
             if (!string.IsNullOrWhiteSpace(q))

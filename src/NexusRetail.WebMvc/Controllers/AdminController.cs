@@ -367,9 +367,9 @@ namespace NexusRetail.WebMvc.Controllers
         public async Task<IActionResult> BaoCao(string? loai = "sp-ban-chay", int? thang = null, int? nam = null, int? quy = null)
         {
             loai ??= "sp-ban-chay";
-            thang ??= DateTime.Now.Month;
-            nam ??= DateTime.Now.Year;
-            quy ??= (DateTime.Now.Month - 1) / 3 + 1;
+            nam ??= 2026;
+            thang ??= 9; // Mặc định tháng 9/2026 có đầy đủ hóa đơn bán hàng mẫu
+            quy ??= 3;   // Mặc định Quý 3/2026 có các hóa đơn nhập hàng lớn
 
             ViewBag.Loai = loai;
             ViewBag.Thang = thang;
@@ -392,7 +392,7 @@ namespace NexusRetail.WebMvc.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi lấy dữ liệu báo cáo");
+                _logger.LogError(ex, "Lỗi lấy dữ liệu báo cáo: {Url}", apiUrl);
                 return View(null);
             }
         }
@@ -400,9 +400,9 @@ namespace NexusRetail.WebMvc.Controllers
         [HttpGet]
         public async Task<IActionResult> XuatExcel(string loai, int? thang = null, int? nam = null, int? quy = null)
         {
-            thang ??= DateTime.Now.Month;
-            nam ??= DateTime.Now.Year;
-            quy ??= (DateTime.Now.Month - 1) / 3 + 1;
+            nam ??= 2026;
+            thang ??= 9;
+            quy ??= 3;
 
             string excelUrl = loai switch
             {

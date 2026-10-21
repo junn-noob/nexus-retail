@@ -4,14 +4,60 @@
 @{
     ViewData["Title"] = "4 Báo cáo thống kê (Admin)";
     string loai = ViewBag.Loai as string ?? "sp-ban-chay";
-    int thang = ViewBag.Thang ?? DateTime.Now.Month;
-    int nam = ViewBag.Nam ?? DateTime.Now.Year;
-    int quy = ViewBag.Quy ?? 1;
+    int thang = ViewBag.Thang ?? 9;
+    int nam = ViewBag.Nam ?? 2026;
+    int quy = ViewBag.Quy ?? 3;
+
+    // Trích xuất danh sách dòng từ JsonElement đa cấu trúc
+    JsonElement rowsArray = default;
+    bool hasRows = false;
+    decimal tongTienTongHop = 0;
+    int tongSoLuongTongHop = 0;
+    int tongSoDonHangTongHop = 0;
+
+    if (Model.HasValue)
+    {
+        var root = Model.Value;
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            rowsArray = root;
+            hasRows = rowsArray.GetArrayLength() > 0;
+        }
+        else if (root.ValueKind == JsonValueKind.Object)
+        {
+            if (root.TryGetProperty("topSanPham", out var p1) && p1.ValueKind == JsonValueKind.Array)
+                rowsArray = p1;
+            else if (root.TryGetProperty("danhSachHoaDon", out var p2) && p2.ValueKind == JsonValueKind.Array)
+                rowsArray = p2;
+            else if (root.TryGetProperty("danhSachNhanVien", out var p3) && p3.ValueKind == JsonValueKind.Array)
+                rowsArray = p3;
+            else if (root.TryGetProperty("danhSach", out var p4) && p4.ValueKind == JsonValueKind.Array)
+                rowsArray = p4;
+            else if (root.TryGetProperty("data", out var p5) && p5.ValueKind == JsonValueKind.Array)
+                rowsArray = p5;
+
+            hasRows = rowsArray.ValueKind == JsonValueKind.Array && rowsArray.GetArrayLength() > 0;
+
+            if (root.TryGetProperty("tongDoanhThu", out var dt) && dt.TryGetDecimal(out var v1)) 
+                tongTienTongHop = v1;
+            else if (root.TryGetProperty("tongTienNhapQuy", out var nq) && nq.TryGetDecimal(out var v2)) 
+                tongTienTongHop = v2;
+
+            if (root.TryGetProperty("tongSoLuongBan", out var sl) && sl.TryGetInt32(out var v3)) 
+                tongSoLuongTongHop = v3;
+
+            if (root.TryGetProperty("tongSoDonHang", out var dh) && dh.TryGetInt32(out var v4)) 
+                tongSoDonHangTongHop = v4;
+            else if (root.TryGetProperty("tongSoHoaDon", out var hd) && hd.TryGetInt32(out var v5)) 
+                tongSoDonHangTongHop = v5;
+        }
+    }
 }
 
 <partial name="_AdminNav" />
 
 <div class="container pb-5">
+    <!-- Header Page -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-file-earmark-spreadsheet text-primary me-2"></i> 4 Báo cáo thống kê bắt buộc (BR-06 đến BR-09)</h3>
@@ -29,7 +75,7 @@
             <div class="col-lg-5 col-md-12">
                 <label class="form-label small fw-bold text-secondary">Chọn loại báo cáo:</label>
                 <select name="loai" onchange="this.form.submit()" class="form-select rounded-3 py-2 fw-semibold text-dark">
-                    <option value="sp-ban-chay" selected="@(loai == "sp-ban-chay")">BR-06: Top sản phẩm bán chạy nhất (Tháng/Năm)</option>
+                    <option value="sp-ban-chay" selected="@(loai == "sp-ban-chay")">BR-06: Top 5 sản phẩm bán chạy nhất (Tháng/Năm)</option>
                     <option value="nhap-lon-nhat-quy" selected="@(loai == "nhap-lon-nhat-quy")">BR-07: Hóa đơn & Tiền nhập lớn nhất theo Quý</option>
                     <option value="doanh-so-nam" selected="@(loai == "doanh-so-nam")">BR-08: Hóa đơn & Tổng doanh số theo Năm</option>
                     <option value="nv-ban-it-nhat" selected="@(loai == "nv-ban-it-nhat")">BR-09: 5 Nhân viên bán ít tiền nhất (Tháng/Năm)</option>
@@ -65,7 +111,7 @@
             <div class="col-md-2 col-6">
                 <label class="form-label small fw-bold text-secondary">Năm:</label>
                 <select name="nam" class="form-select rounded-3 py-2">
-                    @for (int y = DateTime.Now.Year; y >= 2020; y--)
+                    @for (int y = 2026; y >= 2020; y--)
                     {
                         <option value="@y" selected="@(nam == y)">@y</option>
                     }
@@ -80,6 +126,52 @@
         </form>
     </div>
 
+    <!-- KPI Metric Summary Row -->
+    @if (hasRows)
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-bold text-secondary text-uppercase">
+                            @(loai == "nhap-lon-nhat-quy" ? "Tổng tiền nhập hàng" : "Tổng doanh thu ghi nhận")
+                        </small>
+                        <i class="bi bi-cash-stack text-success fs-4"></i>
+                    </div>
+                    <div class="fs-4 fw-bolder text-danger">
+                        @tongTienTongHop.ToString("N0") ₫
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-bold text-secondary text-uppercase">
+                            @(loai == "sp-ban-chay" ? "Tổng máy bán ra" : (loai == "nv-ban-it-nhat" ? "Số nhân viên thống kê" : "Tổng số đơn hàng"))
+                        </small>
+                        <i class="bi bi-bar-chart-fill text-primary fs-4"></i>
+                    </div>
+                    <div class="fs-4 fw-bolder text-dark">
+                        @(loai == "sp-ban-chay" ? $"{tongSoLuongTongHop} sản phẩm" : (loai == "nv-ban-it-nhat" ? $"{rowsArray.GetArrayLength()} nhân viên" : $"{tongSoDonHangTongHop} hóa đơn"))
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-bold text-secondary text-uppercase">Kỳ báo cáo áp dụng</small>
+                        <i class="bi bi-calendar-event text-warning fs-4"></i>
+                    </div>
+                    <div class="fs-5 fw-bolder text-primary">
+                        @(loai == "nhap-lon-nhat-quy" ? $"Quý {quy} / {nam}" : (loai == "doanh-so-nam" ? $"Năm {nam}" : $"Tháng {thang} / {nam}"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <!-- Data Table View -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
         <div class="table-responsive">
@@ -88,7 +180,8 @@
                 <table class="table table-hover align-middle m-0">
                     <thead class="table-light small text-secondary">
                         <tr>
-                            <th class="ps-4">Mã SP</th>
+                            <th class="ps-4 text-center" style="width: 70px;">Hạng</th>
+                            <th>Mã SP</th>
                             <th>Tên sản phẩm</th>
                             <th>Phân loại</th>
                             <th>Nhãn hiệu</th>
@@ -97,23 +190,58 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.HasValue && Model.Value.ValueKind == JsonValueKind.Array && Model.Value.GetArrayLength() > 0)
+                        @if (hasRows)
                         {
-                            foreach (var row in Model.Value.EnumerateArray())
+                            int rank = 1;
+                            foreach (var row in rowsArray.EnumerateArray())
                             {
+                                var maSp = row.TryGetProperty("maSp", out var p1) ? p1.GetString() : "";
+                                var tenSp = row.TryGetProperty("tenSp", out var p2) ? p2.GetString() : "";
+                                var tenLoai = row.TryGetProperty("tenLoai", out var p3) ? p3.GetString() : "Điện thoại";
+                                var tenNhanHieu = row.TryGetProperty("tenNhanHieu", out var p4) ? p4.GetString() : "Chính hãng";
+                                var soLuong = row.TryGetProperty("tongSoLuong", out var p5) ? p5.GetInt32() : (row.TryGetProperty("tongSoLuongBan", out var p5b) ? p5b.GetInt32() : 0);
+                                var doanhThu = row.TryGetProperty("tongDoanhThu", out var p6) ? p6.GetDecimal() : 0m;
+
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark">@row.GetProperty("maSp").GetString()</td>
-                                    <td class="fw-bold text-dark">@row.GetProperty("tenSp").GetString()</td>
-                                    <td><span class="badge bg-light text-dark border">@row.GetProperty("tenLoai").GetString()</span></td>
-                                    <td><span class="badge bg-primary-subtle text-primary">@row.GetProperty("tenNhanHieu").GetString()</span></td>
-                                    <td class="text-center fw-bold text-success">@row.GetProperty("tongSoLuongBan").GetInt32()</td>
-                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@row.GetProperty("tongDoanhThu").GetDecimal().ToString("N0") ₫</td>
+                                    <td class="ps-4 text-center">
+                                        @if (rank == 1)
+                                        {
+                                            <span class="badge bg-warning text-dark fw-bold rounded-pill px-2 py-1">🥇 Top 1</span>
+                                        }
+                                        else if (rank == 2)
+                                        {
+                                            <span class="badge bg-secondary text-white fw-bold rounded-pill px-2 py-1">🥈 Top 2</span>
+                                        }
+                                        else if (rank == 3)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill px-2 py-1">🥉 Top 3</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-secondary border fw-bold rounded-pill px-2 py-1">#@rank</span>
+                                        }
+                                    </td>
+                                    <td class="fw-bold text-dark">@maSp</td>
+                                    <td class="fw-bold text-dark">
+                                        <i class="bi bi-phone text-primary me-1"></i> @tenSp
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">@tenLoai</span></td>
+                                    <td><span class="badge bg-primary-subtle text-primary">@tenNhanHieu</span></td>
+                                    <td class="text-center fw-bold text-success fs-6">@soLuong</td>
+                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@doanhThu.ToString("N0") ₫</td>
                                 </tr>
+                                rank++;
                             }
                         }
                         else
                         {
-                            <tr><td colspan="6" class="text-center py-5 text-secondary">Không có dữ liệu bán hàng trong Tháng @thang/@nam</td></tr>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                                    Không có dữ liệu bán hàng trong <strong>Tháng @thang/@nam</strong>.
+                                    <div class="mt-2 small text-muted">Hãy chọn Tháng 9/2026 hoặc năm khác để xem dữ liệu mẫu.</div>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -131,22 +259,42 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.HasValue && Model.Value.ValueKind == JsonValueKind.Array && Model.Value.GetArrayLength() > 0)
+                        @if (hasRows)
                         {
-                            foreach (var row in Model.Value.EnumerateArray())
+                            bool isFirst = true;
+                            foreach (var row in rowsArray.EnumerateArray())
                             {
+                                var maHdn = row.TryGetProperty("maHdn", out var p1) ? p1.GetString() : "";
+                                var ngayNhap = row.TryGetProperty("ngayNhap", out var p2) && p2.TryGetDateTime(out var dt) ? dt : DateTime.Now;
+                                var tenNcc = row.TryGetProperty("tenNcc", out var p3) ? p3.GetString() : "";
+                                var tenNv = row.TryGetProperty("tenNv", out var p4) ? p4.GetString() : "";
+                                var tongTien = row.TryGetProperty("tongTien", out var p5) ? p5.GetDecimal() : 0m;
+
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark">@row.GetProperty("maHdn").GetString()</td>
-                                    <td class="text-secondary small">@row.GetProperty("ngayNhap").GetDateTime().ToString("dd/MM/yyyy")</td>
-                                    <td class="fw-bold text-dark">@row.GetProperty("tenNcc").GetString()</td>
-                                    <td class="text-secondary">@row.GetProperty("tenNv").GetString()</td>
-                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@row.GetProperty("tongTien").GetDecimal().ToString("N0") ₫</td>
+                                    <td class="ps-4 fw-bold text-dark">
+                                        @maHdn
+                                        @if (isFirst)
+                                        {
+                                            <span class="badge bg-danger text-white ms-2 px-2 py-1 small">🏆 Lớn nhất</span>
+                                        }
+                                    </td>
+                                    <td class="text-secondary small">@ngayNhap.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-bold text-dark">@tenNcc</td>
+                                    <td class="text-secondary">@tenNv</td>
+                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@tongTien.ToString("N0") ₫</td>
                                 </tr>
+                                isFirst = false;
                             }
                         }
                         else
                         {
-                            <tr><td colspan="5" class="text-center py-5 text-secondary">Không tìm thấy hóa đơn nhập nào trong Quý @quy/@nam</td></tr>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                                    Không tìm thấy hóa đơn nhập nào trong <strong>Quý @quy/@nam</strong>.
+                                    <div class="mt-2 small text-muted">Hãy chọn Quý 3/2026 để xem hóa đơn nhập hàng mẫu.</div>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -164,22 +312,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.HasValue && Model.Value.ValueKind == JsonValueKind.Array && Model.Value.GetArrayLength() > 0)
+                        @if (hasRows)
                         {
-                            foreach (var row in Model.Value.EnumerateArray())
+                            foreach (var row in rowsArray.EnumerateArray())
                             {
+                                var maHdb = row.TryGetProperty("maHdb", out var p1) ? p1.GetString() : "";
+                                var ngayBan = row.TryGetProperty("ngayBan", out var p2) && p2.TryGetDateTime(out var dt) ? dt : DateTime.Now;
+                                var tenKhach = row.TryGetProperty("tenKhach", out var p3) ? p3.GetString() : "";
+                                var tenNv = row.TryGetProperty("tenNv", out var p4) ? p4.GetString() : "";
+                                var tongTien = row.TryGetProperty("tongTien", out var p5) ? p5.GetDecimal() : 0m;
+
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark">@row.GetProperty("maHdb").GetString()</td>
-                                    <td class="text-secondary small">@row.GetProperty("ngayBan").GetDateTime().ToString("dd/MM/yyyy")</td>
-                                    <td class="fw-bold text-dark">@row.GetProperty("tenKhach").GetString()</td>
-                                    <td class="text-secondary">@row.GetProperty("tenNv").GetString()</td>
-                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@row.GetProperty("tongTien").GetDecimal().ToString("N0") ₫</td>
+                                    <td class="ps-4 fw-bold text-dark">@maHdb</td>
+                                    <td class="text-secondary small">@ngayBan.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-bold text-dark">@tenKhach</td>
+                                    <td class="text-secondary">@(string.IsNullOrEmpty(tenNv) ? "Khách Online" : tenNv)</td>
+                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@tongTien.ToString("N0") ₫</td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="5" class="text-center py-5 text-secondary">Không có hóa đơn bán nào trong Năm @nam</td></tr>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                                    Không có hóa đơn bán nào trong <strong>Năm @nam</strong>.
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -189,7 +348,8 @@
                 <table class="table table-hover align-middle m-0">
                     <thead class="table-light small text-secondary">
                         <tr>
-                            <th class="ps-4">Mã NV</th>
+                            <th class="ps-4 text-center" style="width: 70px;">STT</th>
+                            <th>Mã NV</th>
                             <th>Họ và tên nhân viên</th>
                             <th>Giới tính</th>
                             <th>Điện thoại</th>
@@ -198,23 +358,38 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.HasValue && Model.Value.ValueKind == JsonValueKind.Array && Model.Value.GetArrayLength() > 0)
+                        @if (hasRows)
                         {
-                            foreach (var row in Model.Value.EnumerateArray())
+                            int stt = 1;
+                            foreach (var row in rowsArray.EnumerateArray())
                             {
+                                var maNv = row.TryGetProperty("maNv", out var p1) ? p1.GetString() : "";
+                                var tenNv = row.TryGetProperty("tenNv", out var p2) ? p2.GetString() : "";
+                                var gioiTinh = row.TryGetProperty("gioiTinh", out var p3) ? p3.GetString() : "Nam";
+                                var dienThoai = row.TryGetProperty("dienThoai", out var p4) ? p4.GetString() : "";
+                                var soHoaDon = row.TryGetProperty("soHoaDon", out var p5) ? p5.GetInt32() : 0;
+                                var tongTienBan = row.TryGetProperty("tongTienBan", out var p6) ? p6.GetDecimal() : 0m;
+
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark">@row.GetProperty("maNv").GetString()</td>
-                                    <td class="fw-bold text-dark">@row.GetProperty("tenNv").GetString()</td>
-                                    <td><span class="badge bg-light text-dark border">@row.GetProperty("gioiTinh").GetString()</span></td>
-                                    <td class="text-primary fw-semibold">@row.GetProperty("dienThoai").GetString()</td>
-                                    <td class="text-center fw-bold text-secondary">@row.GetProperty("soHoaDon").GetInt32()</td>
-                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@row.GetProperty("tongTienBan").GetDecimal().ToString("N0") ₫</td>
+                                    <td class="ps-4 text-center fw-bold text-secondary">@stt</td>
+                                    <td class="fw-bold text-dark">@maNv</td>
+                                    <td class="fw-bold text-dark">@tenNv</td>
+                                    <td><span class="badge bg-light text-dark border">@gioiTinh</span></td>
+                                    <td class="text-primary fw-semibold">@dienThoai</td>
+                                    <td class="text-center fw-bold text-secondary">@soHoaDon</td>
+                                    <td class="text-end pe-4 fw-bold text-danger fs-6">@tongTienBan.ToString("N0") ₫</td>
                                 </tr>
+                                stt++;
                             }
                         }
                         else
                         {
-                            <tr><td colspan="6" class="text-center py-5 text-secondary">Không có dữ liệu nhân viên bán hàng trong Tháng @thang/@nam</td></tr>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                                    Không có dữ liệu nhân viên bán hàng trong <strong>Tháng @thang/@nam</strong>.
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>

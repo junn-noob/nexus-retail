@@ -85,25 +85,41 @@ namespace NexusRetail.Core.Api.Controllers
         #endregion
 
         // =========================================================================
+        // =========================================================================
         // BR-06: BÁO CÁO TOP 5 SẢN PHẨM BÁN CHẠY NHẤT THEO THÁNG / NĂM
         // =========================================================================
         [HttpGet("sp-ban-chay")]
-        public async Task<IActionResult> laySpBanChay([FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> laySpBanChay([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
-            if (month < 1 || month > 12 || year < 2000)
+            int m = month ?? thang ?? 9;
+            int y = year ?? nam ?? 2026;
+
+            if (m < 1 || m > 12 || y < 2000)
                 return BadRequest(new { message = "Tháng (1-12) hoặc năm không hợp lệ!" });
 
             var list = await _db.ChiTietHdbs
                 .AsNoTracking()
                 .Include(x => x.MaHdbNavigation)
                 .Include(x => x.MaSpNavigation)
-                .Where(x => x.MaHdbNavigation.NgayBan.Month == month && x.MaHdbNavigation.NgayBan.Year == year)
-                .GroupBy(x => new { x.MaSp, TenSp = x.MaSpNavigation.TenSp })
+                    .ThenInclude(s => s.MaLoaiNavigation)
+                .Include(x => x.MaSpNavigation)
+                    .ThenInclude(s => s.MaNhanHieuNavigation)
+                .Where(x => x.MaHdbNavigation.NgayBan.Month == m && x.MaHdbNavigation.NgayBan.Year == y)
+                .GroupBy(x => new
+                {
+                    x.MaSp,
+                    TenSp = x.MaSpNavigation.TenSp,
+                    TenLoai = x.MaSpNavigation.MaLoaiNavigation != null ? x.MaSpNavigation.MaLoaiNavigation.TenLoai : "Điện thoại",
+                    TenNhanHieu = x.MaSpNavigation.MaNhanHieuNavigation != null ? x.MaSpNavigation.MaNhanHieuNavigation.TenNhanHieu : "Chính hãng"
+                })
                 .Select(g => new
                 {
                     MaSp = g.Key.MaSp,
                     TenSp = g.Key.TenSp,
+                    TenLoai = g.Key.TenLoai,
+                    TenNhanHieu = g.Key.TenNhanHieu,
                     TongSoLuong = g.Sum(x => x.SoLuong),
+                    TongSoLuongBan = g.Sum(x => x.SoLuong),
                     TongDoanhThu = g.Sum(x => x.ThanhTien)
                 })
                 .OrderByDescending(x => x.TongSoLuong)
@@ -112,25 +128,43 @@ namespace NexusRetail.Core.Api.Controllers
 
             return Ok(new
             {
-                Thang = month,
-                Nam = year,
-                TopSanPham = list
+                Thang = m,
+                Nam = y,
+                TongSoMatHang = list.Count,
+                TongSoLuongBan = list.Sum(x => x.TongSoLuong),
+                TongDoanhThu = list.Sum(x => x.TongDoanhThu),
+                TopSanPham = list,
+                DanhSach = list
             });
         }
 
         [HttpGet("sp-ban-chay/excel")]
-        public async Task<IActionResult> xuatExcelSpBanChay([FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> xuatExcelSpBanChay([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
+            int m = month ?? thang ?? 9;
+            int y = year ?? nam ?? 2026;
+
             var data = await _db.ChiTietHdbs
                 .AsNoTracking()
                 .Include(x => x.MaHdbNavigation)
                 .Include(x => x.MaSpNavigation)
-                .Where(x => x.MaHdbNavigation.NgayBan.Month == month && x.MaHdbNavigation.NgayBan.Year == year)
-                .GroupBy(x => new { x.MaSp, TenSp = x.MaSpNavigation.TenSp })
+                    .ThenInclude(s => s.MaLoaiNavigation)
+                .Include(x => x.MaSpNavigation)
+                    .ThenInclude(s => s.MaNhanHieuNavigation)
+                .Where(x => x.MaHdbNavigation.NgayBan.Month == m && x.MaHdbNavigation.NgayBan.Year == y)
+                .GroupBy(x => new
+                {
+                    x.MaSp,
+                    TenSp = x.MaSpNavigation.TenSp,
+                    TenLoai = x.MaSpNavigation.MaLoaiNavigation != null ? x.MaSpNavigation.MaLoaiNavigation.TenLoai : "Điện thoại",
+                    TenNhanHieu = x.MaSpNavigation.MaNhanHieuNavigation != null ? x.MaSpNavigation.MaNhanHieuNavigation.TenNhanHieu : "Chính hãng"
+                })
                 .Select(g => new
                 {
                     MaSp = g.Key.MaSp,
                     TenSp = g.Key.TenSp,
+                    TenLoai = g.Key.TenLoai,
+                    TenNhanHieu = g.Key.TenNhanHieu,
                     TongSoLuong = g.Sum(x => x.SoLuong),
                     TongDoanhThu = g.Sum(x => x.ThanhTien)
                 })
@@ -138,7 +172,7 @@ namespace NexusRetail.Core.Api.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            var headers = new[] { "STT", "Mã Sản Phẩm", "Tên Sản Phẩm", "Số Lượng Bán", "Tổng Doanh Thu" };
+            var headers = new[] { "STT", "Mã Sản Phẩm", "Tên Sản Phẩm", "Phân Loại", "Nhãn Hiệu", "Số Lượng Bán", "Tổng Doanh Thu" };
             var rows = new List<object[]>();
             for (int i = 0; i < data.Count; i++)
             {
@@ -147,66 +181,78 @@ namespace NexusRetail.Core.Api.Controllers
                     i + 1,
                     data[i].MaSp,
                     data[i].TenSp,
+                    data[i].TenLoai,
+                    data[i].TenNhanHieu,
                     data[i].TongSoLuong,
                     data[i].TongDoanhThu
                 });
             }
 
-            var fileBytes = taoFileExcel($"BÁO CÁO TOP 5 SẢN PHẨM BÁN CHẠY NHẤT THÁNG {month}/{year}", headers, rows);
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_Top5_SanPham_Thang_{month}_{year}.xlsx");
+            var fileBytes = taoFileExcel($"BÁO CÁO TOP 5 SẢN PHẨM BÁN CHẠY NHẤT THÁNG {m}/{y}", headers, rows);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_Top5_SanPham_Thang_{m}_{y}.xlsx");
         }
 
         // =========================================================================
         // BR-07: BÁO CÁO HÓA ĐƠN NHẬP LỚN NHẤT THEO QUÝ / NĂM
         // =========================================================================
         [HttpGet("hdn-lon-nhat")]
-        public async Task<IActionResult> layHdnLonNhat([FromQuery] int quarter, [FromQuery] int year)
+        [HttpGet("nhap-lon-nhat-quy")]
+        public async Task<IActionResult> layHdnLonNhat([FromQuery] int? quarter = null, [FromQuery] int? quy = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
-            if (quarter < 1 || quarter > 4 || year < 2000)
+            int q = quarter ?? quy ?? 3;
+            int y = year ?? nam ?? 2026;
+
+            if (q < 1 || q > 4 || y < 2000)
                 return BadRequest(new { message = "Quý (1-4) hoặc năm không hợp lệ!" });
 
-            int startMonth = (quarter - 1) * 3 + 1;
+            int startMonth = (q - 1) * 3 + 1;
             int endMonth = startMonth + 2;
 
             var list = await _db.HoaDonNhaps
                 .AsNoTracking()
                 .Include(x => x.MaNccNavigation)
                 .Include(x => x.MaNvNavigation)
-                .Where(x => x.NgayNhap.Year == year && x.NgayNhap.Month >= startMonth && x.NgayNhap.Month <= endMonth)
+                .Where(x => x.NgayNhap.Year == y && x.NgayNhap.Month >= startMonth && x.NgayNhap.Month <= endMonth)
                 .OrderByDescending(x => x.TongTien)
                 .Select(x => new
                 {
                     x.MaHdn,
                     x.NgayNhap,
                     x.MaNcc,
-                    TenNcc = x.MaNccNavigation.TenNcc,
+                    TenNcc = x.MaNccNavigation != null ? x.MaNccNavigation.TenNcc : x.MaNcc,
                     x.MaNv,
-                    TenNv = x.MaNvNavigation.TenNv,
+                    TenNv = x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : x.MaNv,
                     x.TongTien
                 })
                 .ToListAsync();
 
             return Ok(new
             {
-                Quy = quarter,
-                Nam = year,
+                Quy = q,
+                Nam = y,
                 TongTienNhapQuy = list.Sum(x => x.TongTien),
+                TongSoHoaDon = list.Count,
                 HoaDonLonNhat = list.FirstOrDefault(),
-                DanhSachHoaDon = list
+                DanhSachHoaDon = list,
+                DanhSach = list
             });
         }
 
         [HttpGet("hdn-lon-nhat/excel")]
-        public async Task<IActionResult> xuatExcelHdnLonNhat([FromQuery] int quarter, [FromQuery] int year)
+        [HttpGet("nhap-lon-nhat-quy/excel")]
+        public async Task<IActionResult> xuatExcelHdnLonNhat([FromQuery] int? quarter = null, [FromQuery] int? quy = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
-            int startMonth = (quarter - 1) * 3 + 1;
+            int q = quarter ?? quy ?? 3;
+            int y = year ?? nam ?? 2026;
+
+            int startMonth = (q - 1) * 3 + 1;
             int endMonth = startMonth + 2;
 
             var list = await _db.HoaDonNhaps
                 .AsNoTracking()
                 .Include(x => x.MaNccNavigation)
                 .Include(x => x.MaNvNavigation)
-                .Where(x => x.NgayNhap.Year == year && x.NgayNhap.Month >= startMonth && x.NgayNhap.Month <= endMonth)
+                .Where(x => x.NgayNhap.Year == y && x.NgayNhap.Month >= startMonth && x.NgayNhap.Month <= endMonth)
                 .OrderByDescending(x => x.TongTien)
                 .ToListAsync();
 
@@ -225,54 +271,58 @@ namespace NexusRetail.Core.Api.Controllers
                 });
             }
 
-            var fileBytes = taoFileExcel($"BÁO CÁO HÓA ĐƠN NHẬP LỚN NHẤT QUÝ {quarter} NĂM {year}", headers, rows);
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_HDN_LonNhat_Quy_{quarter}_{year}.xlsx");
+            var fileBytes = taoFileExcel($"BÁO CÁO HÓA ĐƠN NHẬP LỚN NHẤT QUÝ {q} NĂM {y}", headers, rows);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_HDN_LonNhat_Quy_{q}_{y}.xlsx");
         }
 
         // =========================================================================
         // BR-08: BÁO CÁO DOANH SỐ BÁN THEO NĂM
         // =========================================================================
         [HttpGet("doanh-so-nam")]
-        public async Task<IActionResult> layDoanhSoNam([FromQuery] int year)
+        public async Task<IActionResult> layDoanhSoNam([FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
-            if (year < 2000)
+            int y = year ?? nam ?? 2026;
+            if (y < 2000)
                 return BadRequest(new { message = "Năm không hợp lệ!" });
 
             var list = await _db.HoaDonBans
                 .AsNoTracking()
                 .Include(x => x.MaKhachNavigation)
                 .Include(x => x.MaNvNavigation)
-                .Where(x => x.NgayBan.Year == year)
+                .Where(x => x.NgayBan.Year == y)
                 .OrderBy(x => x.NgayBan)
                 .Select(x => new
                 {
                     x.MaHdb,
                     x.NgayBan,
                     x.MaKhach,
-                    TenKhach = x.MaKhachNavigation.TenKhach,
+                    TenKhach = x.MaKhachNavigation != null ? x.MaKhachNavigation.TenKhach : x.MaKhach,
                     x.MaNv,
-                    TenNv = x.MaNvNavigation.TenNv,
+                    TenNv = x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : x.MaNv,
                     x.TongTien
                 })
                 .ToListAsync();
 
             return Ok(new
             {
-                Nam = year,
+                Nam = y,
                 TongDoanhThu = list.Sum(x => x.TongTien),
                 TongSoDonHang = list.Count,
-                DanhSachHoaDon = list
+                DanhSachHoaDon = list,
+                DanhSach = list
             });
         }
 
         [HttpGet("doanh-so-nam/excel")]
-        public async Task<IActionResult> xuatExcelDoanhSoNam([FromQuery] int year)
+        public async Task<IActionResult> xuatExcelDoanhSoNam([FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
+            int y = year ?? nam ?? 2026;
+
             var list = await _db.HoaDonBans
                 .AsNoTracking()
                 .Include(x => x.MaKhachNavigation)
                 .Include(x => x.MaNvNavigation)
-                .Where(x => x.NgayBan.Year == year)
+                .Where(x => x.NgayBan.Year == y)
                 .OrderBy(x => x.NgayBan)
                 .ToListAsync();
 
@@ -291,17 +341,21 @@ namespace NexusRetail.Core.Api.Controllers
                 });
             }
 
-            var fileBytes = taoFileExcel($"BÁO CÁO TỔNG KẾT DOANH SỐ BÁN NĂM {year}", headers, rows);
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_DoanhSo_Nam_{year}.xlsx");
+            var fileBytes = taoFileExcel($"BÁO CÁO TỔNG KẾT DOANH SỐ BÁN NĂM {y}", headers, rows);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_DoanhSo_Nam_{y}.xlsx");
         }
 
         // =========================================================================
         // BR-09: TOP 5 NHÂN VIÊN CÓ DOANH SỐ THẤP NHẤT TRONG THÁNG
         // =========================================================================
         [HttpGet("nv-doanh-so-thap")]
-        public async Task<IActionResult> layNvDoanhSoThap([FromQuery] int month, [FromQuery] int year)
+        [HttpGet("nv-ban-it-nhat")]
+        public async Task<IActionResult> layNvDoanhSoThap([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
-            if (month < 1 || month > 12 || year < 2000)
+            int m = month ?? thang ?? 9;
+            int y = year ?? nam ?? 2026;
+
+            if (m < 1 || m > 12 || y < 2000)
                 return BadRequest(new { message = "Tháng hoặc năm không hợp lệ!" });
 
             var list = await _db.NhanViens
@@ -310,9 +364,11 @@ namespace NexusRetail.Core.Api.Controllers
                 {
                     nv.MaNv,
                     nv.TenNv,
-                    nv.DienThoai,
+                    GioiTinh = nv.GioiTinh ?? "Nam",
+                    DienThoai = nv.DienThoai ?? "",
+                    SoHoaDon = _db.HoaDonBans.Count(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y),
                     TongTienBan = _db.HoaDonBans
-                        .Where(h => h.MaNv == nv.MaNv && h.NgayBan.Month == month && h.NgayBan.Year == year)
+                        .Where(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y)
                         .Sum(h => (decimal?)h.TongTien) ?? 0m
                 })
                 .OrderBy(x => x.TongTienBan)
@@ -321,31 +377,37 @@ namespace NexusRetail.Core.Api.Controllers
 
             return Ok(new
             {
-                Thang = month,
-                Nam = year,
-                DanhSachNhanVien = list
+                Thang = m,
+                Nam = y,
+                DanhSachNhanVien = list,
+                DanhSach = list
             });
         }
 
         [HttpGet("nv-doanh-so-thap/excel")]
-        public async Task<IActionResult> xuatExcelNvDoanhSoThap([FromQuery] int month, [FromQuery] int year)
+        [HttpGet("nv-ban-it-nhat/excel")]
+        public async Task<IActionResult> xuatExcelNvDoanhSoThap([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
+            int m = month ?? thang ?? 9;
+            int y = year ?? nam ?? 2026;
+
             var list = await _db.NhanViens
                 .AsNoTracking()
                 .Select(nv => new
                 {
                     nv.MaNv,
                     nv.TenNv,
-                    nv.DienThoai,
+                    GioiTinh = nv.GioiTinh ?? "Nam",
+                    DienThoai = nv.DienThoai ?? "",
                     TongTienBan = _db.HoaDonBans
-                        .Where(h => h.MaNv == nv.MaNv && h.NgayBan.Month == month && h.NgayBan.Year == year)
+                        .Where(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y)
                         .Sum(h => (decimal?)h.TongTien) ?? 0m
                 })
                 .OrderBy(x => x.TongTienBan)
                 .Take(5)
                 .ToListAsync();
 
-            var headers = new[] { "STT", "Mã Nhân Viên", "Tên Nhân Viên", "Số Điện Thoại", "Doanh Số Bán Trong Tháng" };
+            var headers = new[] { "STT", "Mã Nhân Viên", "Tên Nhân Viên", "Giới Tính", "Số Điện Thoại", "Doanh Số Bán Trong Tháng" };
             var rows = new List<object[]>();
             for (int i = 0; i < list.Count; i++)
             {
@@ -354,13 +416,14 @@ namespace NexusRetail.Core.Api.Controllers
                     i + 1,
                     list[i].MaNv,
                     list[i].TenNv,
-                    list[i].DienThoai ?? "",
+                    list[i].GioiTinh,
+                    list[i].DienThoai,
                     list[i].TongTienBan
                 });
             }
 
-            var fileBytes = taoFileExcel($"BÁO CÁO 5 NHÂN VIÊN DOANH SỐ THẤP NHẤT THÁNG {month}/{year}", headers, rows);
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_5NV_DoanhSoThap_Thang_{month}_{year}.xlsx");
+            var fileBytes = taoFileExcel($"BÁO CÁO 5 NHÂN VIÊN DOANH SỐ THẤP NHẤT THÁNG {m}/{y}", headers, rows);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_5NV_DoanhSoThap_Thang_{m}_{y}.xlsx");
         }
     }
 }

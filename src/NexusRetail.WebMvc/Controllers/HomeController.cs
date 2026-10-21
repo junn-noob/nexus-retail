@@ -21,27 +21,23 @@ public class HomeController : Controller
     {
         var client = _factory.CreateClient("CoreApi");
 
-        string url;
-        if (!string.IsNullOrWhiteSpace(brand))
-        {
-            url = $"api/san-pham/nhan-hieu/{Uri.EscapeDataString(brand)}?page={page}&pageSize=9";
-        }
-        else
-        {
-            url = $"api/san-pham?page={page}&pageSize=9";
-            if (!string.IsNullOrWhiteSpace(q))
-                url += $"&q={Uri.EscapeDataString(q)}";
+        string url = $"api/san-pham?page={page}&pageSize=9";
 
-            if (!string.IsNullOrWhiteSpace(price))
+        if (!string.IsNullOrWhiteSpace(brand))
+            url += $"&brand={Uri.EscapeDataString(brand)}";
+
+        if (!string.IsNullOrWhiteSpace(q))
+            url += $"&q={Uri.EscapeDataString(q)}";
+
+        if (!string.IsNullOrWhiteSpace(price))
+        {
+            url += price switch
             {
-                url += price switch
-                {
-                    "lt20" => "&maxPrice=20000000",
-                    "mid"  => "&minPrice=20000000&maxPrice=30000000",
-                    "gt30" => "&minPrice=30000000",
-                    _ => ""
-                };
-            }
+                "lt20" => "&maxPrice=20000000",
+                "mid"  => "&minPrice=20000000&maxPrice=30000000",
+                "gt30" => "&minPrice=30000000",
+                _ => ""
+            };
         }
 
         ViewBag.CurrentPrice = price;
