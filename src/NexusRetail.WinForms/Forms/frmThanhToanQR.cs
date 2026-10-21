@@ -1,6 +1,10 @@
 using NexusRetail.WinForms.Services;
+using QRCoder;
 using System.Diagnostics;
 using System.Media;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace NexusRetail.WinForms.Forms
 {
@@ -9,14 +13,16 @@ namespace NexusRetail.WinForms.Forms
         private readonly string _maHdb;
         private readonly decimal _soTien;
         private readonly string _accountNumber;
+        private readonly string _userBankName;
         private readonly System.Windows.Forms.Timer _pollingTimer = new();
         public bool IsPaymentSuccessful { get; private set; }
 
-        public frmThanhToanQR(string maHdb, decimal soTien, string accountNumber = "0988888888")
+        public frmThanhToanQR(string maHdb, decimal soTien, string accountNumber = "09999999900", string userBankName = "NGUYEN VAN HUNG")
         {
             _maHdb = maHdb;
             _soTien = soTien;
             _accountNumber = accountNumber;
+            _userBankName = userBankName;
 
             InitializeComponent();
 
@@ -27,6 +33,8 @@ namespace NexusRetail.WinForms.Forms
             lblSoTien.Text = $"{_soTien:N0} ₫";
             lblNoiDung.Text = $"DUYMOBILE {_maHdb}";
             lblStk.Text = _accountNumber;
+            lblChuTk.Text = _userBankName;
+            lblNganHang.Text = "MB Bank (Ngân hàng TMCP Quân đội)";
 
             // Nạp mã VietQR động
             LoadVietQrImage();
@@ -39,17 +47,88 @@ namespace NexusRetail.WinForms.Forms
 
         private async void LoadVietQrImage()
         {
+            // 1. Ưu tiên 1: Lấy trực tiếp từ img.vietqr.io (SVG nhúng PNG base64 480x480 chính thức)
             try
             {
-                string qrUrl = $"https://img.vietqr.io/image/MB-{_accountNumber}-compact2.png?amount={(long)_soTien}&addInfo=DUYMOBILE%20{_maHdb}&accountName=DUY%20MOBILE";
-                using var http = new HttpClient();
-                var bytes = await http.GetByteArrayAsync(qrUrl);
-                using var ms = new MemoryStream(bytes);
+                string encodedContent = Uri.EscapeDataString($"DUYMOBILE {_maHdb}");
+                string svgUrl = $"https://img.vietqr.io/image/MB-{_accountNumber}-qr_only.svg?amount={(long)_soTien}&addInfo={encodedContent}";
+
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                string svgContent = await http.GetStringAsync(svgUrl);
+
+                var match = Regex.Match(svgContent, @"href=""data:image/png;base64,([^""]+)""");
+                if (match.Success)
+                {
+                    byte[] pngBytes = Convert.FromBase64String(match.Groups[1].Value);
+                    using var ms = new MemoryStream(pngBytes);
+                    picQr.Image = Image.FromStream(ms);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[VietQR] Không thể tải SVG: " + ex.Message);
+            }
+
+            // 2. Ưu tiên 2: Gọi POST API vietqr.vn/api/vietqr/generate lấy chuỗi EMVCo qrCode
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                var reqObj = new
+                {
+                    bankAccount = _accountNumber,
+                    userBankName = _userBankName,
+                    bankCode = "MB",
+                    amount = ((long)_soTien).ToString(),
+                    content = $"DUYMOBILE {_maHdb}"
+                };
+
+                var res = await http.PostAsJsonAsync("https://vietqr.vn/api/vietqr/generate", reqObj);
+                if (res.IsSuccessStatusCode)
+                {
+                    var jsonDoc = await res.Content.ReadFromJsonAsync<JsonElement>();
+                    if (jsonDoc.TryGetProperty("qrCode", out var qrEl) && !string.IsNullOrEmpty(qrEl.GetString()))
+                    {
+                        RenderQrCodeWithQRCoder(qrEl.GetString()!);
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[VietQR] Không thể gọi API vietqr.vn: " + ex.Message);
+            }
+
+            // 3. Ưu tiên 3: QuickChart API
+            try
+            {
+                string emvString = $"https://vietqr.me/MB/{_accountNumber}/{(long)_soTien}/DUYMOBILE%20{_maHdb}";
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+                byte[] qrBytes = await http.GetByteArrayAsync($"https://quickchart.io/qr?text={Uri.EscapeDataString(emvString)}&size=300");
+                using var ms = new MemoryStream(qrBytes);
+                picQr.Image = Image.FromStream(ms);
+                return;
+            }
+            catch
+            {
+                // Fallback offline với thư viện QRCoder cục bộ
+                RenderQrCodeWithQRCoder($"https://vietqr.me/MB/{_accountNumber}/{(long)_soTien}/DUYMOBILE%20{_maHdb}");
+            }
+        }
+
+        private void RenderQrCodeWithQRCoder(string text)
+        {
+            try
+            {
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.M);
+                using var qrCode = new PngByteQRCode(qrCodeData);
+                byte[] qrBytes = qrCode.GetGraphic(20);
+                using var ms = new MemoryStream(qrBytes);
                 picQr.Image = Image.FromStream(ms);
             }
             catch
             {
-                // Fallback nếu không có internet: vẽ placeholder QR trực tiếp
                 var bmp = new Bitmap(260, 260);
                 using (var g = Graphics.FromImage(bmp))
                 {

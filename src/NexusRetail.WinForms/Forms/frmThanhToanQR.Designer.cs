@@ -26,6 +26,8 @@ namespace NexusRetail.WinForms.Forms
             this.lblLabelNoiDung = new System.Windows.Forms.Label();
             this.lblStk = new System.Windows.Forms.Label();
             this.lblLabelStk = new System.Windows.Forms.Label();
+            this.lblChuTk = new System.Windows.Forms.Label();
+            this.lblLabelChuTk = new System.Windows.Forms.Label();
             this.lblNganHang = new System.Windows.Forms.Label();
             this.lblLabelNganHang = new System.Windows.Forms.Label();
             this.pnlStatus = new System.Windows.Forms.Panel();
@@ -90,13 +92,15 @@ namespace NexusRetail.WinForms.Forms
             this.pnlInfo.Controls.Add(this.lblLabelSoTien);
             this.pnlInfo.Controls.Add(this.lblNoiDung);
             this.pnlInfo.Controls.Add(this.lblLabelNoiDung);
+            this.pnlInfo.Controls.Add(this.lblChuTk);
+            this.pnlInfo.Controls.Add(this.lblLabelChuTk);
             this.pnlInfo.Controls.Add(this.lblStk);
             this.pnlInfo.Controls.Add(this.lblLabelStk);
             this.pnlInfo.Controls.Add(this.lblNganHang);
             this.pnlInfo.Controls.Add(this.lblLabelNganHang);
-            this.pnlInfo.Location = new System.Drawing.Point(24, 355);
+            this.pnlInfo.Location = new System.Drawing.Point(24, 348);
             this.pnlInfo.Name = "pnlInfo";
-            this.pnlInfo.Size = new System.Drawing.Size(412, 145);
+            this.pnlInfo.Size = new System.Drawing.Size(412, 172);
             this.pnlInfo.TabIndex = 2;
             // 
             // lblLabelNganHang
@@ -115,15 +119,15 @@ namespace NexusRetail.WinForms.Forms
             this.lblNganHang.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblNganHang.Location = new System.Drawing.Point(130, 12);
             this.lblNganHang.Name = "lblNganHang";
-            this.lblNganHang.Size = new System.Drawing.Size(197, 15);
+            this.lblNganHang.Size = new System.Drawing.Size(232, 15);
             this.lblNganHang.TabIndex = 1;
-            this.lblNganHang.Text = "MB Bank (Ngân hàng Quân Đội)";
+            this.lblNganHang.Text = "MB Bank (Ngân hàng TMCP Quân đội)";
             // 
             // lblLabelStk
             // 
             this.lblLabelStk.AutoSize = true;
             this.lblLabelStk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.lblLabelStk.Location = new System.Drawing.Point(15, 42);
+            this.lblLabelStk.Location = new System.Drawing.Point(15, 40);
             this.lblLabelStk.Name = "lblLabelStk";
             this.lblLabelStk.Size = new System.Drawing.Size(75, 15);
             this.lblLabelStk.TabIndex = 2;
@@ -134,17 +138,38 @@ namespace NexusRetail.WinForms.Forms
             this.lblStk.AutoSize = true;
             this.lblStk.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblStk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
-            this.lblStk.Location = new System.Drawing.Point(130, 40);
+            this.lblStk.Location = new System.Drawing.Point(130, 38);
             this.lblStk.Name = "lblStk";
-            this.lblStk.Size = new System.Drawing.Size(89, 19);
+            this.lblStk.Size = new System.Drawing.Size(97, 19);
             this.lblStk.TabIndex = 3;
-            this.lblStk.Text = "0988888888";
+            this.lblStk.Text = "09999999900";
+            // 
+            // lblLabelChuTk
+            // 
+            this.lblLabelChuTk.AutoSize = true;
+            this.lblLabelChuTk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
+            this.lblLabelChuTk.Location = new System.Drawing.Point(15, 68);
+            this.lblLabelChuTk.Name = "lblLabelChuTk";
+            this.lblLabelChuTk.Size = new System.Drawing.Size(83, 15);
+            this.lblLabelChuTk.TabIndex = 8;
+            this.lblLabelChuTk.Text = "Chủ tài khoản:";
+            // 
+            // lblChuTk
+            // 
+            this.lblChuTk.AutoSize = true;
+            this.lblChuTk.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblChuTk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
+            this.lblChuTk.Location = new System.Drawing.Point(130, 67);
+            this.lblChuTk.Name = "lblChuTk";
+            this.lblChuTk.Size = new System.Drawing.Size(142, 17);
+            this.lblChuTk.TabIndex = 9;
+            this.lblChuTk.Text = "NGUYEN VAN HUNG";
             // 
             // lblLabelNoiDung
             // 
             this.lblLabelNoiDung.AutoSize = true;
             this.lblLabelNoiDung.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.lblLabelNoiDung.Location = new System.Drawing.Point(15, 74);
+            this.lblLabelNoiDung.Location = new System.Drawing.Point(15, 96);
             this.lblLabelNoiDung.Name = "lblLabelNoiDung";
             this.lblLabelNoiDung.Size = new System.Drawing.Size(60, 15);
             this.lblLabelNoiDung.TabIndex = 4;
@@ -155,7 +180,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblNoiDung.AutoSize = true;
             this.lblNoiDung.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblNoiDung.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(194)))), ((int)(((byte)(65)))), ((int)(((byte)(12)))));
-            this.lblNoiDung.Location = new System.Drawing.Point(130, 72);
+            this.lblNoiDung.Location = new System.Drawing.Point(130, 94);
             this.lblNoiDung.Name = "lblNoiDung";
             this.lblNoiDung.Size = new System.Drawing.Size(133, 19);
             this.lblNoiDung.TabIndex = 5;
@@ -165,7 +190,7 @@ namespace NexusRetail.WinForms.Forms
             // 
             this.lblLabelSoTien.AutoSize = true;
             this.lblLabelSoTien.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.lblLabelSoTien.Location = new System.Drawing.Point(15, 108);
+            this.lblLabelSoTien.Location = new System.Drawing.Point(15, 128);
             this.lblLabelSoTien.Name = "lblLabelSoTien";
             this.lblLabelSoTien.Size = new System.Drawing.Size(67, 15);
             this.lblLabelSoTien.TabIndex = 6;
@@ -176,7 +201,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSoTien.AutoSize = true;
             this.lblSoTien.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblSoTien.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(185)))), ((int)(((byte)(129)))));
-            this.lblSoTien.Location = new System.Drawing.Point(130, 103);
+            this.lblSoTien.Location = new System.Drawing.Point(130, 123);
             this.lblSoTien.Name = "lblSoTien";
             this.lblSoTien.Size = new System.Drawing.Size(126, 25);
             this.lblSoTien.TabIndex = 7;
@@ -187,7 +212,7 @@ namespace NexusRetail.WinForms.Forms
             this.pnlStatus.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(246)))), ((int)(((byte)(255)))));
             this.pnlStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlStatus.Controls.Add(this.lblStatus);
-            this.pnlStatus.Location = new System.Drawing.Point(24, 513);
+            this.pnlStatus.Location = new System.Drawing.Point(24, 530);
             this.pnlStatus.Name = "pnlStatus";
             this.pnlStatus.Size = new System.Drawing.Size(412, 46);
             this.pnlStatus.TabIndex = 3;
@@ -210,7 +235,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnSimulate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimulate.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnSimulate.ForeColor = System.Drawing.Color.White;
-            this.btnSimulate.Location = new System.Drawing.Point(24, 574);
+            this.btnSimulate.Location = new System.Drawing.Point(24, 588);
             this.btnSimulate.Name = "btnSimulate";
             this.btnSimulate.Size = new System.Drawing.Size(256, 38);
             this.btnSimulate.TabIndex = 4;
@@ -223,7 +248,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnDong.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
             this.btnDong.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDong.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.btnDong.Location = new System.Drawing.Point(292, 574);
+            this.btnDong.Location = new System.Drawing.Point(292, 588);
             this.btnDong.Name = "btnDong";
             this.btnDong.Size = new System.Drawing.Size(144, 38);
             this.btnDong.TabIndex = 5;
@@ -236,7 +261,7 @@ namespace NexusRetail.WinForms.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(460, 630);
+            this.ClientSize = new System.Drawing.Size(460, 642);
             this.Controls.Add(this.btnDong);
             this.Controls.Add(this.btnSimulate);
             this.Controls.Add(this.pnlStatus);
@@ -268,6 +293,8 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Label lblNganHang;
         private System.Windows.Forms.Label lblLabelStk;
         private System.Windows.Forms.Label lblStk;
+        private System.Windows.Forms.Label lblLabelChuTk;
+        private System.Windows.Forms.Label lblChuTk;
         private System.Windows.Forms.Label lblLabelNoiDung;
         private System.Windows.Forms.Label lblNoiDung;
         private System.Windows.Forms.Label lblLabelSoTien;

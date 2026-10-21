@@ -92,7 +92,7 @@ namespace NexusRetail.Core.Api.Services.Payment
             var fakeWebhook = new BankWebhookDto
             {
                 Gateway = "MBBank (Simulate)",
-                AccountNumber = "0988888888",
+                AccountNumber = "09999999900",
                 TransferAmount = amount,
                 Content = $"DUYMOBILE {maHdb} CHUYEN TIEN",
                 ReferenceCode = $"SIM_{DateTime.UtcNow.Ticks}",
