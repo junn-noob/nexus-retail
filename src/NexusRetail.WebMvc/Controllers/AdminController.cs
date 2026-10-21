@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace NexusRetail.WebMvc.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class AdminController : Controller
     {
         private readonly IHttpClientFactory _factory;
@@ -290,7 +290,8 @@ namespace NexusRetail.WebMvc.Controllers
             return View(model);
         }
 
-        // 5. XÓA SẢN PHẨM
+        // 5. XÓA SẢN PHẨM (CHỈ ADMIN)
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> XoaSanPham(string id)
@@ -391,7 +392,8 @@ namespace NexusRetail.WebMvc.Controllers
             }
         }
 
-        // 7. BÁO CÁO THỐNG KÊ (4 BÁO CÁO BR-06, BR-07, BR-08, BR-09 VÀ XUẤT EXCEL)
+        // 7. BÁO CÁO THỐNG KÊ (CHỈ ADMIN)
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> BaoCao(string? loai = "sp-ban-chay", int? thang = null, int? nam = null, int? quy = null)
         {
@@ -426,6 +428,7 @@ namespace NexusRetail.WebMvc.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> XuatExcel(string loai, int? thang = null, int? nam = null, int? quy = null)
         {

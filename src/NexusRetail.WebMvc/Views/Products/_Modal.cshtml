@@ -77,19 +77,19 @@
                         @if (!string.IsNullOrWhiteSpace(Model.TenManHinh))
                         {
                             <span class="badge bg-light text-dark border p-2">
-                                🖥️ Màn hình: @Model.TenManHinh
+                                Màn hình: @Model.TenManHinh
                             </span>
                         }
                         @if (!string.IsNullOrWhiteSpace(Model.ChupAnh))
                         {
                             <span class="badge bg-light text-dark border p-2">
-                                📸 Camera: @Model.ChupAnh
+                                Camera: @Model.ChupAnh
                             </span>
                         }
                         @if (Model.ThoiGianBaoHanh > 0)
                         {
                             <span class="badge bg-light text-dark border p-2">
-                                🛡️ Bảo hành @Model.ThoiGianBaoHanh tháng VNA
+                                Bảo hành @Model.ThoiGianBaoHanh tháng VNA
                             </span>
                         }
                     </div>
@@ -99,7 +99,7 @@
                     {
                         <div class="p-3 bg-primary-subtle rounded-3 mb-4">
                             <strong class="text-primary d-block small mb-1">
-                                <i class="bi bi-stars"></i> Đặc điểm nổi bật:
+                                Đặc điểm nổi bật:
                             </strong>
                             <p class="m-0 small text-dark">@Model.GhiChu</p>
                         </div>
@@ -108,10 +108,10 @@
                     <!-- Action buttons -->
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-primary btn-lg rounded-3 fw-bold flex-grow-1 shadow-sm" onclick="addToCartFromModal('@Model.MaSp')">
-                            <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                            Thêm vào giỏ
                         </button>
                         <button type="button" class="btn btn-dark btn-lg rounded-3 fw-bold px-4" onclick="buyNowFromModal('@Model.MaSp')">
-                            ⚡ Mua ngay
+                            Mua ngay
                         </button>
                     </div>
                 </div>

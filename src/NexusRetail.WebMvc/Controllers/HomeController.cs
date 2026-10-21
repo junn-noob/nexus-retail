@@ -57,14 +57,17 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> LaySanPhamTheoNhanHieu(string maNhanHieu, int page = 1)
+    public async Task<IActionResult> LaySanPhamTheoNhanHieu(string? maNhanHieu, int page = 1)
     {
         var client = _factory.CreateClient("CoreApi");
 
         try
         {
-            var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(
-                $"api/san-pham/nhan-hieu/{maNhanHieu}?page={page}&pageSize=9");
+            string url = string.IsNullOrWhiteSpace(maNhanHieu)
+                ? $"api/san-pham?page={page}&pageSize=9"
+                : $"api/san-pham/nhan-hieu/{Uri.EscapeDataString(maNhanHieu)}?page={page}&pageSize=9";
+
+            var data = await client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(url);
 
             return Json(data);
         }

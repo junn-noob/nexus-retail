@@ -102,14 +102,23 @@
                                 <td class="text-center pe-4">
                                     <div class="d-inline-flex align-items-center gap-1">
                                         <a asp-action="SuaSanPham" asp-route-id="@sp.MaSp" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="Sửa thông số">
-                                            <i class="bi bi-pencil-square me-1"></i> Sửa
+                                            Sửa
                                         </a>
-                                        <form asp-action="XoaSanPham" asp-route-id="@sp.MaSp" method="post" class="m-0" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm @sp.TenSp (@sp.MaSp)?');">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="Xóa sản phẩm">
-                                                <i class="bi bi-trash3 me-1"></i> Xóa
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <form asp-action="XoaSanPham" asp-route-id="@sp.MaSp" method="post" class="m-0" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm @sp.TenSp (@sp.MaSp)?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="Xóa sản phẩm">
+                                                    Xóa
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-light border text-muted rounded-3 px-2 py-1 opacity-50" disabled title="Chỉ Admin mới có quyền xóa sản phẩm">
+                                                Xóa
                                             </button>
-                                        </form>
+                                        }
                                     </div>
                                 </td>
                             </tr>

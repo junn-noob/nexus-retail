@@ -31,6 +31,27 @@ namespace NexusRetail.WebMvc.Controllers
             return View(new LoginDto { ReturnUrl = returnUrl });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> QuickLogin(string role, string? returnUrl = null)
+        {
+            string username = "khachhang";
+            string password = "123456";
+
+            if (string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase))
+            {
+                username = "admin";
+                password = "admin123";
+            }
+            else if (string.Equals(role, "staff", StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(role, "nhanvien", StringComparison.OrdinalIgnoreCase))
+            {
+                username = "nhanvien";
+                password = "123456";
+            }
+
+            return await ExecuteLoginAsync(username, password, false, returnUrl, null);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginDto model)
@@ -42,8 +63,11 @@ namespace NexusRetail.WebMvc.Controllers
                 return View(model);
             }
 
-            string username = model.Username.Trim();
-            string password = model.Password;
+            return await ExecuteLoginAsync(model.Username.Trim(), model.Password, model.RememberMe, model.ReturnUrl, model);
+        }
+
+        private async Task<IActionResult> ExecuteLoginAsync(string username, string password, bool rememberMe, string? returnUrl, LoginDto? modelForView)
+        {
             string role = "Customer";
             string email = $"{username}@duymobile.vn";
             string token = string.Empty;
@@ -88,7 +112,7 @@ namespace NexusRetail.WebMvc.Controllers
                     if (!CheckDemoAccount(username, password, out role, out email))
                     {
                         ModelState.AddModelError(string.Empty, errorMsg);
-                        return View(model);
+                        return View("Login", modelForView ?? new LoginDto { Username = username, ReturnUrl = returnUrl });
                     }
                     loginSuccess = true;
                 }
@@ -102,8 +126,8 @@ namespace NexusRetail.WebMvc.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Không thể kết nối đến hệ thống xác thực. Bạn có thể sử dụng tài khoản Demo: admin/admin123 hoặc khachhang/123456.");
-                    return View(model);
+                    ModelState.AddModelError(string.Empty, "Không thể kết nối đến hệ thống xác thực. Bạn có thể sử dụng tài khoản Demo: admin/admin123 hoặc nhanvien/123456.");
+                    return View("Login", modelForView ?? new LoginDto { Username = username, ReturnUrl = returnUrl });
                 }
             }
 
@@ -121,8 +145,8 @@ namespace NexusRetail.WebMvc.Controllers
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var authProperties = new AuthenticationProperties
                 {
-                    IsPersistent = model.RememberMe,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(model.RememberMe ? 7 : 1)
+                    IsPersistent = rememberMe,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(rememberMe ? 7 : 1)
                 };
 
                 await HttpContext.SignInAsync(
@@ -130,17 +154,23 @@ namespace NexusRetail.WebMvc.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
-                TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {username} quay trở lại.";
+                TempData["SuccessMessage"] = $"Đăng nhập thành công! Vai trò: {role}.";
 
-                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
-                    return Redirect(model.ReturnUrl);
+                    return Redirect(returnUrl);
                 }
+
+                if (role == "Admin" || role == "Staff")
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+
                 return RedirectToAction("Index", "Home");
             }
 
             ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng.");
-            return View(model);
+            return View("Login", modelForView ?? new LoginDto { Username = username, ReturnUrl = returnUrl });
         }
 
         [HttpGet]

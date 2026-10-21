@@ -1,31 +1,52 @@
 @{
     var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var isAdmin = User.IsInRole("Admin");
+    var currentRole = isAdmin ? "Quản trị viên (Admin)" : "Nhân viên (Staff)";
 }
 
 <div class="bg-white border-bottom shadow-sm mb-4">
     <div class="container py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
             <span class="fs-4 fw-bolder text-dark d-flex align-items-center gap-2">
-                <i class="bi bi-shield-shaded text-danger"></i> Duy<b>Mobile</b>
-                <span class="badge bg-danger text-white rounded-pill px-2 py-1 small" style="font-size: 11px;">ADMIN PORTAL</span>
+                Duy<b>Mobile</b>
+                @if (isAdmin)
+                {
+                    <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 small" style="font-size: 11px;">ADMIN PORTAL</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 small" style="font-size: 11px;">STAFF PORTAL</span>
+                }
+            </span>
+            <span class="badge bg-light text-secondary border ms-2 small d-none d-md-inline">
+                Tài khoản: <strong class="text-dark">@User.Identity?.Name</strong> (@currentRole)
             </span>
         </div>
 
-        <nav class="nav nav-pills gap-1 flex-wrap">
+        <nav class="nav nav-pills gap-1 flex-wrap align-items-center">
             <a asp-action="Index" class="nav-link rounded-3 fw-bold small @(action == "Index" ? "active" : "text-dark bg-light")">
-                <i class="bi bi-speedometer2 me-1"></i> Tổng quan
+                Tổng quan
             </a>
             <a asp-action="SanPham" class="nav-link rounded-3 fw-bold small @(action == "SanPham" || action == "ThemSanPham" || action == "SuaSanPham" ? "active" : "text-dark bg-light")">
-                <i class="bi bi-phone me-1"></i> Quản lý sản phẩm
+                Sản phẩm
             </a>
             <a asp-action="DonHang" class="nav-link rounded-3 fw-bold small @(action == "DonHang" || action == "ChiTietDonHang" ? "active" : "text-dark bg-light")">
-                <i class="bi bi-box-seam me-1"></i> Quản lý đơn hàng
+                Đơn hàng
             </a>
-            <a asp-action="BaoCao" class="nav-link rounded-3 fw-bold small @(action == "BaoCao" ? "active" : "text-dark bg-light")">
-                <i class="bi bi-bar-chart-line-fill me-1"></i> 4 Báo cáo BR
-            </a>
-            <a asp-controller="Home" asp-action="Index" class="nav-link rounded-3 fw-bold small text-primary bg-light border border-dashed border-primary">
-                <i class="bi bi-shop me-1"></i> Xem Website
+            @if (isAdmin)
+            {
+                <a asp-action="BaoCao" class="nav-link rounded-3 fw-bold small @(action == "BaoCao" ? "active" : "text-dark bg-light")">
+                    4 Báo cáo BR
+                </a>
+            }
+            else
+            {
+                <span class="nav-link rounded-3 fw-bold small text-muted bg-light opacity-50" title="Chức năng Báo cáo tài chính BR chỉ dành riêng cho Admin" style="cursor: not-allowed;">
+                    <i class="bi bi-lock me-1"></i> Báo cáo BR
+                </span>
+            }
+            <a asp-controller="Home" asp-action="Index" class="nav-link rounded-3 fw-bold small text-primary bg-light border border-dashed border-primary ms-1">
+                Xem Website
             </a>
         </nav>
     </div>

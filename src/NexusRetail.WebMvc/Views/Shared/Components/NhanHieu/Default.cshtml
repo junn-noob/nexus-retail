@@ -50,9 +50,7 @@
             </div>
         `;
 
-        const url = maNhanHieu 
-            ? `/Home/LaySanPhamTheoNhanHieu?maNhanHieu=${encodeURIComponent(maNhanHieu)}&page=${page}`
-            : `/api/san-pham?page=${page}&pageSize=9`;
+        const url = `/Home/LaySanPhamTheoNhanHieu?maNhanHieu=${encodeURIComponent(maNhanHieu || '')}&page=${page}`;
 
         $.ajax({
             url: url,
@@ -114,8 +112,8 @@
             const imgSrc = sp.anh ? `/images/products/${sp.anh}` : '/images/products/iphone_16_plus_black_37a9bceca0.png';
             const isFlagship = sp.giaBan > 25000000;
             const badgeHtml = isFlagship
-                ? '<span class="dm-badge dm-badge-flagship"><i class="bi bi-crown-fill text-warning me-1"></i> Flagship</span>'
-                : '<span class="dm-badge dm-badge-hot"><i class="bi bi-fire text-danger me-1"></i> Bán chạy</span>';
+                ? '<span class="dm-badge dm-badge-flagship">Flagship</span>'
+                : '<span class="dm-badge dm-badge-hot">Bán chạy</span>';
             const brandName = sp.tenNhanHieu || 'Chính hãng';
             const noteText = sp.ghiChu || 'Bảo hành 12 tháng VNA';
             const formattedPrice = Number(sp.giaBan).toLocaleString('vi-VN') + ' ₫';
@@ -132,11 +130,11 @@
                         <div class="dm-product-body">
                             <div class="dm-product-brand">${brandName}</div>
                             <h3 class="dm-product-title" onclick="openProduct('${sp.maSp}')" title="${sp.tenSp}">${sp.tenSp}</h3>
-                            <span class="dm-product-tag"><i class="bi bi-shield-check text-success me-1"></i> ${noteText}</span>
+                            <span class="dm-product-tag">${noteText}</span>
                             <div class="dm-product-price">${formattedPrice}</div>
                             <div class="dm-card-actions">
                                 <button type="button" class="dm-btn-quickview" onclick="openProduct('${sp.maSp}')">
-                                    <i class="bi bi-eye me-1"></i> Xem nhanh
+                                    Chi tiết
                                 </button>
                                 <button type="button" class="dm-btn-addcart" onclick="quickAddToCart(event, '${sp.maSp}')" title="Thêm vào giỏ">
                                     <i class="bi bi-cart-plus"></i>

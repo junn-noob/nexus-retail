@@ -31,15 +31,15 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                    <span>🔥 Thu cũ đổi mới trợ giá tới <strong>3.000.000₫</strong></span>
+                    <span>Miễn phí vận chuyển toàn quốc</span>
                     <span class="text-white-50">•</span>
-                    <span>🚚 Miễn phí vận chuyển toàn quốc</span>
+                    <span>Bảo hành chính hãng 1 đổi 1 trong 30 ngày</span>
                     <span class="text-white-50">•</span>
-                    <span>🛡️ Bảo hành chính hãng 1 đổi 1 trong 30 ngày</span>
+                    <span>Trợ lý AI Gemini tư vấn 24/7</span>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <a href="tel:18006868" class="text-decoration-none">
-                        <i class="bi bi-telephone-fill text-warning me-1"></i> Hotline: <strong>1800.6868</strong> (Miễn phí)
+                        Hotline: <strong>1800.6868</strong> (Miễn phí)
                     </a>
                 </div>
             </div>
@@ -52,13 +52,13 @@
             <div class="d-flex align-items-center justify-content-between gap-3">
                 <!-- Brand Logo -->
                 <a class="dm-logo text-decoration-none" asp-controller="Home" asp-action="Index">
-                    <span class="dm-logo-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                    <span class="dm-logo-icon">D</span>
                     <span>Duy<b>Mobile</b></span>
                 </a>
 
                 <!-- Search Bar -->
                 <form class="dm-search-form d-none d-lg-block" method="get" asp-controller="Home" asp-action="Index" asp-fragment="productCatalog">
-                    <input name="q" type="search" class="form-control dm-search-input" placeholder="Tìm kiếm điện thoại, phụ kiện..." value="@Context.Request.Query["q"]" aria-label="Tìm sản phẩm">
+                    <input name="q" type="search" class="form-control dm-search-input" placeholder="Tìm kiếm điện thoại, cấu hình, mức giá..." value="@Context.Request.Query["q"]" aria-label="Tìm sản phẩm">
                     <button type="submit" class="dm-search-btn" title="Tìm kiếm">
                         <i class="bi bi-search"></i>
                     </button>
@@ -68,7 +68,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <!-- Tra cứu đơn hàng -->
                     <a asp-controller="Home" asp-action="TraCuu" class="dm-nav-btn text-decoration-none" title="Tra cứu bảo hành & hóa đơn">
-                        <i class="bi bi-clipboard-check text-primary fs-5"></i>
+                        <i class="bi bi-receipt text-primary fs-5"></i>
                         <span class="d-none d-sm-inline">Tra cứu đơn</span>
                     </a>
 
@@ -79,42 +79,85 @@
                         <span id="cartCount" class="dm-cart-badge">0</span>
                     </a>
 
-                    <!-- User Account / Auth -->
+                    <!-- User Account / Role Authorization -->
                     @if (signedIn)
                     {
-                        <div class="dropdown">
-                            <button class="dm-nav-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="dm-user-avatar">@userName.Substring(0, 1).ToUpper()</span>
-                                <span class="d-none d-md-inline fw-bold text-truncate" style="max-width: 120px;">@userName</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 220px;">
-                                <li class="px-3 py-2 border-bottom">
-                                    <div class="fw-bold text-dark">@userName</div>
-                                    <span class="badge bg-primary-subtle text-primary fw-bold mt-1">@currentRole</span>
-                                </li>
-                                <li><a class="dropdown-item rounded-3 py-2 mt-1" asp-controller="Account" asp-action="Profile"><i class="bi bi-person me-2"></i> Hồ sơ tài khoản</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2" asp-controller="Home" asp-action="TraCuu"><i class="bi bi-box-seam me-2"></i> Đơn hàng của tôi</a></li>
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <li><a class="dropdown-item rounded-3 py-2 text-primary fw-bold" asp-controller="Admin" asp-action="Index"><i class="bi bi-shield-lock me-2"></i> Trang quản trị Admin</a></li>
-                                }
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="post" asp-controller="Account" asp-action="Logout" class="m-0">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item text-danger rounded-3 py-2">
-                                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-dark rounded-pill fw-bold px-3 py-1.5 shadow-sm" title="Vào trang quản trị">
+                                    <i class="bi bi-shield-check text-danger me-1"></i> Quản trị
+                                </a>
+                            }
+                            else if (User.IsInRole("Staff"))
+                            {
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-dark rounded-pill fw-bold px-3 py-1.5 shadow-sm" title="Vào cổng nghiệp vụ bán hàng">
+                                    <i class="bi bi-briefcase text-warning me-1"></i> Nghiệp vụ
+                                </a>
+                            }
+
+                            <div class="dropdown">
+                                <button class="dm-nav-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="dm-user-avatar">@userName.Substring(0, 1).ToUpper()</span>
+                                    <span class="d-none d-md-inline fw-bold text-truncate" style="max-width: 100px;">@userName</span>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <span class="badge bg-danger rounded-pill ms-1" style="font-size: 10.5px;">Admin</span>
+                                    }
+                                    else if (User.IsInRole("Staff"))
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 10.5px;">Nhân viên</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill ms-1" style="font-size: 10.5px;">Khách hàng</span>
+                                    }
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 240px;">
+                                    <li class="px-3 py-2 border-bottom">
+                                        <div class="fw-bold text-dark">@userName</div>
+                                        <div class="small text-secondary">Vai trò: <strong class="text-primary">@currentRole</strong></div>
+                                    </li>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                                    {
+                                        <li><a class="dropdown-item rounded-3 py-2 text-primary fw-bold" asp-controller="Admin" asp-action="Index"><i class="bi bi-speedometer2 me-2"></i> Bảng điều khiển Portal</a></li>
+                                    }
+                                    <li><a class="dropdown-item rounded-3 py-2" asp-controller="Home" asp-action="TraCuu"><i class="bi bi-receipt me-2"></i> Đơn hàng của tôi</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header small text-secondary py-1">Kiểm thử vai trò khác:</li>
+                                    <li><a class="dropdown-item rounded-3 small py-1.5" asp-controller="Account" asp-action="QuickLogin" asp-route-role="admin"><span class="badge bg-danger me-1">Admin</span> Quản trị viên</a></li>
+                                    <li><a class="dropdown-item rounded-3 small py-1.5" asp-controller="Account" asp-action="QuickLogin" asp-route-role="staff"><span class="badge bg-warning text-dark me-1">Staff</span> Nhân viên bán hàng</a></li>
+                                    <li><a class="dropdown-item rounded-3 small py-1.5" asp-controller="Account" asp-action="QuickLogin" asp-route-role="customer"><span class="badge bg-primary me-1">Customer</span> Khách hàng</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" asp-controller="Account" asp-action="Logout" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger rounded-3 py-2">
+                                                <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     }
                     else
                     {
                         <div class="d-flex align-items-center gap-2">
-                            <a class="btn btn-light fw-bold text-dark rounded-3 px-3 py-2 border" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            <a class="btn btn-primary fw-bold rounded-3 px-3 py-2 shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                            <!-- Quick Demo Role Switcher for Instructor -->
+                            <div class="dropdown d-none d-sm-block">
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill dropdown-toggle fw-bold py-1.5 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Tài khoản mẫu
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 220px;">
+                                    <li class="dropdown-header small text-secondary py-1">Đăng nhập 1-chạm (Kiểm thử):</li>
+                                    <li><a class="dropdown-item rounded-3 py-2 small fw-bold" asp-controller="Account" asp-action="QuickLogin" asp-route-role="admin"><span class="badge bg-danger me-2">Admin</span> Quản trị toàn quyền</a></li>
+                                    <li><a class="dropdown-item rounded-3 py-2 small fw-bold" asp-controller="Account" asp-action="QuickLogin" asp-route-role="staff"><span class="badge bg-warning text-dark me-2">Nhân viên</span> Quản lý SP & Đơn</a></li>
+                                    <li><a class="dropdown-item rounded-3 py-2 small fw-bold" asp-controller="Account" asp-action="QuickLogin" asp-route-role="customer"><span class="badge bg-primary me-2">Khách hàng</span> Mua sắm & Tra cứu</a></li>
+                                </ul>
+                            </div>
+                            <a class="btn btn-light fw-bold text-dark rounded-3 px-3 py-1.5 border" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            <a class="btn btn-primary fw-bold rounded-3 px-3 py-1.5 shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
                         </div>
                     }
                 </div>
@@ -157,45 +200,45 @@
         @RenderBody()
     </main>
 
-    <!-- 3. Modern Luxury Footer -->
+    <!-- 3. Modern Minimalist Footer -->
     <footer class="dm-footer">
         <div class="container pb-5">
             <div class="row g-4">
                 <!-- Brand col -->
                 <div class="col-lg-4 col-md-6">
                     <a class="dm-logo text-white text-decoration-none mb-3 d-inline-flex" asp-controller="Home" asp-action="Index">
-                        <span class="dm-logo-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                        <span class="dm-logo-icon">D</span>
                         <span>Duy<b class="text-primary-light">Mobile</b></span>
                     </a>
                     <p class="small text-secondary lh-lg mb-4">
-                        Hệ thống bán lẻ điện thoại smartphone, máy tính bảng và phụ kiện công nghệ chính hãng hàng đầu Việt Nam. Tận tâm phục vụ, tư vấn thông minh với trợ lý AI 24/7.
+                        Hệ thống bán lẻ smartphone và thiết bị công nghệ chính hãng VNA. Tích hợp trợ lý AI Gemini tư vấn cấu hình thông minh và dịch vụ bảo hành 1 đổi 1 trong 30 ngày.
                     </p>
                     <div class="d-flex flex-wrap gap-2">
-                        <span class="badge bg-dark border text-light p-2"><i class="bi bi-shield-check text-success me-1"></i> 100% Chính hãng</span>
-                        <span class="badge bg-dark border text-light p-2"><i class="bi bi-robot text-primary me-1"></i> Trợ lý AI Gemini</span>
-                        <span class="badge bg-dark border text-light p-2"><i class="bi bi-arrow-repeat text-warning me-1"></i> 1 đổi 1 30 ngày</span>
+                        <span class="badge bg-dark border text-light p-2">Chính hãng VNA</span>
+                        <span class="badge bg-dark border text-light p-2">Trợ lý AI Gemini</span>
+                        <span class="badge bg-dark border text-light p-2">1 đổi 1 30 ngày</span>
                     </div>
                 </div>
 
                 <!-- Support col -->
                 <div class="col-lg-2 col-md-6">
-                    <h5>Hỗ trợ khách hàng</h5>
+                    <h5>Hỗ trợ</h5>
                     <ul class="dm-footer-links">
-                        <li><a asp-controller="Home" asp-action="TraCuu"><i class="bi bi-chevron-right me-1"></i> Tra cứu đơn & bảo hành</a></li>
-                        <li><a href="javascript:void(0)" onclick="alert('Chính sách giao hàng: Miễn phí toàn quốc cho mọi đơn hàng điện thoại chính hãng.')"><i class="bi bi-chevron-right me-1"></i> Chính sách vận chuyển</a></li>
-                        <li><a href="javascript:void(0)" onclick="alert('Chính sách đổi trả: 1 đổi 1 trong 30 ngày đầu nếu có lỗi phần cứng từ nhà sản xuất.')"><i class="bi bi-chevron-right me-1"></i> Chính sách đổi trả</a></li>
-                        <li><a href="javascript:void(0)" onclick="alert('Phương thức thanh toán: Hỗ trợ tiền mặt khi nhận hàng (COD), quẹt thẻ ngân hàng, chuyển khoản.')"><i class="bi bi-chevron-right me-1"></i> Phương thức thanh toán</a></li>
+                        <li><a asp-controller="Home" asp-action="TraCuu">Tra cứu đơn hàng</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Chính sách vận chuyển</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Chính sách đổi trả</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Bảo hành điện tử</a></li>
                     </ul>
                 </div>
 
                 <!-- About col -->
                 <div class="col-lg-2 col-md-6">
-                    <h5>Về Duy Mobile</h5>
+                    <h5>Về dự án</h5>
                     <ul class="dm-footer-links">
-                        <li><a asp-controller="Home" asp-action="Index"><i class="bi bi-chevron-right me-1"></i> Giới thiệu công ty</a></li>
-                        <li><a href="javascript:void(0)" onclick="alert('Showroom chính: Tầng 1, Tòa nhà Nexus Tech Tower, Hà Nội.')"><i class="bi bi-chevron-right me-1"></i> Hệ thống Showroom</a></li>
-                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-chevron-right me-1"></i> Chính sách bảo mật</a></li>
-                        <li><a asp-controller="Account" asp-action="Login"><i class="bi bi-chevron-right me-1"></i> Đăng nhập thành viên</a></li>
+                        <li><a asp-controller="Home" asp-action="Index">Trang chủ cửa hàng</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Điều khoản dịch vụ</a></li>
+                        <li><a asp-controller="Account" asp-action="Login">Cổng đăng nhập</a></li>
+                        <li><a asp-controller="Admin" asp-action="Index">Bảng điều khiển Admin</a></li>
                     </ul>
                 </div>
 
@@ -208,12 +251,12 @@
                             <a href="tel:18006868" class="fs-5 fw-bold text-warning text-decoration-none">1800.6868</a>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="small text-secondary">Bảo hành kỹ thuật:</span>
+                            <span class="small text-secondary">Hỗ trợ kỹ thuật:</span>
                             <a href="tel:18008686" class="fs-6 fw-bold text-light text-decoration-none">1800.8686</a>
                         </div>
                     </div>
                     <div class="small text-secondary">
-                        <i class="bi bi-envelope me-1"></i> support@duymobile.vn • 8:00 - 21:30 hàng ngày
+                        support@duymobile.vn • 8:00 - 21:30 hàng ngày
                     </div>
                 </div>
             </div>
@@ -221,11 +264,11 @@
 
         <div class="dm-footer-bottom">
             <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div>© 2026 Duy Mobile — Nền tảng bán lẻ công nghệ thông minh. Bản quyền thuộc về Duy Mobile Retail Group.</div>
-                <div class="d-flex gap-3 text-secondary">
-                    <span>💵 Tiền mặt COD</span>
-                    <span>💳 Thẻ ATM / Visa</span>
-                    <span>📱 Chuyển khoản QR</span>
+                <div>© 2026 Duy Mobile • Đồ án môn Lập trình Web ASP.NET Core & RESTful API.</div>
+                <div class="d-flex gap-2 text-secondary small">
+                    <span class="badge bg-dark border text-secondary px-2 py-1">Tiền mặt COD</span>
+                    <span class="badge bg-dark border text-secondary px-2 py-1">Chuyển khoản QR</span>
+                    <span class="badge bg-dark border text-secondary px-2 py-1">Thẻ ATM / Visa</span>
                 </div>
             </div>
         </div>

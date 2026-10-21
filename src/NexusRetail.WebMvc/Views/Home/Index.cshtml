@@ -17,45 +17,36 @@
 }
 
 <div class="container py-3">
-    <!-- 1. HERO BANNER SECTION -->
+    <!-- 1. HERO BANNER SECTION (MINIMALIST MODERN) -->
     <section class="dm-hero">
         <div class="row align-items-center g-4">
             <!-- Left Info -->
             <div class="col-lg-7">
                 <div class="dm-hero-badge">
-                    <i class="bi bi-stars"></i> Nền tảng bán lẻ công nghệ thế hệ mới 2026
+                    Hệ thống bán lẻ thiết bị di động chính hãng
                 </div>
                 <h1 class="dm-hero-title">
-                    Đón đầu công nghệ.<br/>Khẳng định chất riêng.
+                    Công nghệ đỉnh cao.<br/>Trải nghiệm tinh tế.
                 </h1>
                 <p class="dm-hero-desc">
-                    Khám phá những siêu phẩm smartphone mới nhất từ Apple, Samsung, Xiaomi với cam kết 100% chính hãng VNA, bảo hành toàn diện và trải nghiệm trợ lý AI thông minh 24/7.
+                    Tuyển tập smartphone cao cấp từ Apple, Samsung, Xiaomi với tiêu chuẩn chính hãng VNA, bảo hành toàn diện 1 đổi 1 và trợ lý AI Gemini tư vấn cấu hình chuẩn xác 24/7.
                 </p>
                 
                 <div class="d-flex flex-wrap gap-3 mb-4">
-                    <a href="#productCatalog" class="btn btn-primary btn-lg rounded-3 fw-bold px-4 shadow">
-                        Khám phá sản phẩm ngay <i class="bi bi-arrow-down-short ms-1"></i>
+                    <a href="#productCatalog" class="btn btn-primary btn-lg rounded-3 fw-bold px-4 shadow-sm">
+                        Khám phá sản phẩm
                     </a>
                     <a asp-action="TraCuu" class="btn btn-light btn-lg rounded-3 fw-bold px-4 border text-dark">
-                        <i class="bi bi-search me-1"></i> Tra cứu đơn hàng
+                        Tra cứu đơn & bảo hành
                     </a>
                 </div>
 
-                <div class="d-flex align-items-center gap-4 pt-3 border-top border-primary border-opacity-25">
-                    <div>
-                        <div class="fs-4 fw-bolder text-dark">100%</div>
-                        <div class="small text-secondary">Chính hãng VNA</div>
-                    </div>
-                    <div class="text-secondary opacity-25">/</div>
-                    <div>
-                        <div class="fs-4 fw-bolder text-dark">30 Ngày</div>
-                        <div class="small text-secondary">1 đổi 1 miễn phí</div>
-                    </div>
-                    <div class="text-secondary opacity-25">/</div>
-                    <div>
-                        <div class="fs-4 fw-bolder text-dark">2 Giờ</div>
-                        <div class="small text-secondary">Giao hàng siêu tốc</div>
-                    </div>
+                <div class="d-flex align-items-center gap-4 pt-3 border-top border-secondary border-opacity-10 small text-secondary">
+                    <div><strong class="text-dark">100%</strong> Chính hãng VNA</div>
+                    <div>•</div>
+                    <div><strong class="text-dark">30 Ngày</strong> 1 đổi 1 lỗi NSX</div>
+                    <div>•</div>
+                    <div><strong class="text-dark">Miễn phí</strong> Giao hàng toàn quốc</div>
                 </div>
             </div>
 
@@ -63,72 +54,52 @@
             <div class="col-lg-5">
                 <div class="dm-hero-ai-card">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="dm-logo-icon">
-                            <i class="bi bi-robot"></i>
-                        </div>
+                        <div class="dm-logo-icon">AI</div>
                         <div>
-                            <h5 class="fw-bold m-0 text-dark">Trợ lý AI Duy Mobile</h5>
-                            <small class="text-secondary">Tư vấn chuẩn xác theo nhu cầu & túi tiền</small>
+                            <h5 class="fw-bold m-0 text-white">Trợ lý AI Duy Mobile</h5>
+                            <small class="text-white-50">Tư vấn thông minh theo ngân sách & nhu cầu</small>
                         </div>
                     </div>
-                    <p class="small text-secondary mb-3">
-                        Bạn đang phân vân giữa iPhone hay Samsung? Hãy hỏi ngay trợ lý AI được tích hợp trực tiếp:
+                    <p class="small text-white-50 mb-3">
+                        Gợi ý nhanh câu hỏi tư vấn cấu hình cùng mô hình Google Gemini:
                     </p>
                     <div class="d-flex flex-column gap-2 mb-3">
-                        <button type="button" class="dm-ai-chip" onclick="askAiWithPrompt('Tư vấn điện thoại chụp ảnh đẹp dưới 20 triệu')">
-                            📸 Chụp ảnh đẹp dưới 20 triệu
+                        <button type="button" class="dm-ai-chip text-start" onclick="askAiWithPrompt('Tư vấn điện thoại chụp ảnh đẹp dưới 20 triệu')">
+                            Tư vấn điện thoại chụp ảnh đẹp dưới 20 triệu
                         </button>
-                        <button type="button" class="dm-ai-chip" onclick="askAiWithPrompt('Điện thoại nào chơi game mượt pin trâu nhất?')">
-                            🎮 Chơi game mượt, pin trâu
+                        <button type="button" class="dm-ai-chip text-start" onclick="askAiWithPrompt('Điện thoại nào chơi game mượt pin trâu nhất?')">
+                            Điện thoại chơi game mượt, pin bền nhất hiện nay
                         </button>
-                        <button type="button" class="dm-ai-chip" onclick="askAiWithPrompt('So sánh iPhone 16 Plus và Samsung S24 Ultra')">
-                            ⚖️ So sánh iPhone 16 Plus & S24 Ultra
+                        <button type="button" class="dm-ai-chip text-start" onclick="askAiWithPrompt('So sánh iPhone 15 Pro Max và Samsung Galaxy S24 Ultra')">
+                            So sánh iPhone 15 Pro Max & Samsung S24 Ultra
                         </button>
                     </div>
-                    <button type="button" class="btn btn-dark w-100 py-2 rounded-3 fw-bold shadow-sm" onclick="openChat()">
-                        <i class="bi bi-chat-dots-fill me-2 text-warning"></i> Trò chuyện với AI ngay →
+                    <button type="button" class="btn btn-light w-100 py-2.5 rounded-3 fw-bold text-dark shadow-sm" onclick="openChat()">
+                        Mở trợ lý AI tư vấn ngay
                     </button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 2. TRUST BENEFITS STRIP -->
-    <section class="row g-3 mb-4">
-        <div class="col-md-3 col-6">
-            <div class="dm-trust-card">
-                <div class="dm-trust-icon"><i class="bi bi-truck"></i></div>
-                <div>
-                    <h6 class="fw-bold m-0 text-dark">Giao hàng 2H</h6>
-                    <small class="text-secondary">Miễn phí toàn quốc</small>
-                </div>
+    <!-- 2. TRUST BENEFITS STRIP (MINIMALIST) -->
+    <section class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <div class="row g-3 text-center text-md-start">
+            <div class="col-md-3 col-6 border-end-md">
+                <div class="fw-bold text-dark fs-6">Chính hãng 100%</div>
+                <small class="text-secondary">Bảo hành tại TTBH ủy quyền VNA</small>
             </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="dm-trust-card">
-                <div class="dm-trust-icon"><i class="bi bi-arrow-repeat"></i></div>
-                <div>
-                    <h6 class="fw-bold m-0 text-dark">30 Ngày 1 đổi 1</h6>
-                    <small class="text-secondary">Lỗi phần cứng NSX</small>
-                </div>
+            <div class="col-md-3 col-6 border-end-md">
+                <div class="fw-bold text-dark fs-6">Đổi trả 30 ngày</div>
+                <small class="text-secondary">1 đổi 1 miễn phí lỗi phần cứng</small>
             </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="dm-trust-card">
-                <div class="dm-trust-icon"><i class="bi bi-credit-card-2-front"></i></div>
-                <div>
-                    <h6 class="fw-bold m-0 text-dark">Trả góp 0%</h6>
-                    <small class="text-secondary">Thủ tục nhanh 5 phút</small>
-                </div>
+            <div class="col-md-3 col-6 border-end-md">
+                <div class="fw-bold text-dark fs-6">Giao hàng miễn phí</div>
+                <small class="text-secondary">Kiểm tra máy trước khi thanh toán</small>
             </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="dm-trust-card">
-                <div class="dm-trust-icon"><i class="bi bi-shield-check"></i></div>
-                <div>
-                    <h6 class="fw-bold m-0 text-dark">100% Chính hãng</h6>
-                    <small class="text-secondary">Bảo hành tại TTBH ủy quyền</small>
-                </div>
+            <div class="col-md-3 col-6">
+                <div class="fw-bold text-dark fs-6">Trả góp 0%</div>
+                <small class="text-secondary">Thủ tục xét duyệt online 5 phút</small>
             </div>
         </div>
     </section>
@@ -220,11 +191,11 @@
                             <div class="dm-product-badge-wrap">
                                 @if (p.GiaBan > 25000000)
                                 {
-                                    <span class="dm-badge dm-badge-flagship"><i class="bi bi-crown-fill text-warning me-1"></i> Flagship</span>
+                                    <span class="dm-badge dm-badge-flagship">Flagship</span>
                                 }
                                 else
                                 {
-                                    <span class="dm-badge dm-badge-hot"><i class="bi bi-fire text-danger me-1"></i> Bán chạy</span>
+                                    <span class="dm-badge dm-badge-hot">Bán chạy</span>
                                 }
                             </div>
 
@@ -237,7 +208,6 @@
                                 <h3 class="dm-product-title" onclick="openProduct('@p.MaSp')" title="@p.TenSp">@p.TenSp</h3>
                                 
                                 <span class="dm-product-tag">
-                                    <i class="bi bi-shield-check text-success me-1"></i>
                                     @(string.IsNullOrWhiteSpace(p.GhiChu) ? "Bảo hành 12 tháng VNA" : p.GhiChu)
                                 </span>
 
@@ -245,7 +215,7 @@
 
                                 <div class="dm-card-actions">
                                     <button type="button" class="dm-btn-quickview" onclick="openProduct('@p.MaSp')">
-                                        <i class="bi bi-eye me-1"></i> Xem nhanh
+                                        Chi tiết
                                     </button>
                                     <button type="button" class="dm-btn-addcart" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ">
                                         <i class="bi bi-cart-plus"></i>
