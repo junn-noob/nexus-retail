@@ -5,87 +5,118 @@
     var hasResult = Model.HasValue && Model.Value.ValueKind == System.Text.Json.JsonValueKind.Array && Model.Value.GetArrayLength() > 0;
 }
 
-<div class="wrap" style="max-width: 800px; margin: 30px auto; padding: 0 16px;">
-    <div style="background: var(--card); border-radius: var(--r); padding: 32px 24px; box-shadow: var(--sh); border: 1px solid var(--line); margin-bottom: 24px;">
-        <h1 style="font-size: 24px; font-weight: 700; color: var(--ink); margin-bottom: 8px;">🔍 Tra cứu đơn hàng & Thời hạn bảo hành</h1>
-        <p style="color: var(--mute); font-size: 14px; margin-bottom: 20px;">
-            Nhập số điện thoại mua hàng để kiểm tra lịch sử hóa đơn và thời hạn bảo hành của máy.
-        </p>
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Search Box Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="dm-logo-icon fs-4">
+                <i class="bi bi-search"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold text-dark m-0">Tra cứu đơn hàng & Thời hạn bảo hành</h3>
+                <small class="text-secondary">Nhập số điện thoại mua hàng để kiểm tra hóa đơn và hạn bảo hành thiết bị</small>
+            </div>
+        </div>
 
-        <form method="get" asp-action="TraCuu" style="display: flex; gap: 12px; max-width: 500px;">
-            <input name="sdt" type="tel" value="@sdt" placeholder="Nhập số điện thoại (ví dụ: 0912345678)..." required
-                   style="flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); font-size: 15px; outline: none;" />
-            <button type="submit" class="btn" style="padding: 12px 24px; font-weight: 700; border-radius: 12px;">Tra cứu ngay</button>
+        <form method="get" asp-action="TraCuu" class="row g-2 mt-2">
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-telephone text-secondary"></i></span>
+                    <input name="sdt" type="tel" value="@sdt" class="form-control border-start-0 rounded-end-3 py-2" placeholder="Ví dụ: 0912345678..." required />
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <button type="submit" class="btn btn-primary rounded-3 w-100 py-2 fw-bold shadow-sm">
+                    <i class="bi bi-search me-1"></i> Tra cứu ngay
+                </button>
+            </div>
         </form>
     </div>
 
+    <!-- Search Results -->
     @if (!string.IsNullOrEmpty(sdt))
     {
         @if (!hasResult)
         {
-            <div style="background: var(--card); border-radius: var(--r); padding: 40px 20px; text-align: center; border: 1px solid var(--line);">
-                <div style="font-size: 40px; margin-bottom: 12px;">🔎</div>
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 6px;">Không tìm thấy đơn hàng nào!</h3>
-                <p style="color: var(--mute); font-size: 14px;">Không có hóa đơn mua hàng nào gắn với số điện thoại <strong>@sdt</strong>. Vui lòng kiểm tra lại số điện thoại đã đăng ký khi mua hàng.</p>
+            <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+                <div class="card-body py-4">
+                    <i class="bi bi-receipt-cutoff text-secondary display-3 mb-3 d-block"></i>
+                    <h5 class="fw-bold text-dark">Không tìm thấy đơn hàng nào!</h5>
+                    <p class="text-secondary small mb-3">Không có hóa đơn mua hàng nào gắn với số điện thoại <strong>@sdt</strong>.<br/>Vui lòng kiểm tra lại số điện thoại bạn đã cung cấp khi mua hàng tại quầy.</p>
+                    <a asp-action="Index" class="btn btn-outline-primary rounded-3 fw-bold btn-sm px-3">
+                        Quay về trang chủ
+                    </a>
+                </div>
             </div>
         }
         else
         {
-            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--ink);">
-                Kết quả tìm kiếm cho số: <span style="color: var(--ac);">@sdt</span> (@(Model!.Value.GetArrayLength()) hóa đơn)
-            </h2>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark m-0">
+                    Kết quả tìm kiếm cho SĐT: <span class="text-primary">@sdt</span>
+                </h5>
+                <span class="badge bg-primary rounded-pill px-3 py-2">@(Model!.Value.GetArrayLength()) hóa đơn</span>
+            </div>
 
-            @foreach (var hd in Model!.Value.EnumerateArray())
-            {
-                var maHdb = hd.GetProperty("maHdb").GetString();
-                var ngayBan = DateTime.Parse(hd.GetProperty("ngayBan").GetString() ?? DateTime.Now.ToString());
-                var tongTien = hd.GetProperty("tongTien").GetDecimal();
-                var tenKhach = hd.GetProperty("tenKhach").GetString();
-                var danhSachMon = hd.GetProperty("danhSachMon");
+            <div class="d-flex flex-column gap-3">
+                @foreach (var hd in Model!.Value.EnumerateArray())
+                {
+                    var maHdb = hd.GetProperty("maHdb").GetString();
+                    var ngayBan = DateTime.Parse(hd.GetProperty("ngayBan").GetString() ?? DateTime.Now.ToString());
+                    var tongTien = hd.GetProperty("tongTien").GetDecimal();
+                    var danhSachMon = hd.GetProperty("danhSachMon");
 
-                <div style="background: var(--card); border-radius: var(--r); padding: 20px; box-shadow: var(--sh); border: 1px solid var(--line); margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 14px;">
-                        <div>
-                            <span style="font-weight: 800; color: var(--ac); font-size: 16px;">HĐ @maHdb</span>
-                            <span style="color: var(--mute); font-size: 13px; margin-left: 8px;">— @ngayBan.ToString("dd/MM/yyyy HH:mm")</span>
-                        </div>
-                        <div style="font-weight: 800; font-size: 16px; color: var(--ink);">
-                            Tổng: @tongTien.ToString("N0") đ
-                        </div>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        @foreach (var item in danhSachMon.EnumerateArray())
-                        {
-                            var tenSp = item.GetProperty("tenSp").GetString();
-                            var soLuong = item.GetProperty("soLuong").GetInt32();
-                            var thanhTien = item.GetProperty("thanhTien").GetDecimal();
-                            var hanBh = DateTime.Parse(item.GetProperty("hanBaoHanh").GetString() ?? DateTime.Now.ToString());
-                            var conHan = hanBh >= DateTime.Now;
-
-                            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line);">
-                                <div>
-                                    <div style="font-weight: 600; font-size: 14px; color: var(--ink);">@tenSp (x@soLuong)</div>
-                                    <div style="font-size: 12px; color: var(--mute); margin-top: 2px;">
-                                        Bảo hành đến: <strong>@hanBh.ToString("dd/MM/yyyy")</strong>
-                                        @if (conHan)
-                                        {
-                                            <span style="display: inline-block; background: #dcfce7; color: var(--ok); padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-left: 6px;">Còn hạn bảo hành</span>
-                                        }
-                                        else
-                                        {
-                                            <span style="display: inline-block; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-left: 6px;">Hết hạn bảo hành</span>
-                                        }
-                                    </div>
-                                </div>
-                                <div style="font-weight: 700; color: var(--ink); font-size: 14px;">
-                                    @thanhTien.ToString("N0") đ
-                                </div>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-primary fs-6">Hóa đơn: @maHdb</span>
+                                <span class="text-secondary small ms-2">• Ngày mua: @ngayBan.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
-                        }
+                            <div class="fw-bolder text-danger fs-5">
+                                @tongTien.ToString("N0") ₫
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column gap-2">
+                                @foreach (var item in danhSachMon.EnumerateArray())
+                                {
+                                    var tenSp = item.GetProperty("tenSp").GetString();
+                                    var soLuong = item.GetProperty("soLuong").GetInt32();
+                                    var thanhTien = item.GetProperty("thanhTien").GetDecimal();
+                                    var hanBh = DateTime.Parse(item.GetProperty("hanBaoHanh").GetString() ?? DateTime.Now.ToString());
+                                    var conHan = hanBh >= DateTime.Now;
+
+                                    <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold text-dark mb-1">
+                                                <i class="bi bi-phone text-primary me-1"></i> @tenSp <span class="text-secondary fw-normal">(Số lượng: x@soLuong)</span>
+                                            </div>
+                                            <div class="small">
+                                                <span class="text-secondary">Hạn bảo hành đến: <strong>@hanBh.ToString("dd/MM/yyyy")</strong></span>
+                                                @if (conHan)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success fw-bold ms-2 px-2 py-1">
+                                                        <i class="bi bi-shield-check me-1"></i> Còn hạn bảo hành
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger fw-bold ms-2 px-2 py-1">
+                                                        <i class="bi bi-shield-x me-1"></i> Đã hết hạn bảo hành
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="fw-bold text-dark fs-6">
+                                            @thanhTien.ToString("N0") ₫
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         }
     }
 </div>

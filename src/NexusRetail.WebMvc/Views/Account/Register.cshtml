@@ -3,361 +3,153 @@
     ViewData["Title"] = "Đăng ký tài khoản thành viên";
 }
 
-<div class="auth-wrapper">
-    <div class="auth-container">
-        <!-- Visual Brand Side -->
-        <div class="auth-brand">
-            <div class="brand-badge">✨ Gia nhập đại gia đình Duy Mobile</div>
-            <h2>Đăng ký thành viên Nhận ngay ưu đãi độc quyền</h2>
-            <p>Trở thành hội viên để tích điểm mua sắm, nhận mã giảm giá sinh nhật và bảo hành nhanh chóng không cần hóa đơn giấy.</p>
-            
-            <div class="auth-features">
-                <div class="feature-item">
-                    <span class="icon">🎁</span>
-                    <div>
-                        <strong>Voucher chào mừng 100.000₫</strong>
-                        <span>Áp dụng ngay cho đơn hàng đầu tiên</span>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="row g-0">
+                    <!-- Brand Side -->
+                    <div class="col-md-5 d-none d-md-flex flex-column justify-content-between p-5 text-white" 
+                         style="background: linear-gradient(135deg, #0f172a, #1e1b4b 60%, #312e81);">
+                        <div>
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 text-white-50 small mb-4">
+                                <i class="bi bi-gift-fill text-warning"></i> Gia nhập gia đình Duy Mobile
+                            </div>
+                            <h3 class="fw-bolder mb-3 lh-sm">Đăng ký thành viên nhận ngay ưu đãi độc quyền</h3>
+                            <p class="text-white-50 small mb-4">Trở thành hội viên để tích điểm mua sắm, nhận mã giảm giá và bảo hành điện tử nhanh chóng không cần hóa đơn giấy.</p>
+                            
+                            <div class="d-flex flex-column gap-3">
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-10 p-2 text-warning fs-5">
+                                        <i class="bi bi-tag-fill"></i>
+                                    </div>
+                                    <div class="small">
+                                        <div class="fw-bold">Voucher chào mừng 100.000₫</div>
+                                        <div class="text-white-50">Áp dụng ngay cho đơn hàng đầu tiên</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-10 p-2 text-primary fs-5">
+                                        <i class="bi bi-phone-flip"></i>
+                                    </div>
+                                    <div class="small">
+                                        <div class="fw-bold">Bảo hành điện tử 1-chạm</div>
+                                        <div class="text-white-50">Tra cứu hạn bảo hành bằng SĐT</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-10 p-2 text-success fs-5">
+                                        <i class="bi bi-headset"></i>
+                                    </div>
+                                    <div class="small">
+                                        <div class="fw-bold">Ưu tiên hỗ trợ kỹ thuật</div>
+                                        <div class="text-white-50">Tư vấn viên AI & Chuyên gia hỗ trợ 24/7</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="small text-white-50 pt-4 border-top border-white border-opacity-10">
+                            Hotline hỗ trợ miễn phí: <strong>1800.6868</strong>
+                        </div>
+                    </div>
+
+                    <!-- Form Side -->
+                    <div class="col-md-7 p-4 p-lg-5 bg-white">
+                        <div class="mb-4">
+                            <h3 class="fw-bold text-dark mb-1">Đăng ký tài khoản</h3>
+                            <small class="text-secondary">Điền thông tin bên dưới để tạo tài khoản mới</small>
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger rounded-3 small py-2">
+                                <div asp-validation-summary="All"></div>
+                            </div>
+                        }
+
+                        <form asp-action="Register" method="post" id="registerForm">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label asp-for="Username" class="form-label small fw-bold text-dark">Tên đăng nhập <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Username" class="form-control border-start-0 py-2" placeholder="Ví dụ: nguyenvana" autocomplete="username" autofocus required />
+                                </div>
+                                <span asp-validation-for="Username" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label small fw-bold text-dark">Địa chỉ Email <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" type="email" class="form-control border-start-0 py-2" placeholder="Ví dụ: a.nguyen@gmail.com" autocomplete="email" required />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="PhoneNumber" class="form-label small fw-bold text-dark">Số điện thoại liên hệ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-telephone"></i></span>
+                                    <input asp-for="PhoneNumber" type="tel" class="form-control border-start-0 py-2" placeholder="Ví dụ: 0912345678" autocomplete="tel" />
+                                </div>
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label small fw-bold text-dark">Mật khẩu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="Password" id="regPassword" type="password" class="form-control border-start-0 border-end-0 py-2" placeholder="Tối thiểu 6 ký tự..." autocomplete="new-password" required />
+                                    <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleRegPwd" title="Ẩn/Hiện">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="ConfirmPassword" class="form-label small fw-bold text-dark">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-shield-check"></i></span>
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control border-start-0 py-2" placeholder="Nhập lại mật khẩu..." autocomplete="new-password" required />
+                                </div>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold w-100 py-2 shadow-sm mb-4">
+                                Hoàn tất đăng ký <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                        </form>
+
+                        <div class="text-center small text-secondary">
+                            Đã có tài khoản? <a asp-action="Login" class="fw-bold text-primary text-decoration-none">Đăng nhập ngay</a>
+                        </div>
                     </div>
                 </div>
-                <div class="feature-item">
-                    <span class="icon">📱</span>
-                    <div>
-                        <strong>Quản lý đơn hàng & Bảo hành</strong>
-                        <span>Tra cứu mọi lịch sử thiết bị chỉ bằng 1 chạm</span>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <span class="icon">⚡</span>
-                    <div>
-                        <strong>Ưu tiên tư vấn AI & Kỹ thuật</strong>
-                        <span>Hỗ trợ kỹ thuật 24/7 từ chuyên gia</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="brand-footer">
-                <span>Hotline hỗ trợ miễn cước: <strong>1800.6868</strong></span>
-            </div>
-        </div>
-
-        <!-- Form Side -->
-        <div class="auth-form-card">
-            <div class="form-header">
-                <h3>Đăng ký tài khoản</h3>
-                <p>Điền thông tin bên dưới để tạo tài khoản mới</p>
-            </div>
-
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger">
-                    <div asp-validation-summary="All"></div>
-                </div>
-            }
-
-            <form asp-action="Register" method="post" id="registerForm">
-                @Html.AntiForgeryToken()
-
-                <div class="form-group">
-                    <label asp-for="Username">Tên đăng nhập <span style="color: #ef4444;">*</span></label>
-                    <div class="input-wrap">
-                        <span class="input-icon">👤</span>
-                        <input asp-for="Username" placeholder="Ví dụ: nguyenvana" autocomplete="username" autofocus />
-                    </div>
-                    <span asp-validation-for="Username" class="field-validation-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Email">Địa chỉ Email <span style="color: #ef4444;">*</span></label>
-                    <div class="input-wrap">
-                        <span class="input-icon">✉️</span>
-                        <input asp-for="Email" type="email" placeholder="Ví dụ: a.nguyen@gmail.com" autocomplete="email" />
-                    </div>
-                    <span asp-validation-for="Email" class="field-validation-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="PhoneNumber">Số điện thoại liên hệ</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">📞</span>
-                        <input asp-for="PhoneNumber" type="tel" placeholder="Ví dụ: 0912345678" autocomplete="tel" />
-                    </div>
-                    <span asp-validation-for="PhoneNumber" class="field-validation-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Password">Mật khẩu <span style="color: #ef4444;">*</span></label>
-                    <div class="input-wrap">
-                        <span class="input-icon">🔒</span>
-                        <input asp-for="Password" id="regPassword" type="password" placeholder="Tối thiểu 6 ký tự..." autocomplete="new-password" />
-                        <button type="button" class="pwd-toggle" id="toggleRegPwd" title="Ẩn/Hiện">👁️</button>
-                    </div>
-                    <span asp-validation-for="Password" class="field-validation-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="ConfirmPassword">Xác nhận mật khẩu <span style="color: #ef4444;">*</span></label>
-                    <div class="input-wrap">
-                        <span class="input-icon">🔒</span>
-                        <input asp-for="ConfirmPassword" type="password" placeholder="Nhập lại mật khẩu..." autocomplete="new-password" />
-                    </div>
-                    <span asp-validation-for="ConfirmPassword" class="field-validation-error"></span>
-                </div>
-
-                <button type="submit" class="btn btn-auth">Hoàn tất đăng ký →</button>
-            </form>
-
-            <div class="form-switch">
-                Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .auth-wrapper {
-        min-height: calc(100vh - 120px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 16px;
-        background: radial-gradient(circle at 10% 20%, rgba(91, 75, 219, 0.08) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(124, 108, 240, 0.08) 0%, transparent 40%),
-                    var(--bg);
-    }
-    .auth-container {
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        max-width: 980px;
-        width: 100%;
-        background: var(--card);
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 20px 50px rgba(23, 23, 43, 0.1);
-        border: 1px solid var(--line);
-    }
-    .auth-brand {
-        background: linear-gradient(135deg, #181534, #272052 60%, #3e327a);
-        color: #fff;
-        padding: 48px 40px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .brand-badge {
-        display: inline-block;
-        align-self: flex-start;
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
-        padding: 6px 14px;
-        border-radius: 99px;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: .5px;
-        color: #d1c9ff;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        margin-bottom: 24px;
-    }
-    .auth-brand h2 {
-        font-size: 28px;
-        font-weight: 800;
-        line-height: 1.3;
-        margin-bottom: 14px;
-        background: linear-gradient(to right, #fff, #c8c2fe);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .auth-brand p {
-        color: #b5b0db;
-        font-size: 14.5px;
-        line-height: 1.6;
-        margin-bottom: 32px;
-    }
-    .auth-features {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        margin-bottom: 32px;
-    }
-    .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-    }
-    .feature-item .icon {
-        font-size: 24px;
-        background: rgba(255, 255, 255, 0.08);
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .feature-item strong {
-        display: block;
-        font-size: 14.5px;
-        color: #f1effe;
-    }
-    .feature-item span {
-        font-size: 12.5px;
-        color: #9f9ac6;
-    }
-    .brand-footer {
-        font-size: 12px;
-        color: #79749f;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding-top: 20px;
-    }
-    .auth-form-card {
-        padding: 36px 40px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-    .form-header {
-        margin-bottom: 20px;
-    }
-    .form-header h3 {
-        font-size: 24px;
-        font-weight: 800;
-        color: var(--ink);
-        margin-bottom: 6px;
-    }
-    .form-header p {
-        font-size: 14px;
-        color: var(--mute);
-    }
-    .form-group {
-        margin-bottom: 14px;
-    }
-    .form-group label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--ink);
-        margin-bottom: 6px;
-    }
-    .input-wrap {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-    .input-icon {
-        position: absolute;
-        left: 14px;
-        font-size: 16px;
-        pointer-events: none;
-        opacity: 0.7;
-    }
-    .input-wrap input {
-        width: 100%;
-        padding: 11px 14px 11px 42px;
-        border: 1.5px solid var(--line);
-        border-radius: 12px;
-        font-size: 14px;
-        outline: none;
-        transition: all 0.2s ease;
-        background: #fafafc;
-    }
-    .input-wrap input:focus {
-        border-color: var(--ac);
-        background: #fff;
-        box-shadow: 0 0 0 4px rgba(91, 75, 219, 0.12);
-    }
-    .pwd-toggle {
-        position: absolute;
-        right: 12px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-        font-size: 16px;
-        opacity: 0.6;
-    }
-    .field-validation-error {
-        color: #ef4444;
-        font-size: 12px;
-        margin-top: 4px;
-        display: block;
-    }
-    .btn-auth {
-        width: 100%;
-        margin-top: 10px;
-        padding: 13px;
-        font-size: 15px;
-        font-weight: 700;
-        border-radius: 12px;
-        background: linear-gradient(135deg, var(--ac), var(--ac2));
-        color: #fff;
-        border: none;
-        box-shadow: 0 6px 18px rgba(91, 75, 219, 0.35);
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .btn-auth:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 22px rgba(91, 75, 219, 0.45);
-    }
-    .form-switch {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 13.5px;
-        color: var(--mute);
-    }
-    .form-switch a {
-        color: var(--ac);
-        font-weight: 700;
-        text-decoration: none;
-    }
-    .form-switch a:hover {
-        text-decoration: underline;
-    }
-    .alert {
-        padding: 12px 16px;
-        border-radius: 10px;
-        font-size: 13.5px;
-        margin-bottom: 16px;
-    }
-    .alert-danger {
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        color: #b91c1c;
-    }
-    .alert-danger ul {
-        margin: 0;
-        padding-left: 18px;
-    }
-
-    @@media (max-width: 820px) {
-        .auth-container {
-            grid-template-columns: 1fr;
-            max-width: 480px;
-        }
-        .auth-brand {
-            padding: 32px 24px;
-        }
-        .auth-form-card {
-            padding: 32px 24px;
-        }
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const toggleBtn = document.getElementById('toggleRegPwd');
-        const pwdInput = document.getElementById('regPassword');
-        if (toggleBtn && pwdInput) {
-            toggleBtn.addEventListener('click', () => {
-                if (pwdInput.type === 'password') {
-                    pwdInput.type = 'text';
-                    toggleBtn.textContent = '🙈';
-                } else {
-                    pwdInput.type = 'password';
-                    toggleBtn.textContent = '👁️';
-                }
-            });
-        }
-    });
-</script>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('toggleRegPwd');
+            const pwdInput = document.getElementById('regPassword');
+            if (toggleBtn && pwdInput) {
+                toggleBtn.addEventListener('click', () => {
+                    if (pwdInput.type === 'password') {
+                        pwdInput.type = 'text';
+                        toggleBtn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                    } else {
+                        pwdInput.type = 'password';
+                        toggleBtn.innerHTML = '<i class="bi bi-eye"></i>';
+                    }
+                });
+            }
+        });
+    </script>
+}

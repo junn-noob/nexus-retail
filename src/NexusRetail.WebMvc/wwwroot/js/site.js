@@ -1,6 +1,6 @@
 /**
  * Duy Mobile - Modern E-Commerce Client Scripts
- * Provides Quick View Modal, Live Product Compare, Gemini AI Chatbot, Cart Handlers
+ * Integration with Bootstrap 5 Modal, Live Product Compare, Gemini AI Chatbot, Cart Handlers
  */
 (() => {
     "use strict";
@@ -10,8 +10,6 @@
     const $$ = (selector, parent = document) => parent.querySelectorAll(selector);
 
     // Core Elements
-    const overlay = $("#ov");
-    const modal = $("#modal");
     const chat = $("#chat");
     const chatMessages = $("#cm");
     const chatInput = $("#ci");
@@ -19,65 +17,67 @@
     const chatFab = $("#fab");
 
     // =========================================================
-    // PRODUCT QUICK VIEW MODAL
+    // PRODUCT QUICK VIEW MODAL (Bootstrap 5)
     // =========================================================
 
+    function getModalInstance() {
+        const el = document.getElementById("productModal");
+        if (!el || typeof bootstrap === "undefined") return null;
+        return bootstrap.Modal.getOrCreateInstance(el);
+    }
+
     function closeModal() {
-        if (!overlay) return;
-        overlay.classList.remove("open");
-        document.body.style.overflow = "";
+        const modal = getModalInstance();
+        if (modal) modal.hide();
     }
 
     async function openProduct(id) {
-        if (!id || !overlay || !modal) return;
+        if (!id) return;
+        const dialog = document.getElementById("productModalDialog");
+        if (!dialog) return;
+
+        // Show loading placeholder inside modal
+        dialog.innerHTML = `
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <div class="mt-3 text-secondary fw-semibold">Đang tải thông số kỹ thuật...</div>
+            </div>
+        `;
+
+        const modal = getModalInstance();
+        if (modal) modal.show();
 
         try {
-            // Show loading placeholder
-            modal.innerHTML = `
-                <div style="padding: 48px; text-align: center;">
-                    <div style="font-size: 32px; animation: spin 1s infinite linear; display: inline-block;">⚙️</div>
-                    <p style="margin-top: 12px; font-weight: 600; color: var(--mute);">Đang tải thông tin sản phẩm...</p>
-                </div>
-            `;
-            overlay.classList.add("open");
-            document.body.style.overflow = "hidden";
-
             const response = await fetch(`/Products/Quick/${encodeURIComponent(id)}`);
             if (!response.ok) {
-                modal.innerHTML = `
-                    <button class="x" onclick="closeModal()">✕</button>
-                    <div style="padding: 40px; text-align: center;">
-                        <p style="color: #ef4444; font-weight: 600;">Không tìm thấy thông tin sản phẩm.</p>
-                        <button class="btn" style="margin-top: 16px;" onclick="closeModal()">Đóng lại</button>
+                dialog.innerHTML = `
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger">Thông báo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <i class="bi bi-exclamation-circle text-danger fs-1 d-block mb-2"></i>
+                        <h5>Không tìm thấy thông tin sản phẩm.</h5>
+                        <p class="small text-secondary">Mã sản phẩm: ${id}</p>
                     </div>
                 `;
                 return;
             }
 
-            modal.innerHTML = await response.text();
+            dialog.innerHTML = await response.text();
         } catch (error) {
             console.error("Lỗi khi tải Quick View:", error);
-            if (modal) {
-                modal.innerHTML = `
-                    <button class="x" onclick="closeModal()">✕</button>
-                    <div style="padding: 40px; text-align: center;">
-                        <p style="color: #ef4444; font-weight: 600;">Lỗi kết nối máy chủ khi tải sản phẩm.</p>
-                        <button class="btn" style="margin-top: 16px;" onclick="closeModal()">Đóng lại</button>
-                    </div>
-                `;
-            }
-        }
-    }
-
-    function showPane(name) {
-        if (!modal) return;
-        $$("[data-pane]", modal).forEach(pane => {
-            pane.hidden = pane.dataset.pane !== name;
-        });
-        modal.scrollTop = 0;
-
-        if (name === "compare") {
-            loadCompareProducts();
+            dialog.innerHTML = `
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Lỗi kết nối</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="text-danger fw-semibold">Không thể kết nối đến máy chủ. Vui lòng thử lại sau.</p>
+                </div>
+            `;
         }
     }
 
@@ -86,21 +86,20 @@
     // =========================================================
 
     async function loadCompareProducts() {
-        if (!modal) return;
-        const select = $("#cmpSel", modal);
-        const body = $("#cmpBody", modal);
+        const select = document.getElementById("cmpSel");
+        const body = document.getElementById("cmpBody");
         if (!select || !body) return;
 
         const currentId = select.dataset.id;
         try {
             select.disabled = true;
-            select.innerHTML = `<option value="">Đang tải danh sách...</option>`;
+            select.innerHTML = `<option value="">Đang tải danh sách so sánh...</option>`;
 
             const response = await fetch("/Products/CompareProducts");
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
-            select.innerHTML = `<option value="">-- Chọn sản phẩm để so sánh --</option>`;
+            select.innerHTML = `<option value="">-- Chọn sản phẩm thứ 2 để đối đầu --</option>`;
 
             if (data.items && Array.isArray(data.items)) {
                 data.items.forEach(product => {
@@ -112,41 +111,48 @@
                 });
             }
             select.disabled = false;
-            body.innerHTML = "<p style='color: var(--mute); font-size: 14px;'>Vui lòng chọn một sản phẩm ở trên để bắt đầu so sánh chi tiết.</p>";
         } catch (error) {
             console.error("Lỗi tải danh sách so sánh:", error);
             select.disabled = false;
-            select.innerHTML = `<option value="">Không thể tải sản phẩm</option>`;
-            body.innerHTML = "<p style='color: #ef4444;'>Không thể kết nối máy chủ để so sánh.</p>";
+            select.innerHTML = `<option value="">Không thể nạp danh sách sản phẩm</option>`;
         }
     }
 
     async function loadCompare() {
-        if (!modal) return;
-        const select = $("#cmpSel", modal);
-        const body = $("#cmpBody", modal);
+        const select = document.getElementById("cmpSel");
+        const body = document.getElementById("cmpBody");
         if (!select || !body) return;
 
         const id = select.dataset.id;
         const otherId = select.value;
 
         if (!id || !otherId) {
-            body.innerHTML = "<p style='color: var(--mute); font-size: 14px;'>Vui lòng chọn một sản phẩm để bắt đầu so sánh.</p>";
+            body.innerHTML = `
+                <div class="text-center py-4 text-secondary">
+                    <i class="bi bi-arrow-left-right fs-2 d-block mb-2"></i>
+                    Vui lòng chọn sản phẩm thứ 2 từ danh sách trên để xem bảng so sánh đối đầu.
+                </div>
+            `;
             return;
         }
 
         try {
-            body.innerHTML = "<p style='color: var(--mute); font-size: 14px;'>Đang nạp dữ liệu so sánh cấu hình...</p>";
+            body.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                    <span class="text-secondary fw-semibold">Đang tổng hợp thông số đối đầu...</span>
+                </div>
+            `;
             const params = new URLSearchParams({ id, otherId });
             const response = await fetch(`/Products/Compare?${params.toString()}`);
             if (!response.ok) {
-                body.innerHTML = `<p style='color: #ef4444;'>Không thể so sánh sản phẩm (HTTP ${response.status})</p>`;
+                body.innerHTML = `<div class="p-3 text-danger text-center">Không thể so sánh sản phẩm (HTTP ${response.status})</div>`;
                 return;
             }
             body.innerHTML = await response.text();
         } catch (error) {
             console.error("Lỗi so sánh sản phẩm:", error);
-            body.innerHTML = "<p style='color: #ef4444;'>Không thể kết nối máy chủ.</p>";
+            body.innerHTML = `<div class="p-3 text-danger text-center">Không thể kết nối máy chủ.</div>`;
         }
     }
 
@@ -182,7 +188,7 @@
         if (!container) return null;
 
         const message = document.createElement("div");
-        message.className = isUser ? "msg me" : "msg bot";
+        message.className = isUser ? "dm-msg dm-msg-me" : "dm-msg dm-msg-bot";
         message.innerHTML = text.replace(/\n/g, "<br/>");
 
         container.appendChild(message);
@@ -201,8 +207,8 @@
 
         // Typing indicator
         const typingEl = document.createElement("div");
-        typingEl.className = "msg bot typing-indicator";
-        typingEl.innerHTML = `<span class="dot-pulse">● ● ●</span> <span style="font-size: 11.5px; color: var(--mute);">Duy Mobile AI đang xử lý...</span>`;
+        typingEl.className = "dm-msg dm-msg-bot typing-indicator";
+        typingEl.innerHTML = `<span class="dm-dot-pulse">● ● ●</span> <span style="font-size: 11.5px; color: var(--dm-text-muted);" class="ms-2">Duy Mobile AI đang tư vấn...</span>`;
         if (container) {
             container.appendChild(typingEl);
             container.scrollTop = container.scrollHeight;
@@ -222,7 +228,7 @@
             }
 
             const data = await response.json();
-            const bubble = addMessage(data.reply ?? "Duy Mobile luôn sẵn sàng tư vấn cho bạn!");
+            const bubble = addMessage(data.reply ?? "Duy Mobile sẵn sàng hỗ trợ bạn!");
 
             if (bubble && data.items && Array.isArray(data.items) && data.items.length > 0) {
                 const recContainer = document.createElement("div");
@@ -234,19 +240,8 @@
                 data.items.forEach(product => {
                     const cardBtn = document.createElement("button");
                     cardBtn.type = "button";
-                    cardBtn.style.padding = "8px 12px";
-                    cardBtn.style.background = "var(--soft)";
-                    cardBtn.style.border = "1px solid rgba(91, 75, 219, 0.2)";
-                    cardBtn.style.borderRadius = "8px";
-                    cardBtn.style.color = "var(--ink)";
-                    cardBtn.style.fontWeight = "600";
-                    cardBtn.style.fontSize = "12px";
-                    cardBtn.style.textAlign = "left";
-                    cardBtn.style.cursor = "pointer";
-                    cardBtn.style.display = "flex";
-                    cardBtn.style.justifyContent = "space-between";
-                    cardBtn.style.alignItems = "center";
-                    cardBtn.innerHTML = `<span>📱 ${product.name}</span> <span style="color:#e11d48; font-weight:800;">${product.price}</span>`;
+                    cardBtn.className = "btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center p-2 rounded-3";
+                    cardBtn.innerHTML = `<span class="fw-bold small text-dark"><i class="bi bi-phone text-primary me-1"></i> ${product.name}</span> <span class="badge bg-danger">${product.price}</span>`;
 
                     cardBtn.onclick = () => {
                         openProduct(product.id);
@@ -262,7 +257,7 @@
         } catch (error) {
             typingEl.remove();
             console.error("Lỗi chatbot:", error);
-            addMessage("Hệ thống trợ lý AI tạm thời bận hoặc không thể kết nối. Bạn có thể tra cứu nhanh qua Hotline 1800.6868 nhé!");
+            addMessage("Hệ thống trợ lý AI tạm thời bận. Bạn có thể tra cứu nhanh qua Hotline 1800.6868 nhé!");
         }
     }
 
@@ -280,19 +275,19 @@
     // =========================================================
 
     function showCartToast(msg) {
-        let toast = document.getElementById("cartToast");
-        if (!toast) {
-            toast = document.createElement("div");
-            toast.id = "cartToast";
-            toast.style.cssText = "position:fixed; bottom:28px; right:28px; background:#0f172a; color:#fff; padding:14px 22px; border-radius:14px; font-weight:600; font-size:14px; box-shadow:0 12px 32px rgba(0,0,0,.25); z-index:9999; transition:all .3s ease; opacity:0; transform:translateY(20px); border-left:4px solid #10b981; display:flex; align-items:center; gap:8px;";
-            document.body.appendChild(toast);
+        let toastEl = document.getElementById("cartToast");
+        if (!toastEl) {
+            toastEl = document.createElement("div");
+            toastEl.id = "cartToast";
+            toastEl.style.cssText = "position:fixed; bottom:28px; right:28px; background:#0f172a; color:#fff; padding:14px 22px; border-radius:14px; font-weight:600; font-size:14px; box-shadow:0 12px 32px rgba(0,0,0,.25); z-index:9999; transition:all .3s ease; opacity:0; transform:translateY(20px); border-left:4px solid #10b981; display:flex; align-items:center; gap:8px;";
+            document.body.appendChild(toastEl);
         }
-        toast.textContent = msg;
-        toast.style.opacity = "1";
-        toast.style.transform = "translateY(0)";
+        toastEl.innerHTML = `<i class="bi bi-cart-check-fill text-success fs-5"></i> <span>${msg}</span>`;
+        toastEl.style.opacity = "1";
+        toastEl.style.transform = "translateY(0)";
         setTimeout(() => {
-            toast.style.opacity = "0";
-            toast.style.transform = "translateY(20px)";
+            toastEl.style.opacity = "0";
+            toastEl.style.transform = "translateY(20px)";
         }, 2600);
     }
 
@@ -316,9 +311,9 @@
             if (data.success) {
                 const badge = document.getElementById("cartCount");
                 if (badge) badge.textContent = data.totalItems;
-                showCartToast("✅ " + data.message);
+                showCartToast(data.message || "Đã thêm sản phẩm vào giỏ hàng");
             } else {
-                alert(data.message || "Không thể thêm sản phẩm vào giỏ hàng");
+                alert(data.message || "Không thể thêm sản phẩm vào giỏ");
             }
         })
         .catch(err => {
@@ -358,69 +353,9 @@
     }
 
     // =========================================================
-    // GLOBAL EVENT DELEGATION
+    // GLOBAL LISTENERS
     // =========================================================
 
-    document.addEventListener("click", event => {
-        // Modal close button
-        if (event.target.closest("[data-close]")) {
-            closeModal();
-            return;
-        }
-
-        // Click outside modal
-        if (overlay && event.target === overlay) {
-            closeModal();
-            return;
-        }
-
-        // Modal tab view switch
-        const viewBtn = event.target.closest("[data-view]");
-        if (viewBtn) {
-            showPane(viewBtn.dataset.view);
-            return;
-        }
-
-        // Open product explicitly
-        const openBtn = event.target.closest("[data-open]");
-        if (openBtn) {
-            openProduct(openBtn.dataset.open);
-            return;
-        }
-
-        // Add to cart buttons within cards shouldn't trigger card modal
-        if (event.target.closest(".add-cart-btn")) {
-            return;
-        }
-
-        // Product Card Click -> Open Quick View
-        const card = event.target.closest(".card[data-id]");
-        if (card) {
-            openProduct(card.dataset.id);
-            return;
-        }
-
-        // Open Chat button in Hero
-        if (event.target.closest("#heroAI")) {
-            openChat();
-            return;
-        }
-    });
-
-    document.addEventListener("change", event => {
-        if (event.target.id === "cmpSel") {
-            loadCompare();
-        }
-    });
-
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            closeModal();
-            closeChat();
-        }
-    });
-
-    // Chatbot Input Events
     if (chatFab) {
         chatFab.addEventListener("click", toggleChat);
     }
@@ -438,22 +373,25 @@
         });
     }
 
-    // Initialize badge count on load
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeChat();
+        }
+    });
+
     document.addEventListener("DOMContentLoaded", () => {
         updateCartBadge();
     });
 
     // =========================================================
-    // EXPOSE TO WINDOW OBJECT (Strictly for inline onclick attributes)
+    // EXPOSE TO WINDOW
     // =========================================================
     window.openProduct = openProduct;
     window.closeModal = closeModal;
-    window.showPane = showPane;
     window.loadCompare = loadCompare;
     window.loadCompareProducts = loadCompareProducts;
     window.toggleChat = toggleChat;
     window.closeChat = closeChat;
-    window.closeChatModal = closeChat;
     window.openChat = openChat;
     window.sendMessage = sendMessage;
     window.sendChatPrompt = sendChatPrompt;

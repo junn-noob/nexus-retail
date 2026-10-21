@@ -16,230 +16,319 @@
     var hasActiveFilters = !string.IsNullOrEmpty(currentPrice) || !string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(currentQuery);
 }
 
-<!-- Hero Banner Section -->
-<section class="hero-section">
-    <div class="hero-content">
-        <div class="hero-badge">✨ Nền tảng bán lẻ công nghệ thế hệ mới</div>
-        <h1 class="hero-title">Đón đầu công nghệ.<br/>Khẳng định chất riêng.</h1>
-        <p class="hero-subtitle">
-            Khám phá những siêu phẩm smartphone mới nhất từ Apple, Samsung, Xiaomi với cam kết 100% chính hãng, bảo hành toàn diện và trải nghiệm trợ lý AI thông minh 24/7.
-        </p>
-        
-        <div class="hero-actions">
-            <a href="#products" class="btn hero-cta-btn">Khám phá sản phẩm ngay ↓</a>
-            <a asp-action="TraCuu" class="btn ghost hero-secondary-btn">🔍 Tra cứu đơn hàng</a>
-        </div>
-
-        <div class="hero-stats">
-            <div class="stat-item">
-                <span class="stat-num">100%</span>
-                <span class="stat-text">Chính hãng VNA</span>
-            </div>
-            <div class="stat-sep">/</div>
-            <div class="stat-item">
-                <span class="stat-num">30 Ngày</span>
-                <span class="stat-text">1 đổi 1 miễn phí</span>
-            </div>
-            <div class="stat-sep">/</div>
-            <div class="stat-item">
-                <span class="stat-num">2 Giờ</span>
-                <span class="stat-text">Giao hàng siêu tốc</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- AI Advisor Floating Card -->
-    <div class="hero-aibox">
-        <div class="aibox-header">
-            <div class="aibox-avatar">✨</div>
-            <div>
-                <h4>Trợ lý AI Duy Mobile</h4>
-                <p>Tư vấn chuẩn xác theo nhu cầu & túi tiền</p>
-            </div>
-        </div>
-        <p class="aibox-desc">
-            Bạn đang phân vân giữa iPhone hay Samsung? Hãy nói cho AI biết tầm giá và nhu cầu sử dụng của bạn:
-        </p>
-        <div class="aibox-suggestions">
-            <button type="button" class="ai-chip" onclick="askAiWithPrompt('Tư vấn điện thoại chụp ảnh đẹp dưới 20 triệu')">📸 Chụp ảnh đẹp dưới 20tr</button>
-            <button type="button" class="ai-chip" onclick="askAiWithPrompt('Điện thoại nào chơi game mượt pin trâu nhất?')">🎮 Chơi game pin trâu</button>
-            <button type="button" class="ai-chip" onclick="askAiWithPrompt('So sánh iPhone 16 Plus và Samsung S24 Ultra')">⚖️ So sánh iPhone 16 & S24</button>
-        </div>
-        <button class="btn aibox-btn" id="heroAI">
-            Trò chuyện với AI ngay →
-        </button>
-    </div>
-</section>
-
-<!-- Main Products & Filter Section -->
-<main class="wrap" id="products">
-    <!-- Filter Sidebar -->
-    <aside class="sidebar-filter">
-        <div class="filter-card">
-            <div class="filter-header">
-                <h3>Bộ lọc sản phẩm</h3>
-                @if (hasActiveFilters)
-                {
-                    <a asp-action="Index" asp-fragment="products" class="filter-clear">Xóa bộ lọc ✕</a>
-                }
-            </div>
-
-            @if (!string.IsNullOrEmpty(currentQuery))
-            {
-                <div class="filter-query-info">
-                    <span>Từ khóa: <strong>"@currentQuery"</strong></span>
+<div class="container py-3">
+    <!-- 1. HERO BANNER SECTION -->
+    <section class="dm-hero">
+        <div class="row align-items-center g-4">
+            <!-- Left Info -->
+            <div class="col-lg-7">
+                <div class="dm-hero-badge">
+                    <i class="bi bi-stars"></i> Nền tảng bán lẻ công nghệ thế hệ mới 2026
                 </div>
-            }
-
-            @if (!string.IsNullOrEmpty(currentBrand))
-            {
-                <div class="filter-query-info" style="margin-top: 6px;">
-                    <span>Mã thương hiệu: <strong>@currentBrand</strong></span>
+                <h1 class="dm-hero-title">
+                    Đón đầu công nghệ.<br/>Khẳng định chất riêng.
+                </h1>
+                <p class="dm-hero-desc">
+                    Khám phá những siêu phẩm smartphone mới nhất từ Apple, Samsung, Xiaomi với cam kết 100% chính hãng VNA, bảo hành toàn diện và trải nghiệm trợ lý AI thông minh 24/7.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="#productCatalog" class="btn btn-primary btn-lg rounded-3 fw-bold px-4 shadow">
+                        Khám phá sản phẩm ngay <i class="bi bi-arrow-down-short ms-1"></i>
+                    </a>
+                    <a asp-action="TraCuu" class="btn btn-light btn-lg rounded-3 fw-bold px-4 border text-dark">
+                        <i class="bi bi-search me-1"></i> Tra cứu đơn hàng
+                    </a>
                 </div>
-            }
 
-            <section class="filter-group">
-                <h4>Khoảng giá đề xuất</h4>
-                <div class="price-options">
-                    @foreach (var (k, t) in prices)
+                <div class="d-flex align-items-center gap-4 pt-3 border-top border-primary border-opacity-25">
+                    <div>
+                        <div class="fs-4 fw-bolder text-dark">100%</div>
+                        <div class="small text-secondary">Chính hãng VNA</div>
+                    </div>
+                    <div class="text-secondary opacity-25">/</div>
+                    <div>
+                        <div class="fs-4 fw-bolder text-dark">30 Ngày</div>
+                        <div class="small text-secondary">1 đổi 1 miễn phí</div>
+                    </div>
+                    <div class="text-secondary opacity-25">/</div>
+                    <div>
+                        <div class="fs-4 fw-bolder text-dark">2 Giờ</div>
+                        <div class="small text-secondary">Giao hàng siêu tốc</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right AI Advisor Box -->
+            <div class="col-lg-5">
+                <div class="dm-hero-ai-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="dm-logo-icon">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold m-0 text-dark">Trợ lý AI Duy Mobile</h5>
+                            <small class="text-secondary">Tư vấn chuẩn xác theo nhu cầu & túi tiền</small>
+                        </div>
+                    </div>
+                    <p class="small text-secondary mb-3">
+                        Bạn đang phân vân giữa iPhone hay Samsung? Hãy hỏi ngay trợ lý AI được tích hợp trực tiếp:
+                    </p>
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <button type="button" class="dm-ai-chip" onclick="askAiWithPrompt('Tư vấn điện thoại chụp ảnh đẹp dưới 20 triệu')">
+                            📸 Chụp ảnh đẹp dưới 20 triệu
+                        </button>
+                        <button type="button" class="dm-ai-chip" onclick="askAiWithPrompt('Điện thoại nào chơi game mượt pin trâu nhất?')">
+                            🎮 Chơi game mượt, pin trâu
+                        </button>
+                        <button type="button" class="dm-ai-chip" onclick="askAiWithPrompt('So sánh iPhone 16 Plus và Samsung S24 Ultra')">
+                            ⚖️ So sánh iPhone 16 Plus & S24 Ultra
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-dark w-100 py-2 rounded-3 fw-bold shadow-sm" onclick="openChat()">
+                        <i class="bi bi-chat-dots-fill me-2 text-warning"></i> Trò chuyện với AI ngay →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. TRUST BENEFITS STRIP -->
+    <section class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="dm-trust-card">
+                <div class="dm-trust-icon"><i class="bi bi-truck"></i></div>
+                <div>
+                    <h6 class="fw-bold m-0 text-dark">Giao hàng 2H</h6>
+                    <small class="text-secondary">Miễn phí toàn quốc</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dm-trust-card">
+                <div class="dm-trust-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div>
+                    <h6 class="fw-bold m-0 text-dark">30 Ngày 1 đổi 1</h6>
+                    <small class="text-secondary">Lỗi phần cứng NSX</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dm-trust-card">
+                <div class="dm-trust-icon"><i class="bi bi-credit-card-2-front"></i></div>
+                <div>
+                    <h6 class="fw-bold m-0 text-dark">Trả góp 0%</h6>
+                    <small class="text-secondary">Thủ tục nhanh 5 phút</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dm-trust-card">
+                <div class="dm-trust-icon"><i class="bi bi-shield-check"></i></div>
+                <div>
+                    <h6 class="fw-bold m-0 text-dark">100% Chính hãng</h6>
+                    <small class="text-secondary">Bảo hành tại TTBH ủy quyền</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. MAIN CATALOG SECTION -->
+    <div class="row g-4" id="productCatalog">
+        <!-- Sidebar Filter -->
+        <aside class="col-lg-3">
+            <div class="dm-filter-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="bi bi-funnel-fill text-primary me-2"></i> Bộ lọc</h5>
+                    @if (hasActiveFilters)
                     {
-                        var isSelected = (k == null && string.IsNullOrEmpty(currentPrice)) || (k != null && k == currentPrice);
-                        <a class="opt @(isSelected ? "on" : "")" 
-                           asp-action="Index" 
-                           asp-route-page="1"
-                           asp-route-price="@k"
-                           asp-route-q="@currentQuery"
-                           asp-route-brand="@currentBrand"
-                           asp-fragment="products">
-                            <span class="opt-bullet"></span> @t
+                        <a asp-action="Index" asp-fragment="productCatalog" class="badge bg-danger-subtle text-danger text-decoration-none py-2 px-2 fw-bold">
+                            Xóa lọc ✕
                         </a>
                     }
                 </div>
-            </section>
 
-            <section class="filter-group">
-                <h4>Cam kết Duy Mobile</h4>
-                <ul class="trust-list">
-                    <li>✓ 100% Hàng chính hãng phân phối</li>
-                    <li>✓ Miễn phí vận chuyển toàn quốc</li>
-                    <li>✓ Hỗ trợ trả góp 0% lãi suất</li>
-                    <li>✓ Thu cũ đổi mới trợ giá cao</li>
-                </ul>
-            </section>
-        </div>
-    </aside>
+                @if (!string.IsNullOrEmpty(currentQuery))
+                {
+                    <div class="p-2 bg-light rounded-3 mb-3 small text-secondary">
+                        Từ khóa: <strong class="text-dark">"@currentQuery"</strong>
+                    </div>
+                }
 
-    <!-- Product Grid Area -->
-    <div class="products-area">
-        <div class="products-top-info">
-            <h2>Danh sách sản phẩm (@Model.TotalItems)</h2>
-            <span class="page-indicator">Trang @Model.Page / @Math.Max(1, Model.TotalPages)</span>
-        </div>
+                @if (!string.IsNullOrEmpty(currentBrand))
+                {
+                    <div class="p-2 bg-light rounded-3 mb-3 small text-secondary">
+                        Thương hiệu: <strong class="text-primary">@currentBrand</strong>
+                    </div>
+                }
 
-        <div id="productGrid" class="grid">
-            @foreach (var p in Model.Items)
-            {
-                var fallbackImg = Url.Content("~/images/products/" + (string.IsNullOrEmpty(p.Anh) ? "iphone_16_plus_black_37a9bceca0.png" : p.Anh));
-                <article class="card" data-id="@p.MaSp">
-                    <div class="card-badges">
-                        @if (p.GiaBan > 25000000)
+                <!-- Khoảng giá -->
+                <div class="mb-4">
+                    <div class="dm-filter-heading">Mức giá đề xuất</div>
+                    <div class="d-flex flex-column">
+                        @foreach (var (k, t) in prices)
                         {
-                            <span class="badge badge-flagship">👑 Flagship</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-hot">🔥 Bán chạy</span>
+                            var isSelected = (k == null && string.IsNullOrEmpty(currentPrice)) || (k != null && k == currentPrice);
+                            <a class="dm-filter-opt @(isSelected ? "active" : "")" 
+                               asp-action="Index" 
+                               asp-route-page="1"
+                               asp-route-price="@k"
+                               asp-route-q="@currentQuery"
+                               asp-route-brand="@currentBrand"
+                               asp-fragment="productCatalog">
+                                <span><i class="bi bi-circle-fill me-2 fs-6 opacity-50"></i> @t</span>
+                                @if (isSelected)
+                                {
+                                    <i class="bi bi-check2 text-primary fw-bold"></i>
+                                }
+                            </a>
                         }
                     </div>
+                </div>
 
-                    <div class="img" style="background-image: url('@fallbackImg')" title="@p.TenSp"></div>
+                <!-- Cam kết dịch vụ -->
+                <div class="pt-3 border-top">
+                    <div class="dm-filter-heading">Cam kết Duy Mobile</div>
+                    <ul class="list-unstyled small text-secondary mb-0 lh-lg">
+                        <li><i class="bi bi-check-circle-fill text-success me-1"></i> Nguyên seal, mới 100%</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1"></i> Xuất hóa đơn VAT đầy đủ</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1"></i> Hỗ trợ thu cũ trợ giá cao</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1"></i> Cài đặt máy miễn phí</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
 
-                    <div class="cb">
-                        <span class="card-brand">@(string.IsNullOrEmpty(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu)</span>
-                        <h3 title="@p.TenSp">@p.TenSp</h3>
-                        
-                        @if (!string.IsNullOrWhiteSpace(p.GhiChu))
-                        {
-                            <span class="tag">@p.GhiChu</span>
-                        }
-                        else
-                        {
-                            <span class="tag">Bảo hành 12 tháng</span>
-                        }
+        <!-- Product Grid Area -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0 text-dark" id="productCountHeader">
+                    Danh sách sản phẩm (@Model.TotalItems)
+                </h4>
+                <span class="text-secondary small fw-semibold" id="pageIndicator">
+                    Trang @Model.Page / @Math.Max(1, Model.TotalPages)
+                </span>
+            </div>
 
-                        <div class="price">@p.GiaBan.ToString("N0") ₫</div>
+            <!-- Product Card Grid -->
+            <div class="row g-3" id="productGrid">
+                @foreach (var p in Model.Items)
+                {
+                    var fallbackImg = Url.Content("~/images/products/" + (string.IsNullOrEmpty(p.Anh) ? "iphone_16_plus_black_37a9bceca0.png" : p.Anh));
+                    <div class="col-lg-4 col-md-6">
+                        <div class="dm-product-card">
+                            <div class="dm-product-badge-wrap">
+                                @if (p.GiaBan > 25000000)
+                                {
+                                    <span class="dm-badge dm-badge-flagship"><i class="bi bi-crown-fill text-warning me-1"></i> Flagship</span>
+                                }
+                                else
+                                {
+                                    <span class="dm-badge dm-badge-hot"><i class="bi bi-fire text-danger me-1"></i> Bán chạy</span>
+                                }
+                            </div>
 
-                        <div class="card-actions">
-                            <button class="btn ghost quick-view-btn" type="button" onclick="openProduct('@p.MaSp')" title="Xem thông số kỹ thuật chi tiết">Xem nhanh</button>
-                            <button class="btn add-cart-btn" type="button" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ hàng">
-                                🛒
-                            </button>
+                            <div class="dm-product-img-box" onclick="openProduct('@p.MaSp')">
+                                <img src="@fallbackImg" alt="@p.TenSp" onerror="this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
+                            </div>
+
+                            <div class="dm-product-body">
+                                <div class="dm-product-brand">@(string.IsNullOrEmpty(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu)</div>
+                                <h3 class="dm-product-title" onclick="openProduct('@p.MaSp')" title="@p.TenSp">@p.TenSp</h3>
+                                
+                                <span class="dm-product-tag">
+                                    <i class="bi bi-shield-check text-success me-1"></i>
+                                    @(string.IsNullOrWhiteSpace(p.GhiChu) ? "Bảo hành 12 tháng VNA" : p.GhiChu)
+                                </span>
+
+                                <div class="dm-product-price">@p.GiaBan.ToString("N0") ₫</div>
+
+                                <div class="dm-card-actions">
+                                    <button type="button" class="dm-btn-quickview" onclick="openProduct('@p.MaSp')">
+                                        <i class="bi bi-eye me-1"></i> Xem nhanh
+                                    </button>
+                                    <button type="button" class="dm-btn-addcart" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </article>
-            }
+                }
 
-            @if (!Model.Items.Any()) 
-            { 
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <div class="empty-icon">🔍</div>
-                    <h3>Không tìm thấy sản phẩm nào phù hợp!</h3>
-                    <p>Hãy thử tìm bằng từ khóa khác hoặc xóa bộ lọc để xem toàn bộ danh mục sản phẩm.</p>
-                    <a asp-action="Index" class="btn" style="margin-top: 16px;">Xem tất cả sản phẩm</a>
-                </div> 
-            }
-        </div>
-
-        @if (Model.TotalPages > 1)
-        {
-            <div id="pagination" class="pg">
-                <a class="@(Model.Page <= 1 ? "off" : "")" 
-                   asp-action="Index" 
-                   asp-route-page="@(Model.Page - 1)"
-                   asp-route-q="@currentQuery"
-                   asp-route-price="@currentPrice"
-                   asp-route-brand="@currentBrand"
-                   asp-fragment="products">← Trước</a>
-
-                @for (var i = 1; i <= Model.TotalPages; i++)
+                @if (!Model.Items.Any())
                 {
-                    <a class="@(i == Model.Page ? "on" : "")" 
-                       asp-action="Index" 
-                       asp-route-page="@i"
-                       asp-route-q="@currentQuery"
-                       asp-route-price="@currentPrice"
-                       asp-route-brand="@currentBrand"
-                       asp-fragment="products">@i</a>
+                    <div class="col-12 py-5 text-center">
+                        <div class="p-5 bg-white rounded-4 border shadow-sm">
+                            <i class="bi bi-search text-secondary fs-1 d-block mb-3"></i>
+                            <h4 class="fw-bold text-dark">Không tìm thấy sản phẩm nào phù hợp!</h4>
+                            <p class="text-secondary small mb-3">Hãy thử tìm với từ khóa khác hoặc xóa bớt các bộ lọc đang chọn.</p>
+                            <a asp-action="Index" class="btn btn-primary rounded-3 fw-bold px-4">
+                                Xem tất cả sản phẩm
+                            </a>
+                        </div>
+                    </div>
                 }
-
-                <a class="@(Model.Page >= Model.TotalPages ? "off" : "")" 
-                   asp-action="Index" 
-                   asp-route-page="@(Model.Page + 1)"
-                   asp-route-q="@currentQuery"
-                   asp-route-price="@currentPrice"
-                   asp-route-brand="@currentBrand"
-                   asp-fragment="products">Sau →</a>
             </div>
-        }
-    </div>
-</main>
 
-<script>
-    function askAiWithPrompt(prompt) {
-        const fab = document.getElementById('fab');
-        const chatPanel = document.getElementById('chat');
-        const input = document.getElementById('ci');
-        const sendBtn = document.getElementById('cs');
-        
-        if (chatPanel) {
-            chatPanel.classList.add('open');
-            if (input) {
-                input.value = prompt;
-                input.focus();
-                if (sendBtn) {
-                    sendBtn.click();
+            <!-- Pagination -->
+            <div id="paginationArea" class="mt-4">
+                @if (Model.TotalPages > 1)
+                {
+                    <ul class="pagination pagination-md justify-content-center m-0 gap-1">
+                        @if (Model.Page > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link rounded-3 fw-bold" 
+                                   asp-action="Index" 
+                                   asp-route-page="@(Model.Page - 1)"
+                                   asp-route-q="@currentQuery"
+                                   asp-route-price="@currentPrice"
+                                   asp-route-brand="@currentBrand"
+                                   asp-fragment="productCatalog">← Trước</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link rounded-3 opacity-50">← Trước</span>
+                            </li>
+                        }
+
+                        @for (var i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.Page ? "active" : "")">
+                                <a class="page-link rounded-3 fw-bold" 
+                                   asp-action="Index" 
+                                   asp-route-page="@i"
+                                   asp-route-q="@currentQuery"
+                                   asp-route-price="@currentPrice"
+                                   asp-route-brand="@currentBrand"
+                                   asp-fragment="productCatalog">@i</a>
+                            </li>
+                        }
+
+                        @if (Model.Page < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link rounded-3 fw-bold" 
+                                   asp-action="Index" 
+                                   asp-route-page="@(Model.Page + 1)"
+                                   asp-route-q="@currentQuery"
+                                   asp-route-price="@currentPrice"
+                                   asp-route-brand="@currentBrand"
+                                   asp-fragment="productCatalog">Sau →</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link rounded-3 opacity-50">Sau →</span>
+                            </li>
+                        }
+                    </ul>
                 }
-            }
-        }
-    }
-</script>
+            </div>
+        </div>
+    </div>
+</div>

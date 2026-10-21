@@ -3,99 +3,106 @@
     ViewData["Title"] = "Thanh toán đơn hàng";
 }
 
-<div class="wrap" style="max-width: 900px; margin: 30px auto; padding: 0 16px;">
-    <div style="margin-bottom: 24px;">
-        <a asp-action="Index" class="btn ghost" style="padding: 6px 12px; font-size: 13px;">← Quay lại giỏ hàng</a>
-        <h1 style="font-size: 26px; font-weight: 700; color: var(--ink); margin-top: 12px;">📦 Thông tin đặt hàng</h1>
+<div class="container py-4" style="max-width: 1000px;">
+    <div class="mb-4">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-3 fw-bold mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại giỏ hàng
+        </a>
+        <h2 class="fw-bold text-dark m-0"><i class="bi bi-truck text-primary me-2"></i> Thông tin giao hàng & Thanh toán</h2>
     </div>
 
     @if (!ViewData.ModelState.IsValid)
     {
-        <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px;">
-            <div asp-validation-summary="All" style="font-size: 14px; font-weight: 500;"></div>
+        <div class="alert alert-danger rounded-4 shadow-sm border-0 mb-4" role="alert">
+            <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Vui lòng kiểm tra lại thông tin:</div>
+            <div asp-validation-summary="All" class="small"></div>
         </div>
     }
 
-    <form asp-action="ProcessCheckout" method="post" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;" class="checkout-layout">
-        <!-- Cột thông tin nhận hàng -->
-        <div style="background: var(--card); border-radius: var(--r); padding: 24px; box-shadow: var(--sh); border: 1px solid var(--line);">
-            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--ink);">1. Thông tin người nhận</h2>
+    <form asp-action="ProcessCheckout" method="post" class="row g-4">
+        <!-- Delivery info -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+                <h5 class="fw-bold text-dark mb-3">1. Thông tin người nhận hàng</h5>
 
-            <div style="margin-bottom: 16px;">
-                <label asp-for="TenKhach" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink);">Họ và tên của bạn <span style="color: #ef4444;">*</span></label>
-                <input asp-for="TenKhach" placeholder="Ví dụ: Nguyễn Văn A" style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 14px;" />
-                <span asp-validation-for="TenKhach" style="color: #ef4444; font-size: 12px;"></span>
+                <div class="mb-3">
+                    <label asp-for="TenKhach" class="form-label small fw-bold text-dark">Họ và tên người nhận <span class="text-danger">*</span></label>
+                    <input asp-for="TenKhach" class="form-control rounded-3 py-2" placeholder="Ví dụ: Nguyễn Văn A" required />
+                    <span asp-validation-for="TenKhach" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DienThoai" class="form-label small fw-bold text-dark">Số điện thoại nhận hàng <span class="text-danger">*</span></label>
+                    <input asp-for="DienThoai" type="tel" class="form-control rounded-3 py-2" placeholder="Ví dụ: 0912345678" required />
+                    <span asp-validation-for="DienThoai" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DiaChi" class="form-label small fw-bold text-dark">Địa chỉ nhận hàng chi tiết <span class="text-danger">*</span></label>
+                    <textarea asp-for="DiaChi" class="form-control rounded-3" rows="3" placeholder="Số nhà, ngõ/đường, phường/xã, quận/huyện, tỉnh/thành..." required></textarea>
+                    <span asp-validation-for="DiaChi" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="GhiChu" class="form-label small fw-bold text-dark">Ghi chú giao hàng (Tùy chọn)</label>
+                    <input asp-for="GhiChu" class="form-control rounded-3 py-2" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao 15 phút..." />
+                </div>
             </div>
 
-            <div style="margin-bottom: 16px;">
-                <label asp-for="DienThoai" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink);">Số điện thoại nhận hàng <span style="color: #ef4444;">*</span></label>
-                <input asp-for="DienThoai" placeholder="Ví dụ: 0912345678" style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 14px;" />
-                <span asp-validation-for="DienThoai" style="color: #ef4444; font-size: 12px;"></span>
-            </div>
-
-            <div style="margin-bottom: 16px;">
-                <label asp-for="DiaChi" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink);">Địa chỉ giao hàng chi tiết <span style="color: #ef4444;">*</span></label>
-                <textarea asp-for="DiaChi" rows="2" placeholder="Số nhà, ngõ/đường, phường/xã, quận/huyện, tỉnh/thành..." style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 14px;"></textarea>
-                <span asp-validation-for="DiaChi" style="color: #ef4444; font-size: 12px;"></span>
-            </div>
-
-            <div style="margin-bottom: 16px;">
-                <label asp-for="GhiChu" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink);">Ghi chú thêm (tùy chọn)</label>
-                <input asp-for="GhiChu" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..." style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 14px;" />
-            </div>
-
-            <h2 style="font-size: 18px; font-weight: 700; margin-top: 24px; margin-bottom: 16px; color: var(--ink);">2. Phương thức thanh toán</h2>
-            <div style="border: 2px solid var(--ac); background: var(--soft); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-                <input type="radio" checked id="cod" name="pttt" style="accent-color: var(--ac); width: 18px; height: 18px;" />
-                <label for="cod" style="font-weight: 600; color: var(--ink); cursor: pointer;">
-                    💵 Thanh toán khi nhận hàng (COD)
-                    <span style="display: block; font-weight: 400; font-size: 12px; color: var(--mute);">Kiểm tra hàng trước khi thanh toán cho shipper</span>
-                </label>
+            <!-- Payment Method -->
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-dark mb-3">2. Phương thức thanh toán</h5>
+                
+                <div class="p-3 border border-2 border-primary rounded-3 bg-primary-subtle d-flex align-items-center gap-3">
+                    <input class="form-check-input mt-0 fs-5" type="radio" checked id="codPayment" name="paymentOption" />
+                    <label class="form-check-label text-dark fw-bold" for="codPayment">
+                        💵 Thanh toán khi nhận hàng (COD)
+                        <span class="d-block text-secondary small fw-normal">Kiểm tra sản phẩm nguyên seal trước khi thanh toán cho shipper</span>
+                    </label>
+                </div>
             </div>
         </div>
 
-        <!-- Cột tóm tắt đơn hàng -->
-        <div style="background: var(--card); border-radius: var(--r); padding: 24px; box-shadow: var(--sh); border: 1px solid var(--line); height: fit-content;">
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--ink);">Đơn hàng (@Model.DanhSachMon.Sum(x => x.SoLuong) món)</h3>
+        <!-- Order Summary side -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
+                <h5 class="fw-bold text-dark mb-3">Đơn hàng của bạn (@Model.DanhSachMon.Sum(x => x.SoLuong) món)</h5>
 
-            <div style="max-height: 280px; overflow-y: auto; margin-bottom: 16px;">
-                @foreach (var item in Model.DanhSachMon)
-                {
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px;">
-                        <div style="flex: 1; padding-right: 8px;">
-                            <div style="font-weight: 600; color: var(--ink);">@item.TenSp</div>
-                            <div style="color: var(--mute); font-size: 12px;">SL: @item.SoLuong × @item.GiaBan.ToString("N0") đ</div>
+                <div class="d-flex flex-column gap-2 mb-3" style="max-height: 260px; overflow-y: auto;">
+                    @foreach (var item in Model.DanhSachMon)
+                    {
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light">
+                            <div class="pe-2">
+                                <div class="fw-bold small text-dark">@item.TenSp</div>
+                                <small class="text-secondary">SL: @item.SoLuong × @item.GiaBan.ToString("N0") ₫</small>
+                            </div>
+                            <div class="fw-bold text-danger small text-nowrap">
+                                @item.ThanhTien.ToString("N0") ₫
+                            </div>
                         </div>
-                        <div style="font-weight: 700; color: var(--ink);">
-                            @item.ThanhTien.ToString("N0") đ
-                        </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
 
-            <div style="border-top: 1px solid var(--line); padding-top: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; color: var(--mute); font-size: 14px;">
-                <span>Vận chuyển</span>
-                <span style="font-weight: 600; color: var(--ok);">Miễn phí</span>
-            </div>
+                <div class="d-flex justify-content-between mb-2 text-secondary small">
+                    <span>Phí vận chuyển:</span>
+                    <span class="text-success fw-bold">Miễn phí 100%</span>
+                </div>
 
-            <div style="border-top: 1px dashed var(--line); padding-top: 14px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: baseline;">
-                <span style="font-size: 16px; font-weight: 600;">Tổng thanh toán</span>
-                <span style="font-size: 22px; font-weight: 800; color: var(--ac);">@Model.TongTien.ToString("N0") đ</span>
-            </div>
+                <hr class="my-2">
 
-            <button type="submit" class="btn" style="width: 100%; padding: 14px 0; font-size: 16px; font-weight: 700; border-radius: 12px; box-shadow: 0 4px 14px rgba(91, 75, 219, .3);">
-                Hoàn tất đặt hàng ✅
-            </button>
+                <div class="d-flex justify-content-between align-items-baseline mb-4">
+                    <span class="fw-bold text-dark">Tổng cộng:</span>
+                    <span class="fw-bolder fs-4 text-danger">@Model.TongTien.ToString("N0") ₫</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold w-100 py-3 shadow">
+                    <i class="bi bi-check-circle-fill me-1"></i> Hoàn tất đặt hàng
+                </button>
+
+                <div class="text-center mt-3 small text-secondary">
+                    <i class="bi bi-shield-lock text-success me-1"></i> Thông tin thanh toán an toàn & bảo mật
+                </div>
+            </div>
         </div>
     </form>
 </div>
-
-@section Scripts {
-    <style>
-        @@media (max-width: 768px) {
-            .checkout-layout {
-                grid-template-columns: 1fr !important;
-            }
-        }
-    </style>
-}

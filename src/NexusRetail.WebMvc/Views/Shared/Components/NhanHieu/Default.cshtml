@@ -1,144 +1,200 @@
 @using NexusRetail.Shared.Entities
 @model List<NhanHieu>
 
-@foreach (var i in Model)
-{
-    <a style="cursor: pointer"
-       class="brand-item"
-       data-id="@i.MaNhanHieu"
-       onclick="laySanPhamTheoNhanHieu('@i.MaNhanHieu', this, 1)">
-        @i.TenNhanHieu
+<div class="dm-brand-nav">
+    <span class="text-secondary small fw-bold me-2 d-none d-md-inline"><i class="bi bi-tag-fill text-primary me-1"></i> Thương hiệu:</span>
+    
+    <a class="dm-brand-pill active" data-id="" onclick="locTheoNhanHieu('', this, 1)">
+        Tất cả
     </a>
-}
+
+    @foreach (var i in Model)
+    {
+        <a class="dm-brand-pill" data-id="@i.MaNhanHieu" onclick="locTheoNhanHieu('@i.MaNhanHieu', this, 1)">
+            @i.TenNhanHieu
+        </a>
+    }
+</div>
 
 <script>
-    let currentBrand = null;
+    let activeBrandId = '';
 
-    function laySanPhamTheoNhanHieu(maNhanHieu, element, page = 1) {
-        // Nếu không ở trang chủ (không có phần tử #products), chuyển hướng về trang chủ lọc theo brand
-        const productGrid = document.getElementById('products');
-        if (!productGrid) {
-            window.location.href = '/?brand=' + encodeURIComponent(maNhanHieu) + '#products';
+    function locTheoNhanHieu(maNhanHieu, element, page = 1) {
+        const grid = document.getElementById('productGrid');
+        if (!grid) {
+            // Đang ở trang khác (Cart, Admin, Login), chuyển về trang chủ lọc theo Brand
+            window.location.href = maNhanHieu ? ('/?brand=' + encodeURIComponent(maNhanHieu) + '#productCatalog') : '/#productCatalog';
             return;
         }
 
-        // Đổi trạng thái active
+        // Đổi trạng thái active trên các nút thương hiệu
+        document.querySelectorAll('.dm-brand-pill').forEach(el => el.classList.remove('active'));
         if (element) {
-            document.querySelectorAll('.brand-item').forEach(el => el.classList.remove('on'));
-            element.classList.add('on');
-            currentBrand = maNhanHieu;
+            element.classList.add('active');
+        } else {
+            const target = document.querySelector(`.dm-brand-pill[data-id="${maNhanHieu}"]`);
+            if (target) target.classList.add('active');
         }
+        activeBrandId = maNhanHieu;
+
+        // Hiển thị trạng thái đang tải
+        grid.innerHTML = `
+            <div class="col-12 py-5 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <div class="mt-3 text-secondary fw-semibold">Đang nạp danh sách sản phẩm...</div>
+            </div>
+        `;
+
+        const url = maNhanHieu 
+            ? `/Home/LaySanPhamTheoNhanHieu?maNhanHieu=${encodeURIComponent(maNhanHieu)}&page=${page}`
+            : `/api/san-pham?page=${page}&pageSize=9`;
 
         $.ajax({
-            url: '/Home/LaySanPhamTheoNhanHieu',
+            url: url,
             type: 'GET',
-            data: {
-                maNhanHieu: maNhanHieu,
-                page: page
-            },
             success: function (data) {
-                renderProducts(data.items);
-                renderPagination(data);
-                // Cuộn mượt đến danh sách sản phẩm
-                const anchor = document.getElementById('products');
-                if (anchor) {
-                    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                renderDanhSachSanPham(data.items);
+                renderPhanTrangBrand(data);
+                
+                const headerCount = document.getElementById('productCountHeader');
+                if (headerCount) {
+                    headerCount.textContent = `Danh sách sản phẩm (${data.totalItems || 0})`;
+                }
+
+                const pageInd = document.getElementById('pageIndicator');
+                if (pageInd) {
+                    pageInd.textContent = `Trang ${data.page || 1} / ${Math.max(1, data.totalPages || 1)}`;
+                }
+
+                const catalog = document.getElementById('productCatalog');
+                if (catalog) {
+                    catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             },
             error: function (xhr) {
-                console.error("Lỗi khi tải sản phẩm theo nhãn hiệu", xhr);
+                console.error("Lỗi khi tải sản phẩm:", xhr);
+                grid.innerHTML = `
+                    <div class="col-12 py-5 text-center text-danger">
+                        <i class="bi bi-exclamation-triangle fs-1 d-block mb-2"></i>
+                        <h5>Không thể kết nối đến máy chủ.</h5>
+                        <p class="small text-secondary">Vui lòng thử lại sau giây lát.</p>
+                    </div>
+                `;
             }
         });
     }
 
-    function renderProducts(items) {
-        let html = '';
+    function renderDanhSachSanPham(items) {
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+
         if (!items || items.length === 0) {
-            html = `
-                <div class="empty-state" style="grid-column: 1 / -1; padding: 48px 20px; text-align: center; background: var(--card); border-radius: var(--r); border: 1px solid var(--line);">
-                    <div style="font-size: 40px; margin-bottom: 12px;">📱</div>
-                    <h3 style="font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 6px;">Không có sản phẩm nào thuộc nhãn hiệu này!</h3>
-                    <p style="color: var(--mute); font-size: 14px;">Kho hàng đang cập nhật thêm sản phẩm mới. Vui lòng quay lại sau.</p>
-                    <a href="/" class="btn" style="margin-top: 16px; display: inline-block;">Xem tất cả sản phẩm</a>
+            grid.innerHTML = `
+                <div class="col-12 py-5 text-center">
+                    <div class="p-5 bg-white rounded-4 border shadow-sm">
+                        <i class="bi bi-phone text-secondary fs-1 d-block mb-3"></i>
+                        <h4 class="fw-bold text-dark">Chưa có sản phẩm nào thuộc nhãn hiệu này!</h4>
+                        <p class="text-secondary small mb-3">Hệ thống đang nhập thêm hàng mới cho thương hiệu bạn chọn.</p>
+                        <button type="button" class="btn btn-primary rounded-3 fw-bold px-4" onclick="locTheoNhanHieu('', document.querySelector('.dm-brand-pill[data-id=\\'\\']'), 1)">
+                            Xem tất cả sản phẩm
+                        </button>
+                    </div>
                 </div>
             `;
-            $('#products').html(html);
             return;
         }
 
+        let html = '';
         items.forEach(sp => {
             const imgSrc = sp.anh ? `/images/products/${sp.anh}` : '/images/products/iphone_16_plus_black_37a9bceca0.png';
             const isFlagship = sp.giaBan > 25000000;
-            const badgeHtml = isFlagship 
-                ? '<span class="badge badge-flagship">👑 Flagship</span>' 
-                : '<span class="badge badge-hot">🔥 Bán chạy</span>';
-            const brandText = sp.tenNhanHieu || 'Chính hãng';
-            const noteText = sp.ghiChu || 'Bảo hành 12 tháng';
+            const badgeHtml = isFlagship
+                ? '<span class="dm-badge dm-badge-flagship"><i class="bi bi-crown-fill text-warning me-1"></i> Flagship</span>'
+                : '<span class="dm-badge dm-badge-hot"><i class="bi bi-fire text-danger me-1"></i> Bán chạy</span>';
+            const brandName = sp.tenNhanHieu || 'Chính hãng';
+            const noteText = sp.ghiChu || 'Bảo hành 12 tháng VNA';
             const formattedPrice = Number(sp.giaBan).toLocaleString('vi-VN') + ' ₫';
 
             html += `
-                <article class="card" data-id="${sp.maSp}">
-                    <div class="card-badges">
-                        ${badgeHtml}
-                    </div>
-                    <div class="img" style="background-image: url('${imgSrc}')" title="${sp.tenSp}"></div>
-                    <div class="cb">
-                        <span class="card-brand">${brandText}</span>
-                        <h3 title="${sp.tenSp}">${sp.tenSp}</h3>
-                        <span class="tag">${noteText}</span>
-                        <div class="price">${formattedPrice}</div>
-                        <div class="card-actions">
-                            <button class="btn ghost quick-view-btn" type="button" title="Xem thông số kỹ thuật chi tiết">Xem nhanh</button>
-                            <button class="btn add-cart-btn" type="button" onclick="quickAddToCart(event, '${sp.maSp}')" title="Thêm vào giỏ hàng">
-                                🛒
-                            </button>
+                <div class="col-lg-4 col-md-6">
+                    <div class="dm-product-card">
+                        <div class="dm-product-badge-wrap">
+                            ${badgeHtml}
+                        </div>
+                        <div class="dm-product-img-box" onclick="openProduct('${sp.maSp}')">
+                            <img src="${imgSrc}" alt="${sp.tenSp}" onerror="this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
+                        </div>
+                        <div class="dm-product-body">
+                            <div class="dm-product-brand">${brandName}</div>
+                            <h3 class="dm-product-title" onclick="openProduct('${sp.maSp}')" title="${sp.tenSp}">${sp.tenSp}</h3>
+                            <span class="dm-product-tag"><i class="bi bi-shield-check text-success me-1"></i> ${noteText}</span>
+                            <div class="dm-product-price">${formattedPrice}</div>
+                            <div class="dm-card-actions">
+                                <button type="button" class="dm-btn-quickview" onclick="openProduct('${sp.maSp}')">
+                                    <i class="bi bi-eye me-1"></i> Xem nhanh
+                                </button>
+                                <button type="button" class="dm-btn-addcart" onclick="quickAddToCart(event, '${sp.maSp}')" title="Thêm vào giỏ">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </article>
+                </div>
             `;
         });
 
-        $('#products').html(html);
+        grid.innerHTML = html;
     }
 
-    function renderPagination(data) {
-        let html = '';
+    function renderPhanTrangBrand(data) {
+        const area = document.getElementById('paginationArea');
+        if (!area) return;
+
         if (!data || data.totalPages <= 1) {
-            $('#pagination').html('');
+            area.innerHTML = '';
             return;
         }
 
-        // Previous
+        let html = '<ul class="pagination pagination-md justify-content-center m-0 gap-1">';
+        // Prev
         if (data.page > 1) {
-            html += `<a onclick="laySanPhamTheoNhanHieu('${currentBrand}', null, ${data.page - 1})">← Trước</a>`;
+            html += `<li class="page-item"><a class="page-link rounded-3 fw-bold" href="javascript:void(0)" onclick="locTheoNhanHieu('${activeBrandId}', null, ${data.page - 1})">← Trước</a></li>`;
         } else {
-            html += `<a class="off">← Trước</a>`;
+            html += `<li class="page-item disabled"><span class="page-link rounded-3 opacity-50">← Trước</span></li>`;
         }
 
-        // Page numbers
+        // Pages
         for (let i = 1; i <= data.totalPages; i++) {
-            html += `<a class="${i === data.page ? 'on' : ''}" onclick="laySanPhamTheoNhanHieu('${currentBrand}', null, ${i})">${i}</a>`;
+            if (i === data.page) {
+                html += `<li class="page-item active"><span class="page-link rounded-3 fw-bold">${i}</span></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link rounded-3 fw-bold" href="javascript:void(0)" onclick="locTheoNhanHieu('${activeBrandId}', null, ${i})">${i}</a></li>`;
+            }
         }
 
         // Next
         if (data.page < data.totalPages) {
-            html += `<a onclick="laySanPhamTheoNhanHieu('${currentBrand}', null, ${data.page + 1})">Sau →</a>`;
+            html += `<li class="page-item"><a class="page-link rounded-3 fw-bold" href="javascript:void(0)" onclick="locTheoNhanHieu('${activeBrandId}', null, ${data.page + 1})">Sau →</a></li>`;
         } else {
-            html += `<a class="off">Sau →</a>`;
+            html += `<li class="page-item disabled"><span class="page-link rounded-3 opacity-50">Sau →</span></li>`;
         }
+        html += '</ul>';
 
-        $('#pagination').html(html);
+        area.innerHTML = html;
     }
 
-    // Tự động highlight thương hiệu nếu có query string brand
-    document.addEventListener('DOMContentLoaded', function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const brandParam = urlParams.get('brand');
-        if (brandParam) {
-            currentBrand = brandParam;
-            const targetBtn = document.querySelector(`.brand-item[data-id="${brandParam}"]`);
-            if (targetBtn) {
-                targetBtn.classList.add('on');
+    // Auto-detect brand query param on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const b = params.get('brand');
+        if (b) {
+            activeBrandId = b;
+            const target = document.querySelector(`.dm-brand-pill[data-id="${b}"]`);
+            if (target) {
+                document.querySelectorAll('.dm-brand-pill').forEach(el => el.classList.remove('active'));
+                target.classList.add('active');
             }
         }
     });

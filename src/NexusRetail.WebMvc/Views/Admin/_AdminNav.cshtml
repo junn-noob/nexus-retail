@@ -2,29 +2,30 @@
     var action = ViewContext.RouteData.Values["action"]?.ToString();
 }
 
-<div style="background: white; border-bottom: 1px solid #e2e8f0; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-    <div style="max-width: 1200px; margin: 0 auto; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 20px; font-weight: 800; color: #dc2626; display: flex; align-items: center; gap: 8px;">
-                ⚙️ Duy<b>Mobile</b> <span style="font-size: 11px; font-weight: 700; background: #fee2e2; color: #dc2626; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px;">ADMIN PORTAL</span>
+<div class="bg-white border-bottom shadow-sm mb-4">
+    <div class="container py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="fs-4 fw-bolder text-dark d-flex align-items-center gap-2">
+                <i class="bi bi-shield-shaded text-danger"></i> Duy<b>Mobile</b>
+                <span class="badge bg-danger text-white rounded-pill px-2 py-1 small" style="font-size: 11px;">ADMIN PORTAL</span>
             </span>
         </div>
 
-        <nav style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <a asp-action="Index" class="btn ghost" style="padding: 8px 14px; font-size: 13.5px; @(action == "Index" ? "background:#1e293b; color:white; border-color:#1e293b;" : "")">
-                📊 Tổng quan
+        <nav class="nav nav-pills gap-1 flex-wrap">
+            <a asp-action="Index" class="nav-link rounded-3 fw-bold small @(action == "Index" ? "active" : "text-dark bg-light")">
+                <i class="bi bi-speedometer2 me-1"></i> Tổng quan
             </a>
-            <a asp-action="SanPham" class="btn ghost" style="padding: 8px 14px; font-size: 13.5px; @(action == "SanPham" || action == "ThemSanPham" || action == "SuaSanPham" ? "background:#1e293b; color:white; border-color:#1e293b;" : "")">
-                📱 Quản lý sản phẩm
+            <a asp-action="SanPham" class="nav-link rounded-3 fw-bold small @(action == "SanPham" || action == "ThemSanPham" || action == "SuaSanPham" ? "active" : "text-dark bg-light")">
+                <i class="bi bi-phone me-1"></i> Quản lý sản phẩm
             </a>
-            <a asp-action="DonHang" class="btn ghost" style="padding: 8px 14px; font-size: 13.5px; @(action == "DonHang" || action == "ChiTietDonHang" ? "background:#1e293b; color:white; border-color:#1e293b;" : "")">
-                📦 Quản lý đơn hàng
+            <a asp-action="DonHang" class="nav-link rounded-3 fw-bold small @(action == "DonHang" || action == "ChiTietDonHang" ? "active" : "text-dark bg-light")">
+                <i class="bi bi-box-seam me-1"></i> Quản lý đơn hàng
             </a>
-            <a asp-action="BaoCao" class="btn ghost" style="padding: 8px 14px; font-size: 13.5px; @(action == "BaoCao" ? "background:#1e293b; color:white; border-color:#1e293b;" : "")">
-                📈 4 Báo cáo thống kê
+            <a asp-action="BaoCao" class="nav-link rounded-3 fw-bold small @(action == "BaoCao" ? "active" : "text-dark bg-light")">
+                <i class="bi bi-bar-chart-line-fill me-1"></i> 4 Báo cáo BR
             </a>
-            <a asp-controller="Home" asp-action="Index" class="btn ghost" style="padding: 8px 14px; font-size: 13.5px; border-style: dashed;">
-                🏪 Xem Website
+            <a asp-controller="Home" asp-action="Index" class="nav-link rounded-3 fw-bold small text-primary bg-light border border-dashed border-primary">
+                <i class="bi bi-shop me-1"></i> Xem Website
             </a>
         </nav>
     </div>
@@ -32,14 +33,20 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div style="max-width: 1200px; margin: 0 auto 20px; padding: 12px 18px; background: #dcfce7; border: 1px solid #86efac; color: #15803d; border-radius: 8px; font-weight: 500; font-size: 14px;">
-        ✅ @TempData["SuccessMessage"]
+    <div class="container mb-3">
+        <div class="alert alert-success rounded-4 border-0 shadow-sm d-flex align-items-center gap-2 m-0 py-2">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <span class="fw-bold">@TempData["SuccessMessage"]</span>
+        </div>
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div style="max-width: 1200px; margin: 0 auto 20px; padding: 12px 18px; background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: 8px; font-weight: 500; font-size: 14px;">
-        ⚠️ @TempData["ErrorMessage"]
+    <div class="container mb-3">
+        <div class="alert alert-danger rounded-4 border-0 shadow-sm d-flex align-items-center gap-2 m-0 py-2">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            <span class="fw-bold">@TempData["ErrorMessage"]</span>
+        </div>
     </div>
 }

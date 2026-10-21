@@ -5,127 +5,79 @@
     var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Customer";
 }
 
-<div class="wrap" style="max-width: 800px; margin: 40px auto; padding: 0 16px;">
-    <div class="profile-card">
-        <div class="profile-header">
-            <div class="profile-avatar">
-                @username.Substring(0, 1).ToUpper()
-            </div>
-            <div class="profile-title">
-                <h2>@username</h2>
-                <div class="badge-role">
-                    @if (role == "Admin")
-                    {
-                        <span>👑 Quản trị viên hệ thống</span>
-                    }
-                    else if (role == "Staff")
-                    {
-                        <span>💼 Nhân viên Duy Mobile</span>
-                    }
-                    else
-                    {
-                        <span>⭐ Khách hàng thân thiết</span>
-                    }
+<div class="container py-5" style="max-width: 800px;">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+        <div class="card-header border-0 py-4 px-4 text-white" style="background: linear-gradient(135deg, #0f172a, #1e1b4b 60%, #4338ca);">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-white text-primary fw-bolder fs-3 d-flex align-items-center justify-content-center shadow" style="width: 64px; height: 64px;">
+                    @username.Substring(0, 1).ToUpper()
+                </div>
+                <div>
+                    <h3 class="fw-bold m-0 text-white">@username</h3>
+                    <div class="mt-1">
+                        @if (role == "Admin")
+                        {
+                            <span class="badge bg-danger rounded-pill px-3 py-1"><i class="bi bi-shield-shaded me-1"></i> Quản trị viên hệ thống</span>
+                        }
+                        else if (role == "Staff")
+                        {
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1"><i class="bi bi-briefcase me-1"></i> Nhân viên Duy Mobile</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success rounded-pill px-3 py-1"><i class="bi bi-star-fill me-1"></i> Khách hàng thân thiết</span>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="profile-body">
-            <div class="info-row">
-                <span class="info-label">Tên tài khoản:</span>
-                <span class="info-val"><strong>@username</strong></span>
+        <div class="card-body p-4 p-md-5">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-lines-fill text-primary me-2"></i> Chi tiết tài khoản</h5>
+            
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <tbody>
+                        <tr>
+                            <th class="w-35 text-secondary">Tên đăng nhập</th>
+                            <td class="fw-bold text-dark">@username</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Địa chỉ Email</th>
+                            <td>@email</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Trạng thái tài khoản</th>
+                            <td><span class="badge bg-success-subtle text-success fw-bold px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i> Đang hoạt động</span></td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Phân quyền hệ thống</th>
+                            <td><code class="fw-bold text-primary">@role</code></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="info-row">
-                <span class="info-label">Email liên hệ:</span>
-                <span class="info-val">@email</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Trạng thái xác thực:</span>
-                <span class="info-val" style="color: var(--ok); font-weight: 600;">✓ Đã kích hoạt</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Quyền hạn (Role):</span>
-                <span class="info-val"><code style="background: var(--soft); color: var(--ac); padding: 3px 8px; border-radius: 6px;">@role</code></span>
-            </div>
-        </div>
 
-        <div class="profile-actions">
-            <a asp-controller="Home" asp-action="TraCuu" class="btn" style="flex: 1; text-align: center;">🔍 Tra cứu đơn hàng đã mua</a>
-            <a asp-controller="Home" asp-action="Index" class="btn ghost" style="flex: 1; text-align: center;">🛍️ Mua sắm tiếp</a>
-            <form method="post" asp-controller="Account" asp-action="Logout" style="margin: 0;">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn ghost" style="color: #ef4444; border-color: #fecaca;">Đăng xuất</button>
-            </form>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="Home" asp-action="TraCuu" class="btn btn-primary rounded-3 fw-bold px-3 shadow-sm">
+                    <i class="bi bi-receipt me-1"></i> Tra cứu đơn hàng đã mua
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-3 fw-bold px-3">
+                    <i class="bi bi-shop me-1"></i> Mua sắm tiếp
+                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Index" class="btn btn-danger rounded-3 fw-bold px-3">
+                        <i class="bi bi-shield-lock me-1"></i> Vào trang Admin
+                    </a>
+                }
+                <form method="post" asp-controller="Account" asp-action="Logout" class="ms-auto m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger rounded-3 fw-bold px-3">
+                        <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-    .profile-card {
-        background: var(--card);
-        border-radius: 20px;
-        padding: 32px;
-        box-shadow: var(--sh);
-        border: 1px solid var(--line);
-    }
-    .profile-header {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        padding-bottom: 24px;
-        border-bottom: 1px solid var(--line);
-    }
-    .profile-avatar {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--ac), var(--ac2));
-        color: #fff;
-        font-size: 28px;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 8px 20px rgba(91, 75, 219, 0.3);
-    }
-    .profile-title h2 {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--ink);
-        margin-bottom: 6px;
-    }
-    .badge-role span {
-        display: inline-block;
-        background: var(--soft);
-        color: var(--ac);
-        font-size: 12.5px;
-        font-weight: 700;
-        padding: 4px 12px;
-        border-radius: 99px;
-    }
-    .profile-body {
-        padding: 24px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14.5px;
-    }
-    .info-label {
-        color: var(--mute);
-    }
-    .info-val {
-        color: var(--ink);
-    }
-    .profile-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        border-top: 1px solid var(--line);
-        padding-top: 24px;
-    }
-</style>

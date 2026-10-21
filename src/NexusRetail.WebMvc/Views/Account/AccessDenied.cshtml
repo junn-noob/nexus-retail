@@ -2,16 +2,24 @@
     ViewData["Title"] = "Không có quyền truy cập";
 }
 
-<div class="wrap" style="max-width: 600px; margin: 60px auto; padding: 0 16px; text-align: center;">
-    <div style="background: var(--card); border-radius: 20px; padding: 48px 24px; box-shadow: var(--sh); border: 1px solid var(--line);">
-        <div style="font-size: 54px; margin-bottom: 16px;">🚫</div>
-        <h1 style="font-size: 24px; font-weight: 800; color: #ef4444; margin-bottom: 10px;">Truy cập bị từ chối</h1>
-        <p style="color: var(--mute); font-size: 15px; margin-bottom: 24px; line-height: 1.6;">
-            Bạn không có đủ quyền hạn để truy cập vào khu vực này. Trang này chỉ dành cho tài khoản có quyền Quản trị (Admin) hoặc Nhân viên (Staff).
+<div class="container py-5" style="max-width: 600px;">
+    <div class="card border-0 shadow-lg rounded-4 p-5 text-center bg-white">
+        <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 40px;">
+            <i class="bi bi-shield-x"></i>
+        </div>
+
+        <h3 class="fw-bolder text-danger mb-2">Truy cập bị từ chối</h3>
+        <p class="text-secondary mb-4 lh-base">
+            Bạn không có đủ quyền hạn để truy cập vào khu vực này. Trang này chỉ dành riêng cho tài khoản có quyền Quản trị viên (Admin) hoặc Nhân viên phụ trách (Staff).
         </p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <a asp-controller="Home" asp-action="Index" class="btn">Về trang chủ</a>
-            <a asp-controller="Account" asp-action="Login" class="btn ghost">Đăng nhập tài khoản khác</a>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-3 fw-bold px-4 py-2 shadow-sm">
+                <i class="bi bi-shop me-1"></i> Về trang chủ mua sắm
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary rounded-3 fw-bold px-4 py-2">
+                <i class="bi bi-person me-1"></i> Đăng nhập tài khoản khác
+            </a>
         </div>
     </div>
 </div>

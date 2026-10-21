@@ -1,329 +1,229 @@
 @using NexusRetail.Shared.DTOs.SanPham
 @model SanPhamDto
 
-<button class="x"
-        data-close
-        aria-label="Đóng">
-    ✕
-</button>
+<div class="modal-header border-bottom py-3 px-4">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-1">@Model.TenLoai</span>
+        <h5 class="modal-title fw-bold text-dark m-0" id="productModalLabel">@Model.TenSp</h5>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+</div>
 
+<!-- Modal Navigation Tabs -->
+<div class="px-4 pt-3 bg-light border-bottom">
+    <ul class="nav nav-pills gap-2" id="productModalTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-3 fw-bold py-2 px-3" id="tab-overview-btn" data-bs-toggle="pill" data-bs-target="#pane-overview" type="button" role="tab">
+                <i class="bi bi-info-circle me-1"></i> Tổng quan
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 fw-bold py-2 px-3" id="tab-specs-btn" data-bs-toggle="pill" data-bs-target="#pane-specs" type="button" role="tab">
+                <i class="bi bi-cpu me-1"></i> Thông số kỹ thuật
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 fw-bold py-2 px-3" id="tab-reviews-btn" data-bs-toggle="pill" data-bs-target="#pane-reviews" type="button" role="tab">
+                <i class="bi bi-star me-1"></i> Đánh giá
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 fw-bold py-2 px-3" id="tab-compare-btn" data-bs-toggle="pill" data-bs-target="#pane-compare" type="button" role="tab" onclick="loadCompareProducts()">
+                <i class="bi bi-arrow-left-right me-1"></i> So sánh sản phẩm
+            </button>
+        </li>
+    </ul>
+</div>
 
-<!-- =========================================================
-     QUICK VIEW
-========================================================= -->
-<div data-pane="quick">
-
-    <div class="qv">
-
-        <!-- Ảnh sản phẩm -->
-        <div class="img">
-
-            <img src="/images/products/@(string.IsNullOrWhiteSpace(Model.Anh)
-                                 ? "iphone_16_plus_black_37a9bceca0.png"
-                                 : Model.Anh)"
-                 alt="@Model.TenSp"
-                 onerror="this.onerror=null;this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
-
-        </div>
-
-
-        <!-- Thông tin sản phẩm -->
-        <div>
-
-            <span class="tag">
-                @Model.TenLoai
-            </span>
-
-
-            <h2>
-                @Model.TenSp
-            </h2>
-
-
-            <div class="price">
-                @Model.GiaBan.ToString("N0") ₫
-            </div>
-
-
-            <!-- Thông tin nổi bật -->
-            <div class="keys">
-
-                @if (!string.IsNullOrWhiteSpace(Model.TenNhanHieu))
-                {
-                    <span>
-                        @Model.TenNhanHieu
-                    </span>
-                }
-
-
-                @if (!string.IsNullOrWhiteSpace(Model.TenManHinh))
-                {
-                    <span>
-                        @Model.TenManHinh
-                    </span>
-                }
-
-
-                @if (Model.ThoiGianBaoHanh > 0)
-                {
-                    <span>
-                        Bảo hành @Model.ThoiGianBaoHanh tháng
-                    </span>
-                }
-
-            </div>
-
-
-            <!-- Ghi chú -->
-            @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
-            {
-                <div class="ai">
-
-                    <b>
-                        Thông tin sản phẩm
-                    </b>
-
-                    <p>
-                        @Model.GhiChu
-                    </p>
-
-                </div>
-            }
-
-
-            <!-- Actions -->
-            <div class="acts">
-
-                <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
-                    <button type="button"
-                            class="btn"
-                            onclick="addToCartFromModal('@Model.MaSp')"
-                            style="background: var(--soft); color: var(--ac); font-weight: 700; flex: 1;">
-                        🛒 Thêm vào giỏ
-                    </button>
-                    <button type="button"
-                            class="btn"
-                            onclick="buyNowFromModal('@Model.MaSp')"
-                            style="background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #fff; font-weight: 700; flex: 1.2;">
-                        ⚡ Mua ngay
-                    </button>
+<div class="modal-body p-4">
+    <div class="tab-content" id="productModalTabContent">
+        <!-- 1. OVERVIEW TAB -->
+        <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
+            <div class="row g-4 align-items-center">
+                <!-- Image -->
+                <div class="col-md-5">
+                    <div class="dm-modal-img-box">
+                        <img src="/images/products/@(string.IsNullOrWhiteSpace(Model.Anh) ? "iphone_16_plus_black_37a9bceca0.png" : Model.Anh)"
+                             alt="@Model.TenSp"
+                             onerror="this.onerror=null;this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
+                    </div>
                 </div>
 
-                <button type="button"
-                        class="btn ghost"
-                        data-view="specs">
-                    Xem thông số chi tiết
-                </button>
+                <!-- Info -->
+                <div class="col-md-7">
+                    <div class="text-uppercase small fw-bold text-secondary mb-1">
+                        @(string.IsNullOrEmpty(Model.TenNhanHieu) ? "Chính hãng" : Model.TenNhanHieu)
+                    </div>
+                    <h2 class="fw-bolder text-dark mb-2">@Model.TenSp</h2>
+                    
+                    <div class="d-flex align-items-baseline gap-3 mb-3">
+                        <div class="fs-2 fw-bolder text-danger">@Model.GiaBan.ToString("N0") ₫</div>
+                        @if (Model.SoLuong > 0)
+                        {
+                            <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">
+                                <i class="bi bi-check-circle-fill me-1"></i> Sẵn hàng (Còn @Model.SoLuong máy)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-1">
+                                <i class="bi bi-x-circle-fill me-1"></i> Tạm hết hàng
+                            </span>
+                        }
+                    </div>
 
+                    <!-- Highlight pills -->
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        @if (!string.IsNullOrWhiteSpace(Model.TenManHinh))
+                        {
+                            <span class="badge bg-light text-dark border p-2">
+                                🖥️ Màn hình: @Model.TenManHinh
+                            </span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.ChupAnh))
+                        {
+                            <span class="badge bg-light text-dark border p-2">
+                                📸 Camera: @Model.ChupAnh
+                            </span>
+                        }
+                        @if (Model.ThoiGianBaoHanh > 0)
+                        {
+                            <span class="badge bg-light text-dark border p-2">
+                                🛡️ Bảo hành @Model.ThoiGianBaoHanh tháng VNA
+                            </span>
+                        }
+                    </div>
 
-                <button type="button"
-                        class="btn ghost"
-                        data-view="reviews">
-                    Đánh giá &amp; nhận xét
-                </button>
+                    <!-- Ghi chú / AI context -->
+                    @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+                    {
+                        <div class="p-3 bg-primary-subtle rounded-3 mb-4">
+                            <strong class="text-primary d-block small mb-1">
+                                <i class="bi bi-stars"></i> Đặc điểm nổi bật:
+                            </strong>
+                            <p class="m-0 small text-dark">@Model.GhiChu</p>
+                        </div>
+                    }
 
-
-                <button type="button"
-                        class="btn ghost"
-                        data-view="compare">
-                    So sánh sản phẩm
-                </button>
-
+                    <!-- Action buttons -->
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-lg rounded-3 fw-bold flex-grow-1 shadow-sm" onclick="addToCartFromModal('@Model.MaSp')">
+                            <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                        </button>
+                        <button type="button" class="btn btn-dark btn-lg rounded-3 fw-bold px-4" onclick="buyNowFromModal('@Model.MaSp')">
+                            ⚡ Mua ngay
+                        </button>
+                    </div>
+                </div>
             </div>
-
         </div>
 
+        <!-- 2. SPECS TAB -->
+        <div class="tab-pane fade" id="pane-specs" role="tabpanel">
+            <h5 class="fw-bold mb-3 text-dark">Bảng thông số kỹ thuật chi tiết</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <tbody>
+                        <tr>
+                            <th class="w-25 text-secondary">Tên sản phẩm</th>
+                            <td class="fw-bold text-dark">@Model.TenSp</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Thương hiệu</th>
+                            <td>@(Model.TenNhanHieu ?? "Chính hãng")</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Phân loại máy</th>
+                            <td>@(Model.TenLoai ?? "Điện thoại")</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Màn hình</th>
+                            <td>@(Model.TenManHinh ?? "Đang cập nhật")</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Camera / Chụp ảnh</th>
+                            <td>@(Model.ChupAnh ?? "Đang cập nhật")</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Âm thanh</th>
+                            <td>@(Model.AmThanh ?? "Đang cập nhật")</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Thời hạn bảo hành</th>
+                            <td>@Model.ThoiGianBaoHanh tháng chính hãng 1 đổi 1</td>
+                        </tr>
+                        <tr>
+                            <th class="text-secondary">Giá niêm yết</th>
+                            <td class="fw-bold text-danger">@Model.GiaBan.ToString("N0") ₫</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. REVIEWS TAB -->
+        <div class="tab-pane fade" id="pane-reviews" role="tabpanel">
+            <div class="row align-items-center p-3 bg-light rounded-4 mb-4">
+                <div class="col-sm-4 text-center border-end">
+                    <div class="display-4 fw-bolder text-primary">5.0</div>
+                    <div class="text-warning fs-5">★★★★★</div>
+                    <small class="text-secondary">Dựa trên 48 lượt đánh giá</small>
+                </div>
+                <div class="col-sm-8 px-4">
+                    <div class="small fw-semibold text-secondary mb-1">100% Khách hàng hài lòng về máy nguyên seal và tốc độ giao hàng.</div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 95%"></div>
+                    </div>
+                    <small class="text-success fw-bold"><i class="bi bi-shield-check"></i> Đã kiểm định chính hãng bởi Duy Mobile</small>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                <div class="p-3 border rounded-3 bg-white">
+                    <div class="d-flex justify-content-between mb-1">
+                        <strong>Anh Tuấn (Hà Nội)</strong>
+                        <span class="text-warning">★★★★★</span>
+                    </div>
+                    <p class="m-0 small text-secondary">Máy đập hộp nguyên seal rất ưng, nhân viên giao hàng trong 1 tiếng rưỡi, cài đặt hỗ trợ nhiệt tình!</p>
+                </div>
+                <div class="p-3 border rounded-3 bg-white">
+                    <div class="d-flex justify-content-between mb-1">
+                        <strong>Chị Lan (Đà Nẵng)</strong>
+                        <span class="text-warning">★★★★★</span>
+                    </div>
+                    <p class="m-0 small text-secondary">Hỏi chatbot AI tư vấn đúng tầm giá dưới 20tr chụp ảnh đẹp, mua xong chụp thử quá sắc nét!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. LIVE COMPARE TAB -->
+        <div class="tab-pane fade" id="pane-compare" role="tabpanel">
+            <h5 class="fw-bold mb-2 text-dark">So sánh đối đầu sản phẩm</h5>
+            <p class="small text-secondary mb-3">Chọn một sản phẩm khác để so sánh chi tiết cấu hình và mức giá cạnh tranh:</p>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Sản phẩm 1 (Đang xem):</label>
+                    <input type="text" class="form-control fw-bold bg-light" value="@Model.TenSp (@Model.GiaBan.ToString("N0") ₫)" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Chọn sản phẩm 2 để so sánh:</label>
+                    <select id="cmpSel" class="form-select fw-semibold" data-id="@Model.MaSp" onchange="loadCompare()">
+                        <option value="">-- Đang nạp danh sách sản phẩm... --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="cmpBody" class="p-3 border rounded-3 bg-white">
+                <div class="text-center py-4 text-secondary">
+                    <i class="bi bi-arrow-left-right fs-2 d-block mb-2"></i>
+                    Vui lòng chọn sản phẩm thứ 2 từ danh sách trên để xem bảng so sánh đối đầu.
+                </div>
+            </div>
+        </div>
     </div>
-
 </div>
 
-
-
-<!-- =========================================================
-     SPECS
-========================================================= -->
-<div data-pane="specs" hidden>
-
-    <button type="button"
-            class="back"
-            data-view="quick">
-        ← Quay lại
-    </button>
-
-
-    <h2 class="mt">
-        Thông số chi tiết — @Model.TenSp
-    </h2>
-
-
-    <table>
-
-        <tbody>
-
-            <tr>
-                <th>Mã sản phẩm</th>
-
-                <td>
-                    @Model.MaSp
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Tên sản phẩm</th>
-
-                <td>
-                    @Model.TenSp
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Loại sản phẩm</th>
-
-                <td>
-                    @(string.IsNullOrWhiteSpace(Model.TenLoai)
-                        ? "Đang cập nhật"
-                        : Model.TenLoai)
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Thương hiệu</th>
-
-                <td>
-                    @(string.IsNullOrWhiteSpace(Model.TenNhanHieu)
-                        ? "Đang cập nhật"
-                        : Model.TenNhanHieu)
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Màn hình</th>
-
-                <td>
-                    @(string.IsNullOrWhiteSpace(Model.TenManHinh)
-                        ? "Đang cập nhật"
-                        : Model.TenManHinh)
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Camera</th>
-
-                <td>
-                    @(string.IsNullOrWhiteSpace(Model.ChupAnh)
-                        ? "Đang cập nhật"
-                        : Model.ChupAnh)
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Âm thanh</th>
-
-                <td>
-                    @(string.IsNullOrWhiteSpace(Model.AmThanh)
-                        ? "Đang cập nhật"
-                        : Model.AmThanh)
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Bảo hành</th>
-
-                <td>
-                    @(Model.ThoiGianBaoHanh > 0
-                        ? $"{Model.ThoiGianBaoHanh} tháng"
-                        : "Đang cập nhật")
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Số lượng còn</th>
-
-                <td>
-                    @Model.SoLuong
-                </td>
-            </tr>
-
-
-            <tr>
-                <th>Giá bán</th>
-
-                <td>
-                    @Model.GiaBan.ToString("N0") ₫
-                </td>
-            </tr>
-
-        </tbody>
-
-    </table>
-
-</div>
-
-
-
-<!-- =========================================================
-     REVIEWS
-========================================================= -->
-<div data-pane="reviews" hidden>
-
-    <button type="button"
-            class="back"
-            data-view="quick">
-        ← Quay lại
-    </button>
-
-
-    <h2 class="mt">
-        Đánh giá &amp; nhận xét
-    </h2>
-
-
-    <div class="empty">
-        Sản phẩm hiện chưa có đánh giá.
-    </div>
-
-</div>
-
-
-
-<div data-pane="compare" hidden>
-
-    <button type="button"
-            class="back"
-            data-view="quick">
-        ← Quay lại
-    </button>
-
-    <h2 class="mt">
-        So sánh sản phẩm
-    </h2>
-
-    <p style="color:var(--mute); margin-bottom:12px;">
-        Chọn sản phẩm để so sánh với
-        <strong>@Model.TenSp</strong>
-    </p>
-
-    <select id="cmpSel"
-            data-id="@Model.MaSp">
-
-        <option value="">
-            -- Chọn sản phẩm --
-        </option>
-
-    </select>
-
-    <div id="cmpBody">
-        <p>Chọn một sản phẩm để bắt đầu so sánh.</p>
-    </div>
-
-</div>
-
+<div class="modal-footer border-top py-2 px-4 bg-light">
+    <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Đóng</button>
 </div>

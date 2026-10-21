@@ -5,114 +5,58 @@
     var a = Model[0];
     var b = Model[1];
 
-    string Show(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value)
-            ? "—"
-            : value;
-    }
+    string Show(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 
     var rows = new[]
     {
-        (
-            "Thương hiệu",
-            Show(a.TenNhanHieu),
-            Show(b.TenNhanHieu)
-        ),
-
-        (
-            "Loại sản phẩm",
-            Show(a.TenLoai),
-            Show(b.TenLoai)
-        ),
-
-        (
-            "Màn hình",
-            Show(a.TenManHinh),
-            Show(b.TenManHinh)
-        ),
-
-        (
-            "Camera",
-            Show(a.ChupAnh),
-            Show(b.ChupAnh)
-        ),
-
-        (
-            "Âm thanh",
-            Show(a.AmThanh),
-            Show(b.AmThanh)
-        ),
-
-        (
-            "Bảo hành",
-            a.ThoiGianBaoHanh > 0
-                ? $"{a.ThoiGianBaoHanh} tháng"
-                : "—",
-
-            b.ThoiGianBaoHanh > 0
-                ? $"{b.ThoiGianBaoHanh} tháng"
-                : "—"
-        ),
-
-        (
-            "Số lượng",
-            a.SoLuong.ToString(),
-            b.SoLuong.ToString()
-        ),
-
-        (
-            "Giá bán",
-            $"{a.GiaBan:N0} ₫",
-            $"{b.GiaBan:N0} ₫"
-        )
+        ("Thương hiệu", Show(a.TenNhanHieu), Show(b.TenNhanHieu)),
+        ("Phân loại", Show(a.TenLoai), Show(b.TenLoai)),
+        ("Màn hình", Show(a.TenManHinh), Show(b.TenManHinh)),
+        ("Camera / Chụp ảnh", Show(a.ChupAnh), Show(b.ChupAnh)),
+        ("Âm thanh", Show(a.AmThanh), Show(b.AmThanh)),
+        ("Bảo hành", a.ThoiGianBaoHanh > 0 ? $"{a.ThoiGianBaoHanh} tháng VNA" : "—", b.ThoiGianBaoHanh > 0 ? $"{b.ThoiGianBaoHanh} tháng VNA" : "—"),
+        ("Tình trạng kho", a.SoLuong > 0 ? $"Còn {a.SoLuong} máy" : "Hết hàng", b.SoLuong > 0 ? $"Còn {b.SoLuong} máy" : "Hết hàng"),
+        ("Giá niêm yết", $"{a.GiaBan:N0} ₫", $"{b.GiaBan:N0} ₫")
     };
 }
 
-<div style="overflow-x:auto">
-
-    <table>
-
-        <thead>
+<div class="table-responsive">
+    <table class="table table-bordered align-middle m-0">
+        <thead class="table-dark">
             <tr>
-                <th>Thông số</th>
-
-                <th style="color:var(--ac)">
-                    @a.TenSp
+                <th style="width: 25%;">Thông số cấu hình</th>
+                <th style="width: 37.5%;" class="text-warning">
+                    <i class="bi bi-phone me-1"></i> @a.TenSp
                 </th>
-
-                <th style="color:var(--ac)">
-                    @b.TenSp
+                <th style="width: 37.5%;" class="text-info">
+                    <i class="bi bi-phone me-1"></i> @b.TenSp
                 </th>
             </tr>
         </thead>
-
         <tbody>
-
-            @foreach (var (name, valueA, valueB) in rows)
+            @foreach (var (name, valA, valB) in rows)
             {
-                <tr class="@(valueA != valueB ? "df" : "")">
-
-                    <th>@name</th>
-
-                    <td>@valueA</td>
-
-                    <td>@valueB</td>
-
+                var isDiff = valA != valB;
+                <tr class="@(isDiff ? "dm-diff-row" : "")">
+                    <th class="text-secondary small fw-bold">@name</th>
+                    <td class="@(name == "Giá niêm yết" ? "fw-bold text-danger fs-6" : "")">@valA</td>
+                    <td class="@(name == "Giá niêm yết" ? "fw-bold text-danger fs-6" : "")">@valB</td>
                 </tr>
             }
-
         </tbody>
-
     </table>
-
 </div>
 
-<p style="
-    margin-top:12px;
-    color:var(--mute);
-    font-size:13px">
-
-    Các dòng nền vàng là điểm khác biệt giữa hai sản phẩm.
-
-</p>
+<div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+    <div class="small text-secondary">
+        <span class="badge bg-warning text-dark me-1">Ghi chú:</span> Các dòng màu vàng nhạt thể hiện sự khác biệt giữa hai mẫu máy.
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary btn-sm rounded-3 fw-bold" onclick="quickAddToCart(event, '@a.MaSp')">
+            🛒 Mua máy 1
+        </button>
+        <button type="button" class="btn btn-primary btn-sm rounded-3 fw-bold" onclick="quickAddToCart(event, '@b.MaSp')">
+            🛒 Mua máy 2
+        </button>
+    </div>
+</div>
