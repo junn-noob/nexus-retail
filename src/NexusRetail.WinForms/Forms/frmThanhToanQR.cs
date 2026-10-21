@@ -229,8 +229,9 @@ namespace NexusRetail.WinForms.Forms
             }
         }
 
-        private void OnPaymentSuccess(string txCode, decimal? paidAmount = null)
+        private async void OnPaymentSuccess(string txCode, decimal? paidAmount = null)
         {
+            if (IsPaymentSuccessful) return;
             _pollingTimer.Stop();
             IsPaymentSuccessful = true;
 
@@ -241,6 +242,12 @@ namespace NexusRetail.WinForms.Forms
             lblStatus.ForeColor = Color.White;
             lblStatus.Text = $"✔ ĐÃ NHẬN ĐỦ {amount:N0}đ! (MÃ GD: {txCode})";
 
+            // Đổi nút đóng thành nút hoàn tất
+            btnDong.Text = "✔ Hoàn Tất Hóa Đơn (Enter)";
+            btnDong.BackColor = Color.FromArgb(16, 185, 129);
+            btnDong.ForeColor = Color.White;
+            btnDong.Font = new Font(btnDong.Font, FontStyle.Bold);
+
             // Phát âm thanh Ting Ting
             try
             {
@@ -248,15 +255,14 @@ namespace NexusRetail.WinForms.Forms
             }
             catch { }
 
-            // Tự động đóng form sau 1.8 giây để hoàn tất hóa đơn
-            var closeTimer = new System.Windows.Forms.Timer { Interval = 1800 };
-            closeTimer.Tick += (s, ev) =>
+            // Tự động đóng form chuyển tiếp sau 1.5 giây
+            await Task.Delay(1500);
+
+            if (!IsDisposed && Visible)
             {
-                closeTimer.Stop();
                 DialogResult = DialogResult.OK;
                 Close();
-            };
-            closeTimer.Start();
+            }
         }
 
         // Bấm phím F9 hoặc nút Simulate để giả lập Webhook tức thì (Dùng cho Demo bảo vệ)
@@ -265,6 +271,12 @@ namespace NexusRetail.WinForms.Forms
             if (e.KeyCode == Keys.F9)
             {
                 await TriggerSimulateAsync();
+            }
+            else if (e.KeyCode == Keys.Enter && IsPaymentSuccessful)
+            {
+                _pollingTimer.Stop();
+                DialogResult = DialogResult.OK;
+                Close();
             }
             else if (e.KeyCode == Keys.Escape)
             {
@@ -283,24 +295,41 @@ namespace NexusRetail.WinForms.Forms
         {
             btnSimulate.Enabled = false;
             btnSimulate.Text = "Đang gửi Webhook giả lập...";
-            var (success, _) = await WinFormsApiClient.Instance.SimulateBankPaymentAsync(_maHdb, _soTien);
-            if (!success)
+            try
             {
-                // Fallback cục bộ nếu API chưa chạy
-                OnPaymentSuccess("SIM_OFFLINE");
+                var (success, _) = await WinFormsApiClient.Instance.SimulateBankPaymentAsync(_maHdb, _soTien);
+                if (success)
+                {
+                    OnPaymentSuccess("SIM_MBBANK", _soTien);
+                }
+                else
+                {
+                    OnPaymentSuccess("SIM_OFFLINE", _soTien);
+                }
+            }
+            catch
+            {
+                OnPaymentSuccess("SIM_OFFLINE", _soTien);
+            }
+            finally
+            {
+                btnSimulate.Enabled = true;
+                btnSimulate.Text = "⚡ Giả lập Webhook MBBank (F9)";
             }
         }
 
         private void btnDong_Click(object sender, EventArgs e)
         {
             _pollingTimer.Stop();
-            DialogResult = DialogResult.Cancel;
+            DialogResult = IsPaymentSuccessful ? DialogResult.OK : DialogResult.Cancel;
             Close();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _pollingTimer.Stop();
+            _pollingTimer.Dispose();
+            picQr.Image?.Dispose();
             base.OnFormClosing(e);
         }
     }

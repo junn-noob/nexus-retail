@@ -19,18 +19,36 @@ namespace NexusRetail.Core.Api.Controllers
 
         private async Task<string> sinhMaHdn()
         {
-            var maCuoi = await _db.HoaDonNhaps
+            var allCodes = await _db.HoaDonNhaps
                 .Where(x => x.MaHdn.StartsWith("HDN"))
-                .OrderByDescending(x => x.MaHdn)
                 .Select(x => x.MaHdn)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (maCuoi == null) return "HDN01";
+            int maxNumber = 0;
+            foreach (var code in allCodes)
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(code, @"^HDN(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int num))
+                {
+                    if (num < 10000 && num > maxNumber)
+                    {
+                        maxNumber = num;
+                    }
+                }
+            }
 
-            if (int.TryParse(maCuoi.Substring(3), out int soHienTai))
-                return $"HDN{(soHienTai + 1):D2}";
+            int nextNumber = maxNumber + 1;
+            return $"HDN{nextNumber:D2}";
+        }
 
-            return $"HDN{Guid.NewGuid().ToString()[..6].ToUpper()}";
+        /// <summary>
+        /// Lấy mã hóa đơn nhập tiếp theo (Ví dụ: HDN04)
+        /// </summary>
+        [HttpGet("next-ma-hdn")]
+        public async Task<IActionResult> GetNextMaHdn()
+        {
+            var nextCode = await sinhMaHdn();
+            return Ok(new { maHdn = nextCode });
         }
 
         /// <summary>

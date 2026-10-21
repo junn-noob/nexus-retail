@@ -160,17 +160,17 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
-            // Sinh mã hóa đơn tạm để chuyển khoản (ví dụ HDB01)
-            string maHdbTemp = $"HDB{DateTime.Now:HHmmss}";
+            // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB12)
+            string maHdb = await WinFormsApiClient.Instance.GetNextInvoiceCodeAsync();
 
-            // Mở Popup VietQR MBBank lắng nghe Webhook tự động
-            using var qrForm = new frmThanhToanQR(maHdbTemp, total);
+            // Mở Popup VietQR MBBank lắng nghe Webhook tự động với đúng mã hóa đơn
+            using var qrForm = new frmThanhToanQR(maHdb, total);
             var result = qrForm.ShowDialog(this);
 
             if (result == DialogResult.OK && qrForm.IsPaymentSuccessful)
             {
                 // Webhook đã báo tiền vào tài khoản ➔ Hoàn tất hóa đơn trên hệ thống
-                await ProcessPaymentAsync(isBankTransfer: true, maHdbGiaoDich: maHdbTemp);
+                await ProcessPaymentAsync(isBankTransfer: true, maHdbGiaoDich: maHdb);
             }
             else
             {

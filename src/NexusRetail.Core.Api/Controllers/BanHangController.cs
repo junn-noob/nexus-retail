@@ -32,18 +32,36 @@ namespace NexusRetail.Core.Api.Controllers
 
         private async Task<string> sinhMaHdb()
         {
-            var maCuoi = await _db.HoaDonBans
+            var allCodes = await _db.HoaDonBans
                 .Where(x => x.MaHdb.StartsWith("HDB"))
-                .OrderByDescending(x => x.MaHdb)
                 .Select(x => x.MaHdb)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (maCuoi == null) return "HDB01";
+            int maxNumber = 0;
+            foreach (var code in allCodes)
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(code, @"^HDB(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int num))
+                {
+                    if (num < 10000 && num > maxNumber)
+                    {
+                        maxNumber = num;
+                    }
+                }
+            }
 
-            if (int.TryParse(maCuoi.Substring(3), out int soHienTai))
-                return $"HDB{(soHienTai + 1):D2}";
+            int nextNumber = maxNumber + 1;
+            return $"HDB{nextNumber:D2}";
+        }
 
-            return $"HDB{Guid.NewGuid().ToString()[..6].ToUpper()}";
+        /// <summary>
+        /// Lấy mã hóa đơn bán tiếp theo theo thứ tự tăng dần chuẩn (Ví dụ: HDB12)
+        /// </summary>
+        [HttpGet("next-ma-hdb")]
+        public async Task<IActionResult> GetNextMaHdb()
+        {
+            var nextCode = await sinhMaHdb();
+            return Ok(new { maHdb = nextCode });
         }
 
         [HttpPost("thanh-toan")]

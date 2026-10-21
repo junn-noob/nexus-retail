@@ -18,6 +18,11 @@ namespace NexusRetail.WinForms.Services
         public string Message { get; set; } = "";
     }
 
+    public class NextCodeResult
+    {
+        public string MaHdb { get; set; } = "";
+    }
+
     public class WinFormsApiClient
     {
         private static readonly Lazy<WinFormsApiClient> _instance = new(() => new WinFormsApiClient());
@@ -269,6 +274,21 @@ namespace NexusRetail.WinForms.Services
             {
                 return (false, ex.Message);
             }
+        }
+
+        // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB12)
+        public async Task<string> GetNextInvoiceCodeAsync()
+        {
+            try
+            {
+                var res = await _client.GetFromJsonAsync<NextCodeResult>("api/BanHang/next-ma-hdb");
+                if (!string.IsNullOrWhiteSpace(res?.MaHdb))
+                {
+                    return res.MaHdb;
+                }
+            }
+            catch { }
+            return "HDB12";
         }
 
         // 6. NHẬP HÀNG - LẤY NHÀ CUNG CẤP & NHÂN VIÊN
