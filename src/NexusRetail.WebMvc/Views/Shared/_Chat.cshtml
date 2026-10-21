@@ -1,16 +1,17 @@
 <!-- FLOATING CHAT BUTTON (FAB) -->
-<button type="button" id="fab" class="chat-fab" aria-label="Mở trợ lý ảo AI" title="Hỏi trợ lý ảo Duy Mobile">
+<button type="button" id="fab" class="chat-fab" aria-label="Mở trợ lý ảo AI" title="Hỏi trợ lý ảo Duy Mobile (Gemini AI)">
     <span class="chat-icon">✨</span>
+    <span class="chat-fab-ping"></span>
 </button>
 
 <!-- CHAT WINDOW CONTAINER -->
 <div id="chat" class="chat-panel" role="dialog" aria-label="Trợ lý ảo AI tư vấn">
     <div class="chat-header">
         <div class="chat-title">
-            <span class="chat-badge">AI</span>
+            <span class="chat-badge">GEMINI AI</span>
             <div>
                 <h4>Trợ lý AI Duy Mobile</h4>
-                <p>Tư vấn chọn máy & tra cứu bảo hành</p>
+                <p><span class="status-dot"></span> Sẵn sàng tư vấn chọn máy & tra cứu bảo hành</p>
             </div>
         </div>
         <button type="button" class="chat-close" onclick="closeChatModal()" title="Đóng chat">✕</button>
@@ -19,13 +20,18 @@
     <!-- MESSAGES LIST -->
     <div id="cm" class="chat-messages">
         <div class="msg bot">
-            <p>Xin chào! Mình là trợ lý ảo của <strong>Duy Mobile</strong>. Bạn cần tư vấn mẫu máy nào (chụp ảnh, chơi game, tầm giá) hoặc cần <strong>tra cứu đơn hàng / bảo hành bằng SĐT</strong> thì nhắn cho mình nhé! ✨</p>
+            <p>Xin chào! Mình là trợ lý AI thông minh của <strong>Duy Mobile</strong>. Mình có thể giúp bạn chọn mẫu máy phù hợp nhất theo ngân sách, so sánh cấu hình hoặc <strong>tra cứu đơn hàng / bảo hành bằng Số điện thoại</strong>!</p>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;">
+                <button type="button" class="chat-chip" onclick="sendChatPrompt('Tư vấn máy chụp ảnh đẹp dưới 20 triệu')">📸 Chụp ảnh đẹp < 20tr</button>
+                <button type="button" class="chat-chip" onclick="sendChatPrompt('Điện thoại nào chơi game mượt pin trâu nhất?')">🎮 Gaming pin trâu</button>
+                <button type="button" class="chat-chip" onclick="sendChatPrompt('So sánh iPhone 16 Plus và Samsung S24 Ultra')">⚖️ So sánh Flagship</button>
+            </div>
         </div>
     </div>
 
     <!-- CHAT INPUT FORM -->
     <div class="chat-form">
-        <input type="text" id="ci" placeholder="Nhập nhu cầu hoặc SĐT..." autocomplete="off" />
+        <input type="text" id="ci" placeholder="Nhập câu hỏi hoặc SĐT tra cứu..." autocomplete="off" />
         <button type="button" id="cs" class="btn" title="Gửi tin nhắn">Gửi</button>
     </div>
 </div>
@@ -33,40 +39,65 @@
 <style>
     .chat-fab {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 60px;
-        height: 60px;
+        bottom: 28px;
+        right: 28px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--ac), var(--ac2));
+        background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 24px rgba(91, 75, 219, .4);
+        box-shadow: 0 10px 28px rgba(79, 70, 229, 0.45);
         cursor: pointer;
         z-index: 1000;
         transition: transform .25s ease, box-shadow .25s ease;
-        border: 2px solid rgba(255, 255, 255, .2);
+        border: 2px solid rgba(255, 255, 255, .3);
     }
     .chat-fab:hover {
-        transform: scale(1.08);
-        box-shadow: 0 10px 28px rgba(91, 75, 219, .5);
+        transform: scale(1.08) rotate(4deg);
+        box-shadow: 0 14px 34px rgba(79, 70, 229, 0.6);
     }
     .chat-icon {
         font-size: 26px;
     }
+    .chat-fab-ping {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 14px;
+        height: 14px;
+        background: #22c55e;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @@keyframes ping {
+        75%, 100% {
+            transform: scale(1.6);
+            opacity: 0;
+        }
+    }
+    .status-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        background: #22c55e;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
     .chat-panel {
         position: fixed;
-        bottom: 96px;
-        right: 24px;
-        width: 380px;
+        bottom: 102px;
+        right: 28px;
+        width: 400px;
         max-width: calc(100vw - 32px);
-        height: 520px;
-        max-height: calc(100vh - 120px);
+        height: 560px;
+        max-height: calc(100vh - 130px);
         background: var(--card);
-        border-radius: 20px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
+        border-radius: 22px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, .22);
         display: flex;
         flex-direction: column;
         z-index: 1000;
@@ -75,7 +106,7 @@
         opacity: 0;
         transform: translateY(20px) scale(.95);
         pointer-events: none;
-        transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all .28s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .chat-panel.open {
         opacity: 1;
@@ -83,42 +114,47 @@
         pointer-events: auto;
     }
     .chat-header {
-        background: linear-gradient(135deg, #17172b, #28244d);
+        background: linear-gradient(135deg, #0f172a, #1e1b4b);
         color: #fff;
-        padding: 16px;
+        padding: 16px 18px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     .chat-title {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
     .chat-badge {
-        background: var(--ac);
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
         color: #fff;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
-        padding: 3px 7px;
+        padding: 4px 8px;
         border-radius: 6px;
+        letter-spacing: 0.5px;
     }
     .chat-header h4 {
         margin: 0;
         font-size: 15px;
         font-weight: 700;
+        color: #fff;
     }
     .chat-header p {
         margin: 2px 0 0;
-        font-size: 11px;
-        color: #a5a5c0;
+        font-size: 11.5px;
+        color: #cbd5e1;
     }
     .chat-close {
         color: #fff;
         font-size: 18px;
-        opacity: .7;
+        opacity: .75;
         padding: 4px;
         cursor: pointer;
+        background: none;
+        border: none;
     }
     .chat-close:hover {
         opacity: 1;
@@ -130,71 +166,89 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        background: var(--bg);
+        background: #f8fafc;
     }
     .msg {
-        max-width: 85%;
-        padding: 10px 14px;
-        border-radius: 14px;
+        max-width: 86%;
+        padding: 12px 16px;
+        border-radius: 16px;
         font-size: 13.5px;
-        line-height: 1.5;
-        white-space: pre-wrap;
+        line-height: 1.55;
         word-break: break-word;
     }
     .msg.bot {
         align-self: flex-start;
-        background: var(--card);
-        color: var(--ink);
-        border: 1px solid var(--line);
+        background: #ffffff;
+        color: #0f172a;
+        border: 1px solid #e2e8f0;
         border-bottom-left-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,.03);
+        box-shadow: 0 2px 10px rgba(0,0,0,.04);
     }
     .msg.me {
         align-self: flex-end;
-        background: var(--ac);
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
         color: #fff;
         border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
-    .msg button {
-        display: block;
-        width: 100%;
-        margin-top: 6px;
-        padding: 6px 10px;
-        background: var(--soft);
-        color: var(--ac);
-        font-size: 12px;
+    .chat-chip {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+        border-radius: 99px;
+        font-size: 11.5px;
         font-weight: 600;
-        border-radius: 8px;
-        text-align: left;
         cursor: pointer;
-        transition: background .2s;
+        transition: all 0.2s;
+        text-align: left;
     }
-    .msg button:hover {
-        background: #e2ddfe;
+    .chat-chip:hover {
+        background: #2563eb;
+        color: #fff;
+        border-color: #2563eb;
+    }
+    .dot-pulse {
+        letter-spacing: 3px;
+        color: #4f46e5;
+        font-weight: bold;
+        animation: chatPulse 1.2s infinite ease-in-out;
+    }
+    @@keyframes chatPulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 1; }
     }
     .chat-form {
         display: flex;
-        padding: 12px;
-        background: var(--card);
-        border-top: 1px solid var(--line);
+        padding: 12px 16px;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
         gap: 8px;
     }
     .chat-form input {
         flex: 1;
-        padding: 10px 14px;
+        padding: 11px 16px;
         border-radius: 12px;
-        border: 1px solid var(--line);
+        border: 1px solid #cbd5e1;
         font-size: 14px;
         outline: none;
+        transition: border-color .2s;
     }
     .chat-form input:focus {
-        border-color: var(--ac);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
     }
     .chat-form button {
-        padding: 10px 18px;
+        padding: 11px 20px;
         border-radius: 12px;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 14px;
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
 </style>
 
@@ -202,6 +256,14 @@
     function closeChatModal() {
         const c = document.getElementById('chat');
         if (c) c.classList.remove('open');
+    }
+    function sendChatPrompt(prompt) {
+        const input = document.getElementById('ci');
+        const sendBtn = document.getElementById('cs');
+        if (input && sendBtn) {
+            input.value = prompt;
+            sendBtn.click();
+        }
     }
     document.addEventListener('DOMContentLoaded', () => {
         const heroBtn = document.getElementById('heroAI');
@@ -212,6 +274,15 @@
                     c.classList.add('open');
                     const input = document.getElementById('ci');
                     if (input) input.focus();
+                }
+            });
+        }
+        const chatInp = document.getElementById('ci');
+        if (chatInp) {
+            chatInp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('cs')?.click();
                 }
             });
         }

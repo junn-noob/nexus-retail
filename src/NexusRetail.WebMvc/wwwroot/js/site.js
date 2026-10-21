@@ -276,96 +276,94 @@ function formatMoney(value) {
     // =========================================================
 
     function addMessage(text, isUser = false) {
-
-        if (!chatMessages)
-            return null;
+        if (!chatMessages) return null;
 
         const message = document.createElement("div");
-
-        message.className = isUser ? "m u" : "m";
-        message.textContent = text;
+        message.className = isUser ? "msg me" : "msg bot";
+        message.innerHTML = text.replace(/\n/g, "<br/>");
 
         chatMessages.appendChild(message);
-
-        chatMessages.scrollTop =
-            chatMessages.scrollHeight;
-
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         return message;
     }
 
+    async function sendMessage(customText = null) {
+        if (!chatInput) return;
 
-    async function sendMessage() {
-
-        if (!chatInput)
-            return;
-
-        const text = chatInput.value.trim();
-
-        if (!text)
-            return;
+        const text = (customText || chatInput.value).trim();
+        if (!text) return;
 
         addMessage(text, true);
-
         chatInput.value = "";
+
+        // Typing indicator
+        const typingEl = document.createElement("div");
+        typingEl.className = "msg bot typing-indicator";
+        typingEl.innerHTML = `<span class="dot-pulse">● ● ●</span> <span style="font-size: 11.5px; color: var(--mute);">Duy Mobile AI đang tư vấn...</span>`;
+        chatMessages.appendChild(typingEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
             const response = await fetch("/api/chat", {
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
                     message: text
                 })
             });
 
+            typingEl.remove();
 
             if (!response.ok) {
-                throw new Error(
-                    `HTTP ${response.status}`
-                );
+                throw new Error(`HTTP ${response.status}`);
             }
 
-
             const data = await response.json();
+            const bubble = addMessage(data.reply ?? "Duy Mobile sẵn sàng hỗ trợ bạn!");
 
-            const bubble = addMessage(
-                data.reply ?? "Không có phản hồi."
-            );
+            if (!bubble) return;
 
+            if (data.items && data.items.length > 0) {
+                const recContainer = document.createElement("div");
+                recContainer.style.marginTop = "8px";
+                recContainer.style.display = "flex";
+                recContainer.style.flexDirection = "column";
+                recContainer.style.gap = "6px";
 
-            if (!bubble)
-                return;
+                data.items.forEach(product => {
+                    const cardBtn = document.createElement("button");
+                    cardBtn.type = "button";
+                    cardBtn.style.padding = "8px 12px";
+                    cardBtn.style.background = "var(--soft)";
+                    cardBtn.style.border = "1px solid rgba(91, 75, 219, 0.2)";
+                    cardBtn.style.borderRadius = "8px";
+                    cardBtn.style.color = "var(--ac)";
+                    cardBtn.style.fontWeight = "700";
+                    cardBtn.style.fontSize = "12px";
+                    cardBtn.style.textAlign = "left";
+                    cardBtn.style.cursor = "pointer";
+                    cardBtn.style.display = "flex";
+                    cardBtn.style.justifyContent = "space-between";
+                    cardBtn.style.alignItems = "center";
+                    cardBtn.innerHTML = `<span>📱 ${product.name}</span> <span style="color:#dc2626; font-weight:800;">${product.price}</span>`;
+                    
+                    cardBtn.onclick = () => {
+                        openProduct(product.id);
+                    };
 
+                    recContainer.appendChild(cardBtn);
+                });
 
-            (data.items ?? []).forEach(product => {
-
-                const button =
-                    document.createElement("button");
-
-                button.type = "button";
-
-                button.dataset.open =
-                    product.id;
-
-                button.textContent =
-                    `${product.name} — ${product.price}`;
-
-                bubble.appendChild(button);
-            });
+                bubble.appendChild(recContainer);
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         catch (error) {
-
-            console.error(
-                "Lỗi chatbot:",
-                error
-            );
-
-            addMessage(
-                "Không kết nối được máy chủ. Bạn thử lại sau nhé."
-            );
+            typingEl.remove();
+            console.error("Lỗi chatbot:", error);
+            addMessage("Không thể kết nối đến máy chủ tư vấn. Bạn có thể thử lại hoặc gọi Hotline 1800.6868 nhé!");
         }
     }
 
