@@ -184,9 +184,12 @@ namespace NexusRetail.Core.Api.Controllers
                 return (GenerateSmartRecommendation(userMessage), "local_smart_catalog", "Chưa cấu hình API Key (đang dùng placeholder YOUR_GEMINI_API_KEY_HERE)");
             }
 
-            // Danh sách model Google Generative AI để thử (ưu tiên model cấu hình, sau đó fallback)
-            var configuredModel = _config["Gemini:Model"] ?? "gemini-1.5-flash";
-            var modelsToTry = new List<string> { configuredModel };
+            // Danh sách model Google Generative AI để thử (ưu tiên model cấu hình, gemini-3.8-flash, rồi fallback)
+            var configuredModel = _config["Gemini:Model"] ?? "gemini-3.8-flash";
+            var modelsToTry = new List<string>();
+            if (!string.IsNullOrWhiteSpace(configuredModel)) modelsToTry.Add(configuredModel);
+            if (!modelsToTry.Contains("gemini-3.8-flash")) modelsToTry.Add("gemini-3.8-flash");
+            if (!modelsToTry.Contains("gemini-2.5-flash")) modelsToTry.Add("gemini-2.5-flash");
             if (!modelsToTry.Contains("gemini-2.0-flash")) modelsToTry.Add("gemini-2.0-flash");
             if (!modelsToTry.Contains("gemini-1.5-flash")) modelsToTry.Add("gemini-1.5-flash");
 
@@ -214,12 +217,14 @@ namespace NexusRetail.Core.Api.Controllers
             };
 
             string lastError = "";
-            foreach (var model in modelsToTry)
+            int index = 0;
+            while (index < modelsToTry.Count)
             {
+                var model = modelsToTry[index++];
                 string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
                 try
                 {
-                    _logger.LogInformation("[Chatbot] Đang gửi yêu cầu đến Google Gemini v1beta (model: {Model})...", model);
+                    _logger.LogInformation("[Chatbot] Đang gửi yêu cầu đến Google Gemini API (model: {Model})...", model);
                     var json = JsonSerializer.Serialize(requestBody);
                     using var content = new StringContent(json, Encoding.UTF8, "application/json");
                     using var response = await client.PostAsync(url, content);
@@ -249,6 +254,18 @@ namespace NexusRetail.Core.Api.Controllers
                         var errorBody = await response.Content.ReadAsStringAsync();
                         lastError = $"HTTP {(int)response.StatusCode}: {errorBody}";
                         _logger.LogWarning("[Chatbot] Google Gemini API trả lỗi ({Model}): {Error}", model, lastError);
+
+                        // Tự động phân tích gợi ý model mới từ phản hồi lỗi của Google (ví dụ: models/gemini-3.8-flash)
+                        var recMatch = Regex.Match(errorBody, @"models/(gemini-[a-zA-Z0-9.\-_]+)");
+                        if (recMatch.Success)
+                        {
+                            string recommendedModel = recMatch.Groups[1].Value;
+                            if (!modelsToTry.Contains(recommendedModel))
+                            {
+                                _logger.LogInformation("[Chatbot] Google khuyến nghị chuyển sang model: {RecModel}. Tự động gọi thử ngay...", recommendedModel);
+                                modelsToTry.Insert(index, recommendedModel);
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
