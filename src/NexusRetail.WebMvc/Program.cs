@@ -7,14 +7,24 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpClient("CoreApi", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7143/");
+    var baseUrl = builder.Configuration["ApiEndpoints:CoreApi"] ?? "https://localhost:7143/";
+    client.BaseAddress = new Uri(baseUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 });
 
 builder.Services.AddHttpClient("IdentityApi", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5001/");
+    var baseUrl = builder.Configuration["ApiEndpoints:IdentityApi"] ?? "http://localhost:5001/";
+    client.BaseAddress = new Uri(baseUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 });
 
 builder.Services.AddDistributedMemoryCache();

@@ -183,13 +183,13 @@
         }
     }
 
-    function addMessage(text, isUser = false) {
+    function addMessage(text, isUser = false, badgeHtml = "") {
         const container = chatMessages || $("#cm");
         if (!container) return null;
 
         const message = document.createElement("div");
         message.className = isUser ? "dm-msg dm-msg-me" : "dm-msg dm-msg-bot";
-        message.innerHTML = text.replace(/\n/g, "<br/>");
+        message.innerHTML = (badgeHtml ? badgeHtml : "") + text.replace(/\n/g, "<br/>");
 
         container.appendChild(message);
         container.scrollTop = container.scrollHeight;
@@ -228,7 +228,17 @@
             }
 
             const data = await response.json();
-            const bubble = addMessage(data.reply ?? "Duy Mobile sẵn sàng hỗ trợ bạn!");
+
+            let badgeHtml = "";
+            if (data.source === "gemini") {
+                badgeHtml = `<div class="mb-1"><span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:10px;"><i class="bi bi-stars me-1"></i>Google Gemini AI</span></div>`;
+            } else if (data.source === "local_smart_catalog") {
+                badgeHtml = `<div class="mb-1"><span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;" title="${data.note || ''}"><i class="bi bi-robot me-1"></i>Duy Mobile AI (Kho hàng)</span></div>`;
+            } else if (data.source === "mvc_fallback") {
+                badgeHtml = `<div class="mb-1"><span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size:10px;"><i class="bi bi-info-circle me-1"></i>Duy Mobile AI (Dự phòng)</span></div>`;
+            }
+
+            const bubble = addMessage(data.reply ?? "Duy Mobile sẵn sàng hỗ trợ bạn!", false, badgeHtml);
 
             if (bubble && data.items && Array.isArray(data.items) && data.items.length > 0) {
                 const recContainer = document.createElement("div");

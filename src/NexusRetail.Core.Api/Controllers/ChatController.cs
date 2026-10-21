@@ -15,12 +15,14 @@ namespace NexusRetail.Core.Api.Controllers
         private readonly RetailDbContext _db;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _config;
+        private readonly ILogger<ChatController> _logger;
 
-        public ChatController(RetailDbContext db, IHttpClientFactory httpClientFactory, IConfiguration config)
+        public ChatController(RetailDbContext db, IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<ChatController> logger)
         {
             _db = db;
             _httpClientFactory = httpClientFactory;
             _config = config;
+            _logger = logger;
         }
 
         public class ChatRequestDto
@@ -121,7 +123,7 @@ namespace NexusRetail.Core.Api.Controllers
                 - Không trả lời các câu hỏi không liên quan đến tư vấn điện thoại hoặc cửa hàng.
                 """;
 
-            string geminiReply = await CallGeminiAsync(systemPrompt, request.Message, catalogText, sanPhams);
+            var (geminiReply, source, note) = await CallGeminiAsync(systemPrompt, request.Message, catalogText, sanPhams);
 
             // 4. Trích xuất tên sản phẩm được đề cập trong reply để tạo nút quick-view
             var matchedItems = sanPhams
@@ -162,11 +164,13 @@ namespace NexusRetail.Core.Api.Controllers
             return Ok(new
             {
                 reply = geminiReply,
-                items = matchedItems
+                items = matchedItems,
+                source = source,
+                note = note
             });
         }
 
-        private async Task<string> CallGeminiAsync(string systemPrompt, string userMessage, string catalogText, dynamic sanPhams)
+        private async Task<(string reply, string source, string? note)> CallGeminiAsync(string systemPrompt, string userMessage, string catalogText, dynamic sanPhams)
         {
             string apiKey = _config["Gemini:ApiKey"] ?? "";
             if (string.IsNullOrEmpty(apiKey) || apiKey.Contains("YOUR_GEMINI_API_KEY"))
@@ -174,34 +178,48 @@ namespace NexusRetail.Core.Api.Controllers
                 apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? "";
             }
 
-            if (!string.IsNullOrEmpty(apiKey))
+            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Contains("YOUR_GEMINI_API_KEY"))
             {
-                string model = _config["Gemini:Model"] ?? "gemini-1.5-flash";
-                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+                _logger.LogInformation("[Chatbot] Chưa cấu hình Gemini:ApiKey trong appsettings.json. Hệ thống sử dụng bộ tư vấn thông minh từ danh mục kho hàng.");
+                return (GenerateSmartRecommendation(userMessage), "local_smart_catalog", "Chưa cấu hình API Key (đang dùng placeholder YOUR_GEMINI_API_KEY_HERE)");
+            }
 
-                var requestBody = new
+            // Danh sách model Google Generative AI để thử (ưu tiên model cấu hình, sau đó fallback)
+            var configuredModel = _config["Gemini:Model"] ?? "gemini-1.5-flash";
+            var modelsToTry = new List<string> { configuredModel };
+            if (!modelsToTry.Contains("gemini-2.0-flash")) modelsToTry.Add("gemini-2.0-flash");
+            if (!modelsToTry.Contains("gemini-1.5-flash")) modelsToTry.Add("gemini-1.5-flash");
+
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(15);
+
+            var requestBody = new
+            {
+                contents = new[]
                 {
-                    contents = new[]
+                    new
                     {
-                        new
+                        role = "user",
+                        parts = new[]
                         {
-                            role = "user",
-                            parts = new[]
-                            {
-                                new { text = systemPrompt + "\n\nKhách hàng hỏi: " + userMessage }
-                            }
+                            new { text = systemPrompt + "\n\nKhách hàng hỏi: " + userMessage }
                         }
-                    },
-                    generationConfig = new
-                    {
-                        temperature = 0.7,
-                        maxOutputTokens = 512
                     }
-                };
+                },
+                generationConfig = new
+                {
+                    temperature = 0.7,
+                    maxOutputTokens = 512
+                }
+            };
 
+            string lastError = "";
+            foreach (var model in modelsToTry)
+            {
+                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
                 try
                 {
-                    var client = _httpClientFactory.CreateClient();
+                    _logger.LogInformation("[Chatbot] Đang gửi yêu cầu đến Google Gemini v1beta (model: {Model})...", model);
                     var json = JsonSerializer.Serialize(requestBody);
                     using var content = new StringContent(json, Encoding.UTF8, "application/json");
                     using var response = await client.PostAsync(url, content);
@@ -211,24 +229,37 @@ namespace NexusRetail.Core.Api.Controllers
                         var responseJson = await response.Content.ReadAsStringAsync();
                         using var doc = JsonDocument.Parse(responseJson);
 
-                        string? reply = doc.RootElement
-                            .GetProperty("candidates")[0]
-                            .GetProperty("content")
-                            .GetProperty("parts")[0]
-                            .GetProperty("text")
-                            .GetString();
-
-                        if (!string.IsNullOrWhiteSpace(reply))
-                            return reply.Trim();
+                        if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
+                            candidates.GetArrayLength() > 0 &&
+                            candidates[0].TryGetProperty("content", out var candContent) &&
+                            candContent.TryGetProperty("parts", out var parts) &&
+                            parts.GetArrayLength() > 0 &&
+                            parts[0].TryGetProperty("text", out var textEl))
+                        {
+                            string? reply = textEl.GetString();
+                            if (!string.IsNullOrWhiteSpace(reply))
+                            {
+                                _logger.LogInformation("[Chatbot] Nhận phản hồi thành công từ Google Gemini (model: {Model})", model);
+                                return (reply.Trim(), "gemini", $"Google Gemini API ({model})");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var errorBody = await response.Content.ReadAsStringAsync();
+                        lastError = $"HTTP {(int)response.StatusCode}: {errorBody}";
+                        _logger.LogWarning("[Chatbot] Google Gemini API trả lỗi ({Model}): {Error}", model, lastError);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Chuyển sang tư vấn thông minh cục bộ nếu gọi Gemini bị lỗi mạng / quota
+                    lastError = ex.Message;
+                    _logger.LogError(ex, "[Chatbot] Lỗi kết nối khi gọi Google Gemini API ({Model})", model);
                 }
             }
 
-            return GenerateSmartRecommendation(userMessage);
+            _logger.LogWarning("[Chatbot] Gọi Gemini thất bại sau khi thử tất cả model. Lỗi cuối: {Error}. Tự động fallback sang tư vấn nội bộ.", lastError);
+            return (GenerateSmartRecommendation(userMessage), "local_smart_catalog", $"Gemini Error: {lastError}");
         }
 
         private string GenerateSmartRecommendation(string message)
