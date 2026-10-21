@@ -32,23 +32,23 @@ namespace NexusRetail.WinForms.Forms
 
             dgvChiTiet.DataSource = _cartTable;
 
-            if (dgvChiTiet.Columns["MaSp"] != null) dgvChiTiet.Columns["MaSp"].HeaderText = "Mã SP";
-            if (dgvChiTiet.Columns["TenSp"] != null) dgvChiTiet.Columns["TenSp"].HeaderText = "Tên Sản Phẩm";
-            if (dgvChiTiet.Columns["SoLuong"] != null) dgvChiTiet.Columns["SoLuong"].HeaderText = "Số Lượng";
-            if (dgvChiTiet.Columns["DonGia"] != null)
+            if (dgvChiTiet.Columns["MaSp"] is { } colMa) colMa.HeaderText = "Mã SP";
+            if (dgvChiTiet.Columns["TenSp"] is { } colTen) colTen.HeaderText = "Tên Sản Phẩm";
+            if (dgvChiTiet.Columns["SoLuong"] is { } colSl) colSl.HeaderText = "Số Lượng";
+            if (dgvChiTiet.Columns["DonGia"] is { } colDg)
             {
-                dgvChiTiet.Columns["DonGia"].HeaderText = "Đơn Giá";
-                dgvChiTiet.Columns["DonGia"].DefaultCellStyle.Format = "#,##0 ₫";
+                colDg.HeaderText = "Đơn Giá";
+                colDg.DefaultCellStyle.Format = "#,##0 ₫";
             }
-            if (dgvChiTiet.Columns["KhuyenMai"] != null)
+            if (dgvChiTiet.Columns["KhuyenMai"] is { } colKm)
             {
-                dgvChiTiet.Columns["KhuyenMai"].HeaderText = "Khuyến Mãi";
-                dgvChiTiet.Columns["KhuyenMai"].DefaultCellStyle.Format = "#,##0 ₫";
+                colKm.HeaderText = "Khuyến Mãi";
+                colKm.DefaultCellStyle.Format = "#,##0 ₫";
             }
-            if (dgvChiTiet.Columns["ThanhTien"] != null)
+            if (dgvChiTiet.Columns["ThanhTien"] is { } colTt)
             {
-                dgvChiTiet.Columns["ThanhTien"].HeaderText = "Thành Tiền";
-                dgvChiTiet.Columns["ThanhTien"].DefaultCellStyle.Format = "#,##0 ₫";
+                colTt.HeaderText = "Thành Tiền";
+                colTt.DefaultCellStyle.Format = "#,##0 ₫";
             }
 
             dgvChiTiet.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;

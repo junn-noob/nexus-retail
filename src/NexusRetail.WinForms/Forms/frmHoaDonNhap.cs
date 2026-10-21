@@ -141,7 +141,7 @@ namespace NexusRetail.WinForms.Forms
                 dgvChiTiet.Rows.Add(
                     i + 1,
                     item.MaSp,
-                    item.TenSp,
+                    item.TenSp ?? "",
                     item.DonGia.ToString("N0", culture) + " đ",
                     item.SoLuong,
                     item.KhuyenMai > 0 ? $"{item.KhuyenMai}%" : "-",
@@ -226,7 +226,7 @@ namespace NexusRetail.WinForms.Forms
                     {
                         Stt = idx + 1,
                         MaSp = x.MaSp,
-                        TenSp = x.TenSp,
+                        TenSp = x.TenSp ?? "",
                         Dvt = "Cây",
                         SoLuong = x.SoLuong,
                         DonGia = x.DonGia,

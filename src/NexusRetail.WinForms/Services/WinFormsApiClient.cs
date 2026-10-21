@@ -22,23 +22,37 @@ namespace NexusRetail.WinForms.Services
         private static readonly Lazy<WinFormsApiClient> _instance = new(() => new WinFormsApiClient());
         public static WinFormsApiClient Instance => _instance.Value;
 
-        private readonly HttpClient _client;
+        private HttpClient _client;
         public string BaseUrl { get; set; } = "https://localhost:7143/";
         public string? CurrentUser { get; set; }
         public string? CurrentRole { get; set; }
 
         private WinFormsApiClient()
         {
+            _client = CreateHttpClient(BaseUrl);
+        }
+
+        private static HttpClient CreateHttpClient(string baseUrl)
+        {
             var handler = new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             };
 
-            _client = new HttpClient(handler)
+            return new HttpClient(handler)
             {
-                BaseAddress = new Uri(BaseUrl),
+                BaseAddress = new Uri(baseUrl),
                 Timeout = TimeSpan.FromSeconds(15)
             };
+        }
+
+        public void SwitchPort(string newBaseUrl)
+        {
+            if (BaseUrl != newBaseUrl)
+            {
+                BaseUrl = newBaseUrl;
+                _client = CreateHttpClient(newBaseUrl);
+            }
         }
 
         // 1. Xác thực tài khoản
@@ -73,6 +87,25 @@ namespace NexusRetail.WinForms.Services
             }
             catch
             {
+                // Thử fallback sang cổng 5050 nếu cổng 7143 không phản hồi
+                if (BaseUrl.Contains("7143"))
+                {
+                    try
+                    {
+                        using var altClient = CreateHttpClient("http://localhost:5050/");
+                        var altRes = await altClient.PostAsJsonAsync("api/auth/login", new { username, password });
+                        if (altRes.IsSuccessStatusCode)
+                        {
+                            SwitchPort("http://localhost:5050/");
+                            var result = await altRes.Content.ReadFromJsonAsync<AuthResponseDto>();
+                            CurrentUser = result?.Username ?? username;
+                            CurrentRole = result?.Role ?? "Staff";
+                            return (true, CurrentRole, "Đăng nhập thành công (Cổng 5050)!");
+                        }
+                    }
+                    catch { }
+                }
+
                 // Cho phép offline demo nếu CoreApi chưa chạy
                 if (username == "admin" && password == "admin123")
                 {
@@ -94,17 +127,32 @@ namespace NexusRetail.WinForms.Services
         // 2. Danh mục sản phẩm
         public async Task<List<SanPhamDto>> GetProductsAsync(string? q = null)
         {
+            string url = "api/san-pham?page=1&pageSize=100";
+            if (!string.IsNullOrWhiteSpace(q))
+                url += $"&q={Uri.EscapeDataString(q)}";
+
             try
             {
-                string url = "api/san-pham?page=1&pageSize=100";
-                if (!string.IsNullOrWhiteSpace(q))
-                    url += $"&q={Uri.EscapeDataString(q)}";
-
                 var res = await _client.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(url);
                 return res?.Items ?? new List<SanPhamDto>();
             }
             catch
             {
+                if (BaseUrl.Contains("7143"))
+                {
+                    try
+                    {
+                        using var altClient = CreateHttpClient("http://localhost:5050/");
+                        var res = await altClient.GetFromJsonAsync<PagedResultDto<SanPhamDto>>(url);
+                        if (res?.Items != null && res.Items.Count > 0)
+                        {
+                            SwitchPort("http://localhost:5050/");
+                            return res.Items;
+                        }
+                    }
+                    catch { }
+                }
+
                 return new List<SanPhamDto>();
             }
         }

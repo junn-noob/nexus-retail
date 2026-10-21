@@ -34,20 +34,20 @@ namespace NexusRetail.WinForms.Forms
 
         private void FormatGrid()
         {
-            if (dgvSanPham.Columns["MaSp"] != null) dgvSanPham.Columns["MaSp"].HeaderText = "Mã SP";
-            if (dgvSanPham.Columns["TenSp"] != null) dgvSanPham.Columns["TenSp"].HeaderText = "Tên Sản Phẩm";
-            if (dgvSanPham.Columns["TenNhanHieu"] != null) dgvSanPham.Columns["TenNhanHieu"].HeaderText = "Nhãn Hiệu";
-            if (dgvSanPham.Columns["TenLoai"] != null) dgvSanPham.Columns["TenLoai"].HeaderText = "Phân Loại";
-            if (dgvSanPham.Columns["SoLuong"] != null) dgvSanPham.Columns["SoLuong"].HeaderText = "Tồn Kho";
-            if (dgvSanPham.Columns["GiaNhap"] != null)
+            if (dgvSanPham.Columns["MaSp"] is { } colMa) colMa.HeaderText = "Mã SP";
+            if (dgvSanPham.Columns["TenSp"] is { } colTen) colTen.HeaderText = "Tên Sản Phẩm";
+            if (dgvSanPham.Columns["TenNhanHieu"] is { } colNh) colNh.HeaderText = "Nhãn Hiệu";
+            if (dgvSanPham.Columns["TenLoai"] is { } colLoai) colLoai.HeaderText = "Phân Loại";
+            if (dgvSanPham.Columns["SoLuong"] is { } colSl) colSl.HeaderText = "Tồn Kho";
+            if (dgvSanPham.Columns["GiaNhap"] is { } colGn)
             {
-                dgvSanPham.Columns["GiaNhap"].HeaderText = "Giá Nhập";
-                dgvSanPham.Columns["GiaNhap"].DefaultCellStyle.Format = "#,##0 ₫";
+                colGn.HeaderText = "Giá Nhập";
+                colGn.DefaultCellStyle.Format = "#,##0 ₫";
             }
-            if (dgvSanPham.Columns["GiaBan"] != null)
+            if (dgvSanPham.Columns["GiaBan"] is { } colGb)
             {
-                dgvSanPham.Columns["GiaBan"].HeaderText = "Giá Bán (+10%)";
-                dgvSanPham.Columns["GiaBan"].DefaultCellStyle.Format = "#,##0 ₫";
+                colGb.HeaderText = "Giá Bán (+10%)";
+                colGb.DefaultCellStyle.Format = "#,##0 ₫";
             }
 
             dgvSanPham.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
