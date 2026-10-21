@@ -30,6 +30,7 @@ namespace NexusRetail.WinForms.Forms
             this.dgvChiTietBan = new System.Windows.Forms.DataGridView();
             this.dgvHoaDonBan = new System.Windows.Forms.DataGridView();
             this.pnlSearchBan = new System.Windows.Forms.Panel();
+            this.btnInBieuMauBan = new System.Windows.Forms.Button();
             this.btnLamMoiBan = new System.Windows.Forms.Button();
             this.btnTimKiemBan = new System.Windows.Forms.Button();
             this.txtTimKiemBan = new System.Windows.Forms.TextBox();
@@ -39,6 +40,7 @@ namespace NexusRetail.WinForms.Forms
             this.dgvChiTietNhap = new System.Windows.Forms.DataGridView();
             this.dgvHoaDonNhap = new System.Windows.Forms.DataGridView();
             this.pnlSearchNhap = new System.Windows.Forms.Panel();
+            this.btnInBieuMauNhap = new System.Windows.Forms.Button();
             this.btnLamMoiNhap = new System.Windows.Forms.Button();
             this.btnTimKiemNhap = new System.Windows.Forms.Button();
             this.txtTimKiemNhap = new System.Windows.Forms.TextBox();
@@ -194,6 +196,7 @@ namespace NexusRetail.WinForms.Forms
             // 
             // pnlSearchBan
             // 
+            this.pnlSearchBan.Controls.Add(this.btnInBieuMauBan);
             this.pnlSearchBan.Controls.Add(this.btnLamMoiBan);
             this.pnlSearchBan.Controls.Add(this.btnTimKiemBan);
             this.pnlSearchBan.Controls.Add(this.txtTimKiemBan);
@@ -219,6 +222,22 @@ namespace NexusRetail.WinForms.Forms
             this.btnLamMoiBan.Text = "🔄 Làm mới";
             this.btnLamMoiBan.UseVisualStyleBackColor = false;
             this.btnLamMoiBan.Click += new System.EventHandler(this.btnLamMoiBan_Click);
+            // 
+            // btnInBieuMauBan
+            // 
+            this.btnInBieuMauBan.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(136)))), ((int)(((byte)(204)))));
+            this.btnInBieuMauBan.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnInBieuMauBan.FlatAppearance.BorderSize = 0;
+            this.btnInBieuMauBan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnInBieuMauBan.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnInBieuMauBan.ForeColor = System.Drawing.Color.White;
+            this.btnInBieuMauBan.Location = new System.Drawing.Point(730, 11);
+            this.btnInBieuMauBan.Name = "btnInBieuMauBan";
+            this.btnInBieuMauBan.Size = new System.Drawing.Size(180, 32);
+            this.btnInBieuMauBan.TabIndex = 4;
+            this.btnInBieuMauBan.Text = "🖨️ Xuất / In Biểu Mẫu BM02";
+            this.btnInBieuMauBan.UseVisualStyleBackColor = false;
+            this.btnInBieuMauBan.Click += new System.EventHandler(this.btnInBieuMauBan_Click);
             // 
             // btnTimKiemBan
             // 
@@ -344,6 +363,7 @@ namespace NexusRetail.WinForms.Forms
             // 
             // pnlSearchNhap
             // 
+            this.pnlSearchNhap.Controls.Add(this.btnInBieuMauNhap);
             this.pnlSearchNhap.Controls.Add(this.btnLamMoiNhap);
             this.pnlSearchNhap.Controls.Add(this.btnTimKiemNhap);
             this.pnlSearchNhap.Controls.Add(this.txtTimKiemNhap);
@@ -369,6 +389,22 @@ namespace NexusRetail.WinForms.Forms
             this.btnLamMoiNhap.Text = "🔄 Làm mới";
             this.btnLamMoiNhap.UseVisualStyleBackColor = false;
             this.btnLamMoiNhap.Click += new System.EventHandler(this.btnLamMoiNhap_Click);
+            // 
+            // btnInBieuMauNhap
+            // 
+            this.btnInBieuMauNhap.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(211)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
+            this.btnInBieuMauNhap.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnInBieuMauNhap.FlatAppearance.BorderSize = 0;
+            this.btnInBieuMauNhap.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnInBieuMauNhap.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnInBieuMauNhap.ForeColor = System.Drawing.Color.White;
+            this.btnInBieuMauNhap.Location = new System.Drawing.Point(730, 11);
+            this.btnInBieuMauNhap.Name = "btnInBieuMauNhap";
+            this.btnInBieuMauNhap.Size = new System.Drawing.Size(180, 32);
+            this.btnInBieuMauNhap.TabIndex = 4;
+            this.btnInBieuMauNhap.Text = "🖨️ Xuất / In Biểu Mẫu BM01";
+            this.btnInBieuMauNhap.UseVisualStyleBackColor = false;
+            this.btnInBieuMauNhap.Click += new System.EventHandler(this.btnInBieuMauNhap_Click);
             // 
             // btnTimKiemNhap
             // 
@@ -495,6 +531,7 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Label lblTimKiemBan;
         private System.Windows.Forms.Button btnTimKiemBan;
         private System.Windows.Forms.Button btnLamMoiBan;
+        private System.Windows.Forms.Button btnInBieuMauBan;
         private System.Windows.Forms.DataGridView dgvHoaDonBan;
         private System.Windows.Forms.GroupBox grpChiTietBan;
         private System.Windows.Forms.DataGridView dgvChiTietBan;
@@ -504,6 +541,7 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Label lblTimKiemNhap;
         private System.Windows.Forms.Button btnTimKiemNhap;
         private System.Windows.Forms.Button btnLamMoiNhap;
+        private System.Windows.Forms.Button btnInBieuMauNhap;
         private System.Windows.Forms.DataGridView dgvHoaDonNhap;
         private System.Windows.Forms.GroupBox grpChiTietNhap;
         private System.Windows.Forms.DataGridView dgvChiTietNhap;

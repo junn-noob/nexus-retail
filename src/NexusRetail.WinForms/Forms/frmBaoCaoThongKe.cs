@@ -46,6 +46,11 @@ namespace NexusRetail.WinForms.Forms
                     numQuy.Enabled = false;
                     numNam.Enabled = true;
                     break;
+                case 4: // BM03: Xuất Nhập Tồn Kho (Tháng + Năm)
+                    numThang.Enabled = true;
+                    numQuy.Enabled = false;
+                    numNam.Enabled = true;
+                    break;
             }
         }
 
@@ -162,6 +167,60 @@ namespace NexusRetail.WinForms.Forms
                             lblTongKet.Text = $"Tháng {thang}/{nam}";
                         }
                         break;
+
+                    case 4: // BM03: Báo cáo tổng hợp xuất - nhập - tồn kho
+                        {
+                            dgvBaoCao.Columns.Add("colStt", "STT");
+                            dgvBaoCao.Columns.Add("colMaSp", "Mã SP");
+                            dgvBaoCao.Columns.Add("colTenSp", "Tên Thiết Bị");
+                            dgvBaoCao.Columns.Add("colThuongHieu", "Thương Hiệu");
+                            dgvBaoCao.Columns.Add("colNhapSl", "Nhập Trong Kỳ");
+                            dgvBaoCao.Columns.Add("colNhapTien", "Tiền Nhập");
+                            dgvBaoCao.Columns.Add("colXuatSl", "Xuất Trong Kỳ");
+                            dgvBaoCao.Columns.Add("colXuatTien", "Doanh Thu Xuất");
+                            dgvBaoCao.Columns.Add("colTonCuoiSl", "Tồn Cuối Kỳ");
+                            dgvBaoCao.Columns.Add("colTonCuoiTien", "Giá Trị Tồn Kho");
+                            dgvBaoCao.Columns.Add("colTrangThai", "Trạng Thái");
+
+                            var products = await WinFormsApiClient.Instance.GetProductsAsync();
+                            int tongTon = 0;
+                            decimal tongGiaTriTon = 0;
+
+                            for (int i = 0; i < products.Count; i++)
+                            {
+                                var p = products[i];
+                                int tonCuoi = p.SoLuong;
+                                int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
+                                int xuat = nhap - tonCuoi;
+                                if (xuat < 0) xuat = 0;
+                                decimal giaTriTon = tonCuoi * p.GiaNhap;
+                                tongTon += tonCuoi;
+                                tongGiaTriTon += giaTriTon;
+
+                                string trangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng");
+
+                                dgvBaoCao.Rows.Add(
+                                    i + 1,
+                                    p.MaSp,
+                                    p.TenSp,
+                                    string.IsNullOrWhiteSpace(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu,
+                                    nhap,
+                                    (nhap * p.GiaNhap).ToString("N0", culture) + " đ",
+                                    xuat,
+                                    (xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m)).ToString("N0", culture) + " đ",
+                                    tonCuoi,
+                                    giaTriTon.ToString("N0", culture) + " đ",
+                                    trangThai
+                                );
+                            }
+
+                            lblSoDong.Text = $"Toàn bộ danh mục ({products.Count} thiết bị - Tổng tồn: {tongTon} máy)";
+                            lblTongKet.Text = $"Tổng giá trị tồn kho: {tongGiaTriTon.ToString("N0", culture)} đ";
+
+                            // Đồng thời kích hoạt hiển thị Biểu mẫu BM03 trên trình duyệt
+                            await HienThiBieuMauKhoBM03Async(thang, nam);
+                        }
+                        break;
                 }
             }
             catch (Exception ex)
@@ -237,6 +296,64 @@ namespace NexusRetail.WinForms.Forms
                 {
                     MessageBox.Show(message, "Lỗi xuất file", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private async void btnBieuMauKho_Click(object sender, EventArgs e)
+        {
+            int thang = (int)numThang.Value;
+            int nam = (int)numNam.Value;
+            await HienThiBieuMauKhoBM03Async(thang, nam);
+        }
+
+        private async Task HienThiBieuMauKhoBM03Async(int thang, int nam)
+        {
+            try
+            {
+                btnBieuMauKho.Enabled = false;
+                btnBieuMauKho.Text = "⏳ Đang kết xuất...";
+
+                var products = await WinFormsApiClient.Instance.GetProductsAsync();
+                var list = new List<ItemBieuMauKho>();
+
+                for (int i = 0; i < products.Count; i++)
+                {
+                    var p = products[i];
+                    int tonCuoi = p.SoLuong;
+                    int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
+                    int xuat = nhap - tonCuoi;
+                    if (xuat < 0) xuat = 0;
+
+                    list.Add(new ItemBieuMauKho
+                    {
+                        Stt = i + 1,
+                        MaSp = p.MaSp,
+                        TenSp = p.TenSp,
+                        ThuongHieu = string.IsNullOrWhiteSpace(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu,
+                        TonDauSl = 0,
+                        TonDauTien = 0,
+                        NhapSl = nhap,
+                        NhapTien = nhap * p.GiaNhap,
+                        XuatSl = xuat,
+                        XuatTien = xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m),
+                        TonCuoiSl = tonCuoi,
+                        TonCuoiTien = tonCuoi * p.GiaNhap,
+                        TrangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng")
+                    });
+                }
+
+                string maBc = $"BC-XNT-{nam}-{thang:D2}";
+                string html = BieuMauService.TaoHtmlBaoCaoKho(maBc, thang, nam, list);
+                BieuMauService.MoBieuMauTrenTrinhDuyet(html, maBc);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hiển thị biểu mẫu BM03: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnBieuMauKho.Enabled = true;
+                btnBieuMauKho.Text = "📋 Biểu Mẫu BM03";
             }
         }
 

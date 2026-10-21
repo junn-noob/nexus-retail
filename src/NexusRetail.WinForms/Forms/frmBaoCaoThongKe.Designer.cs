@@ -23,6 +23,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSubTitle = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
             this.pnlControls = new System.Windows.Forms.Panel();
+            this.btnBieuMauKho = new System.Windows.Forms.Button();
             this.btnXuatExcel = new System.Windows.Forms.Button();
             this.btnXemBaoCao = new System.Windows.Forms.Button();
             this.numNam = new System.Windows.Forms.NumericUpDown();
@@ -84,6 +85,7 @@ namespace NexusRetail.WinForms.Forms
             // 
             this.pnlControls.BackColor = System.Drawing.Color.White;
             this.pnlControls.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlControls.Controls.Add(this.btnBieuMauKho);
             this.pnlControls.Controls.Add(this.btnXuatExcel);
             this.pnlControls.Controls.Add(this.btnXemBaoCao);
             this.pnlControls.Controls.Add(this.numNam);
@@ -101,6 +103,24 @@ namespace NexusRetail.WinForms.Forms
             this.pnlControls.Size = new System.Drawing.Size(1034, 80);
             this.pnlControls.TabIndex = 1;
             // 
+            // 
+            // btnBieuMauKho
+            // 
+            this.btnBieuMauKho.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBieuMauKho.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(105)))), ((int)(((byte)(161)))));
+            this.btnBieuMauKho.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnBieuMauKho.FlatAppearance.BorderSize = 0;
+            this.btnBieuMauKho.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBieuMauKho.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnBieuMauKho.ForeColor = System.Drawing.Color.White;
+            this.btnBieuMauKho.Location = new System.Drawing.Point(885, 22);
+            this.btnBieuMauKho.Name = "btnBieuMauKho";
+            this.btnBieuMauKho.Size = new System.Drawing.Size(135, 36);
+            this.btnBieuMauKho.TabIndex = 10;
+            this.btnBieuMauKho.Text = "📋 Biểu Mẫu BM03";
+            this.btnBieuMauKho.UseVisualStyleBackColor = false;
+            this.btnBieuMauKho.Click += new System.EventHandler(this.btnBieuMauKho_Click);
+            // 
             // btnXuatExcel
             // 
             this.btnXuatExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -110,9 +130,9 @@ namespace NexusRetail.WinForms.Forms
             this.btnXuatExcel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnXuatExcel.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnXuatExcel.ForeColor = System.Drawing.Color.White;
-            this.btnXuatExcel.Location = new System.Drawing.Point(885, 22);
+            this.btnXuatExcel.Location = new System.Drawing.Point(755, 22);
             this.btnXuatExcel.Name = "btnXuatExcel";
-            this.btnXuatExcel.Size = new System.Drawing.Size(135, 36);
+            this.btnXuatExcel.Size = new System.Drawing.Size(120, 36);
             this.btnXuatExcel.TabIndex = 9;
             this.btnXuatExcel.Text = "📊 Xuất Excel";
             this.btnXuatExcel.UseVisualStyleBackColor = false;
@@ -127,9 +147,9 @@ namespace NexusRetail.WinForms.Forms
             this.btnXemBaoCao.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnXemBaoCao.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnXemBaoCao.ForeColor = System.Drawing.Color.White;
-            this.btnXemBaoCao.Location = new System.Drawing.Point(740, 22);
+            this.btnXemBaoCao.Location = new System.Drawing.Point(625, 22);
             this.btnXemBaoCao.Name = "btnXemBaoCao";
-            this.btnXemBaoCao.Size = new System.Drawing.Size(135, 36);
+            this.btnXemBaoCao.Size = new System.Drawing.Size(120, 36);
             this.btnXemBaoCao.TabIndex = 8;
             this.btnXemBaoCao.Text = "🔍 Xem Báo Cáo";
             this.btnXemBaoCao.UseVisualStyleBackColor = false;
@@ -246,7 +266,8 @@ namespace NexusRetail.WinForms.Forms
             "Top 5 sản phẩm bán chạy nhất trong tháng",
             "Hóa đơn nhập hàng lớn nhất trong quý",
             "Tổng kết doanh số bán theo năm",
-            "Top 5 nhân viên có doanh số thấp nhất tháng"});
+            "Top 5 nhân viên có doanh số thấp nhất tháng",
+            "Báo cáo tổng hợp xuất - nhập - tồn kho (Biểu mẫu BM03)"});
             this.cboLoaiBaoCao.Location = new System.Drawing.Point(115, 29);
             this.cboLoaiBaoCao.Name = "cboLoaiBaoCao";
             this.cboLoaiBaoCao.Size = new System.Drawing.Size(260, 25);
@@ -398,6 +419,7 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.NumericUpDown numNam;
         private System.Windows.Forms.Button btnXemBaoCao;
         private System.Windows.Forms.Button btnXuatExcel;
+        private System.Windows.Forms.Button btnBieuMauKho;
         private System.Windows.Forms.DataGridView dgvBaoCao;
         private System.Windows.Forms.Panel pnlFooter;
         private System.Windows.Forms.Label lblSoDong;

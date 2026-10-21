@@ -219,18 +219,49 @@ namespace NexusRetail.WinForms.Forms
 
                 if (success)
                 {
+                    string effectiveMaHdn = !string.IsNullOrWhiteSpace(maHdn) ? maHdn : $"HDN-{DateTime.Now:yyyy-MMdd}";
+
+                    // Trích xuất danh sách sản phẩm sang dữ liệu biểu mẫu BM01
+                    var bieuMauItems = _cart.Select((x, idx) => new ItemBieuMauNhap
+                    {
+                        Stt = idx + 1,
+                        MaSp = x.MaSp,
+                        TenSp = x.TenSp,
+                        Dvt = "Cây",
+                        SoLuong = x.SoLuong,
+                        DonGia = x.DonGia,
+                        KhuyenMai = x.KhuyenMai,
+                        ThanhTien = x.ThanhTien
+                    }).ToList();
+
+                    decimal tongGiaTri = tongTien > 0 ? tongTien : bieuMauItems.Sum(x => x.ThanhTien);
+
+                    string html = BieuMauService.TaoHtmlHoaDonNhap(
+                        maHdn: effectiveMaHdn,
+                        tenNcc: ncc.TenNcc,
+                        diaChiNcc: !string.IsNullOrWhiteSpace(ncc.DiaChi) ? ncc.DiaChi : "Tòa nhà FPT Cầu Giấy, Hà Nội",
+                        sdtNcc: !string.IsNullOrWhiteSpace(ncc.DienThoai) ? ncc.DienThoai : "(028) 7300 1234",
+                        tenNv: nv.TenNv,
+                        maNv: nv.MaNv,
+                        danhSachSp: bieuMauItems,
+                        tongTien: tongGiaTri
+                    );
+
+                    // Mở biểu mẫu BM01 trên trình duyệt để in / xuất ảnh
+                    BieuMauService.MoBieuMauTrenTrinhDuyet(html, $"HoaDonNhap_{effectiveMaHdn}");
+
                     string info = $"🎉 NHẬP KHO THÀNH CÔNG!\n\n" +
-                                  $"• Mã HĐ Nhập: {maHdn}\n" +
+                                  $"• Mã HĐ Nhập: {effectiveMaHdn}\n" +
                                   $"• Nhà cung cấp: {ncc.TenNcc}\n" +
                                   $"• Nhân viên tiếp nhận: {nv.TenNv}\n" +
-                                  $"• Tổng tiền phiếu nhập: {tongTien.ToString("N0", new CultureInfo("vi-VN"))} đ\n\n" +
-                                  $"✓ Đã cập nhật số lượng tồn kho và giá bán niêm yết thành công.";
+                                  $"• Tổng tiền phiếu nhập: {tongGiaTri.ToString("N0", new CultureInfo("vi-VN"))} đ\n\n" +
+                                  $"✓ Đã xuất và mở biểu mẫu BM01 (Phiếu Nhập Kho) để in ấn hoặc xuất ảnh PNG.";
 
                     MessageBox.Show(info, "Nhập kho hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     _cart.Clear();
                     HienThiBangChiTiet();
-                    txtMaHdn.Text = maHdn;
+                    txtMaHdn.Text = effectiveMaHdn;
                 }
                 else
                 {

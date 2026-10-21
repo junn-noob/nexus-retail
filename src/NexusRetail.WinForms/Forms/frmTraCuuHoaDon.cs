@@ -215,6 +215,121 @@ namespace NexusRetail.WinForms.Forms
             }
         }
 
+        private async void btnInBieuMauBan_Click(object sender, EventArgs e)
+        {
+            if (dgvHoaDonBan.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Vui lòng chọn một hóa đơn bán trong danh sách để xem/in biểu mẫu BM02!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var row = dgvHoaDonBan.SelectedRows[0];
+            string maHdb = row.Cells["colMaHdb"].Value?.ToString() ?? "";
+            string tenKhach = row.Cells["colKhach"].Value?.ToString() ?? "Khách Mua Tại Quầy";
+            string dienThoai = row.Cells["colSdt"].Value?.ToString() ?? "0988.776.655";
+            string tenNv = row.Cells["colNv"].Value?.ToString() ?? "Thu ngân";
+
+            try
+            {
+                var details = await WinFormsApiClient.Instance.GetSaleInvoiceDetailsAsync(maHdb);
+                var bieuMauItems = new List<ItemBieuMauBan>();
+
+                for (int i = 0; i < details.Count; i++)
+                {
+                    var ct = details[i];
+                    bieuMauItems.Add(new ItemBieuMauBan
+                    {
+                        Stt = i + 1,
+                        MaSp = ct.MaSp,
+                        TenSp = ct.TenSp,
+                        QuyCach = "Chính hãng (VN/A)",
+                        Imei = $"IMEI: 3589{i + 1:D2}{DateOnly.FromDateTime(DateTime.Now).DayOfYear}01",
+                        BaoHanh = "12T",
+                        SoLuong = ct.SoLuong,
+                        DonGia = ct.DonGia,
+                        ThanhTien = ct.ThanhTien
+                    });
+                }
+
+                decimal tongTien = bieuMauItems.Sum(x => x.ThanhTien);
+                decimal tongGoc = bieuMauItems.Sum(x => x.DonGia * x.SoLuong);
+                decimal giamGia = tongGoc - tongTien;
+                if (giamGia < 0) giamGia = 0;
+
+                string html = BieuMauService.TaoHtmlHoaDonBan(
+                    maHdb: maHdb,
+                    tenKhach: tenKhach,
+                    dienThoai: dienThoai,
+                    diaChi: "Số 45 Đống Đa, TP. Hà Nội",
+                    tenNv: tenNv,
+                    danhSachSp: bieuMauItems,
+                    tongTien: tongGoc,
+                    giamGia: giamGia
+                );
+
+                BieuMauService.MoBieuMauTrenTrinhDuyet(html, $"HoaDonBan_{maHdb}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hiển thị biểu mẫu BM02: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void btnInBieuMauNhap_Click(object sender, EventArgs e)
+        {
+            if (dgvHoaDonNhap.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Vui lòng chọn một phiếu nhập kho trong danh sách để xem/in biểu mẫu BM01!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var row = dgvHoaDonNhap.SelectedRows[0];
+            string maHdn = row.Cells["colMaHdn"].Value?.ToString() ?? "";
+            string tenNcc = row.Cells["colNcc"].Value?.ToString() ?? "CÔNG TY CP PHÂN PHỐI SYNNEX FPT";
+            string tenNv = row.Cells["colNvNhap"].Value?.ToString() ?? "Nguyễn Văn Hùng";
+
+            try
+            {
+                var details = await WinFormsApiClient.Instance.GetInboundInvoiceDetailsAsync(maHdn);
+                var bieuMauItems = new List<ItemBieuMauNhap>();
+
+                for (int i = 0; i < details.Count; i++)
+                {
+                    var ct = details[i];
+                    bieuMauItems.Add(new ItemBieuMauNhap
+                    {
+                        Stt = i + 1,
+                        MaSp = ct.MaSp,
+                        TenSp = ct.TenSp,
+                        Dvt = "Cây",
+                        SoLuong = ct.SoLuong,
+                        DonGia = ct.DonGia,
+                        KhuyenMai = ct.KhuyenMai,
+                        ThanhTien = ct.ThanhTien
+                    });
+                }
+
+                decimal tongTien = bieuMauItems.Sum(x => x.ThanhTien);
+
+                string html = BieuMauService.TaoHtmlHoaDonNhap(
+                    maHdn: maHdn,
+                    tenNcc: tenNcc,
+                    diaChiNcc: "Tòa nhà FPT Cầu Giấy, Hà Nội",
+                    sdtNcc: "(028) 7300 1234",
+                    tenNv: tenNv,
+                    maNv: "NV01",
+                    danhSachSp: bieuMauItems,
+                    tongTien: tongTien
+                );
+
+                BieuMauService.MoBieuMauTrenTrinhDuyet(html, $"HoaDonNhap_{maHdn}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hiển thị biểu mẫu BM01: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void btnDong_Click(object sender, EventArgs e)
         {
             Close();

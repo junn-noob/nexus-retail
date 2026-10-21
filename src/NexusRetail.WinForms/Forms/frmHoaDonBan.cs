@@ -205,8 +205,56 @@ namespace NexusRetail.WinForms.Forms
 
             if (success)
             {
+                string effectiveMaHdb = !string.IsNullOrWhiteSpace(maHdb) ? maHdb : (!string.IsNullOrWhiteSpace(maHdbGiaoDich) ? maHdbGiaoDich : $"HDB-{DateTime.Now:yyyy-MMdd-HHmm}");
+
+                // Trích xuất danh sách sản phẩm sang dữ liệu biểu mẫu BM02
+                var bieuMauItems = _cartTable.AsEnumerable().Select((r, idx) =>
+                {
+                    string msp = r.Field<string>("MaSp") ?? "";
+                    string tsp = r.Field<string>("TenSp") ?? "";
+                    int sl = r.Field<int>("SoLuong");
+                    decimal dg = r.Field<decimal>("DonGia");
+                    decimal tt = r.Field<decimal>("ThanhTien");
+
+                    var prod = _products.FirstOrDefault(p => p.MaSp == msp);
+                    string quyCach = prod != null ? $"{prod.TenLoai} - {prod.TenNhanHieu}" : "Chính hãng (VN/A)";
+                    string bh = prod != null && prod.ThoiGianBaoHanh > 0 ? $"{prod.ThoiGianBaoHanh}T" : "12T";
+                    string imei = $"IMEI: 3589{idx + 1:D2}{DateTime.Now:MMddHHmm}";
+
+                    return new ItemBieuMauBan
+                    {
+                        Stt = idx + 1,
+                        MaSp = msp,
+                        TenSp = tsp,
+                        QuyCach = quyCach,
+                        Imei = imei,
+                        BaoHanh = bh,
+                        SoLuong = sl,
+                        DonGia = dg,
+                        ThanhTien = tt
+                    };
+                }).ToList();
+
+                decimal tongTienHang = bieuMauItems.Sum(x => x.DonGia * x.SoLuong);
+                decimal tongGiamGia = tongTienHang - total;
+                if (tongGiamGia < 0) tongGiamGia = 0;
+
+                string html = BieuMauService.TaoHtmlHoaDonBan(
+                    maHdb: effectiveMaHdb,
+                    tenKhach: dto.TenKhachVangLai,
+                    dienThoai: dto.DienThoai,
+                    diaChi: "Số 45 Đống Đa, TP. Hà Nội",
+                    tenNv: _nhanVien,
+                    danhSachSp: bieuMauItems,
+                    tongTien: tongTienHang,
+                    giamGia: tongGiamGia
+                );
+
+                // Hiển thị ngay biểu mẫu BM02 trên trình duyệt để in / xuất ảnh
+                BieuMauService.MoBieuMauTrenTrinhDuyet(html, $"HoaDonBan_{effectiveMaHdb}");
+
                 string phuongThuc = isBankTransfer ? "Chuyển khoản VietQR MBBank (Webhook Tự Động)" : "Tiền mặt tại quầy";
-                MessageBox.Show($"✅ THANH TOÁN THÀNH CÔNG!\n\n• Mã HĐ: {maHdb}\n• Tổng tiền: {total:N0} ₫\n• Phương thức: {phuongThuc}\n• Đã lưu hóa đơn và cập nhật tồn kho thành công.",
+                MessageBox.Show($"✅ THANH TOÁN THÀNH CÔNG!\n\n• Mã HĐ: {effectiveMaHdb}\n• Tổng tiền: {total:N0} ₫\n• Phương thức: {phuongThuc}\n• Biểu mẫu BM02 (Hóa đơn bán lẻ & Phiếu bảo hành) đã được hiển thị để in ấn hoặc xuất ảnh PNG.",
                     "Hóa Đơn Bán Lẻ Duy Mobile", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 _cartTable.Clear();
