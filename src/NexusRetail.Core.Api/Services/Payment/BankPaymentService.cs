@@ -22,21 +22,27 @@ namespace NexusRetail.Core.Api.Services.Payment
                 dto.Gateway, dto.TransferAmount, dto.Content);
 
             // Bóc tách mã đơn hàng HDB... từ nội dung chuyển khoản
-            // Ví dụ: "DUYMOBILE HDB01", "HDB12 CHUYEN TIEN", "DUY MOBILE HDB 05"
+            // Ví dụ: "DUYMOBILE HDB01", "HDB12 CHUYEN TIEN", "DUYMOBILE HDB142530", "DUY MOBILE HDB 05"
             string maHdb = "";
-            var match = Regex.Match(dto.Content, @"HDB\s*(\d+)", RegexOptions.IgnoreCase);
-            if (match.Success)
+            var matchExact = Regex.Match(dto.Content, @"\b(HDB\w+)\b", RegexOptions.IgnoreCase);
+            if (matchExact.Success)
             {
-                int number = int.Parse(match.Groups[1].Value);
-                maHdb = $"HDB{number:D2}";
+                maHdb = matchExact.Groups[1].Value.ToUpper();
             }
             else
             {
-                // Fallback nếu khách chỉ gõ số đơn hoặc mã đơn viết liền
-                var matchAlt = Regex.Match(dto.Content, @"(HD\w+)", RegexOptions.IgnoreCase);
-                if (matchAlt.Success)
+                var match = Regex.Match(dto.Content, @"HDB\s*(\d+)", RegexOptions.IgnoreCase);
+                if (match.Success)
                 {
-                    maHdb = matchAlt.Groups[1].Value.ToUpper();
+                    maHdb = "HDB" + match.Groups[1].Value;
+                }
+                else
+                {
+                    var matchAlt = Regex.Match(dto.Content, @"(HD\w+)", RegexOptions.IgnoreCase);
+                    if (matchAlt.Success)
+                    {
+                        maHdb = matchAlt.Groups[1].Value.ToUpper();
+                    }
                 }
             }
 
