@@ -75,7 +75,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSub.Name = "lblSub";
             this.lblSub.Size = new System.Drawing.Size(360, 15);
             this.lblSub.TabIndex = 1;
-            this.lblSub.Text = "Hệ thống Bán Lẻ Thu Ngân • Tự động trừ tồn kho (BR-01)";
+            this.lblSub.Text = "Hệ thống Bán Lẻ Thu Ngân • Lập hóa đơn và thanh toán tại quầy";
             // 
             // lblTitle
             // 

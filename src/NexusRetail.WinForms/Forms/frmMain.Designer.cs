@@ -22,6 +22,7 @@ namespace NexusRetail.WinForms.Forms
             this.pnlCenter = new System.Windows.Forms.Panel();
             this.btnDangXuat = new System.Windows.Forms.Button();
             this.btnBaoCao = new System.Windows.Forms.Button();
+            this.btnTraCuu = new System.Windows.Forms.Button();
             this.btnNhapHang = new System.Windows.Forms.Button();
             this.btnSanPham = new System.Windows.Forms.Button();
             this.btnBanHang = new System.Windows.Forms.Button();
@@ -65,7 +66,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSub.Name = "lblSub";
             this.lblSub.Size = new System.Drawing.Size(377, 17);
             this.lblSub.TabIndex = 1;
-            this.lblSub.Text = "C# Windows Forms Desktop POS • Tích hợp API Cổng Webhook";
+            this.lblSub.Text = "Phần mềm Bán Lẻ & Quản Lý Kho Thiết Bị Di Động";
             // 
             // lblBrand
             // 
@@ -82,6 +83,7 @@ namespace NexusRetail.WinForms.Forms
             // 
             this.pnlCenter.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
             this.pnlCenter.Controls.Add(this.btnDangXuat);
+            this.pnlCenter.Controls.Add(this.btnTraCuu);
             this.pnlCenter.Controls.Add(this.btnBaoCao);
             this.pnlCenter.Controls.Add(this.btnNhapHang);
             this.pnlCenter.Controls.Add(this.btnSanPham);
@@ -89,19 +91,34 @@ namespace NexusRetail.WinForms.Forms
             this.pnlCenter.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlCenter.Location = new System.Drawing.Point(0, 90);
             this.pnlCenter.Name = "pnlCenter";
-            this.pnlCenter.Size = new System.Drawing.Size(860, 410);
+            this.pnlCenter.Size = new System.Drawing.Size(860, 448);
             this.pnlCenter.TabIndex = 1;
+            // 
+            // btnTraCuu
+            // 
+            this.btnTraCuu.BackColor = System.Drawing.Color.White;
+            this.btnTraCuu.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTraCuu.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.btnTraCuu.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
+            this.btnTraCuu.Location = new System.Drawing.Point(50, 300);
+            this.btnTraCuu.Name = "btnTraCuu";
+            this.btnTraCuu.Size = new System.Drawing.Size(760, 52);
+            this.btnTraCuu.TabIndex = 4;
+            this.btnTraCuu.Text = "🔍 TRA CỨU HÓA ĐƠN BÁN & NHẬP KHO";
+            this.btnTraCuu.UseVisualStyleBackColor = false;
+            this.btnTraCuu.Click += new System.EventHandler(this.btnTraCuu_Click);
             // 
             // btnDangXuat
             // 
-            this.btnDangXuat.BackColor = System.Drawing.Color.White;
+            this.btnDangXuat.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(254)))), ((int)(((byte)(242)))), ((int)(((byte)(242)))));
+            this.btnDangXuat.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(254)))), ((int)(((byte)(202)))), ((int)(((byte)(202)))));
             this.btnDangXuat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDangXuat.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnDangXuat.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.btnDangXuat.Location = new System.Drawing.Point(50, 310);
+            this.btnDangXuat.Location = new System.Drawing.Point(50, 365);
             this.btnDangXuat.Name = "btnDangXuat";
-            this.btnDangXuat.Size = new System.Drawing.Size(760, 48);
-            this.btnDangXuat.TabIndex = 4;
+            this.btnDangXuat.Size = new System.Drawing.Size(760, 42);
+            this.btnDangXuat.TabIndex = 5;
             this.btnDangXuat.Text = "🚪 ĐĂNG XUẤT HỆ THỐNG";
             this.btnDangXuat.UseVisualStyleBackColor = false;
             this.btnDangXuat.Click += new System.EventHandler(this.btnDangXuat_Click);
@@ -116,7 +133,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnBaoCao.Name = "btnBaoCao";
             this.btnBaoCao.Size = new System.Drawing.Size(360, 105);
             this.btnBaoCao.TabIndex = 3;
-            this.btnBaoCao.Text = "📊 BÁO CÁO DOANH THU (BR-06..09)\r\nXuất báo cáo tài chính & File Excel";
+            this.btnBaoCao.Text = "📊 BÁO CÁO THỐNG KÊ\r\nPhân tích doanh thu & Xuất file Excel";
             this.btnBaoCao.UseVisualStyleBackColor = false;
             this.btnBaoCao.Click += new System.EventHandler(this.btnBaoCao_Click);
             // 
@@ -130,7 +147,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnNhapHang.Name = "btnNhapHang";
             this.btnNhapHang.Size = new System.Drawing.Size(360, 105);
             this.btnNhapHang.TabIndex = 2;
-            this.btnNhapHang.Text = "📦 HÓA ĐƠN NHẬP KHO (BR-01, 02)\r\nNhập hàng từ NCC & Tự động tăng tồn";
+            this.btnNhapHang.Text = "📦 HÓA ĐƠN NHẬP KHO\r\nLập phiếu nhập kho từ nhà cung cấp";
             this.btnNhapHang.UseVisualStyleBackColor = false;
             this.btnNhapHang.Click += new System.EventHandler(this.btnNhapHang_Click);
             // 
@@ -144,7 +161,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnSanPham.Name = "btnSanPham";
             this.btnSanPham.Size = new System.Drawing.Size(360, 105);
             this.btnSanPham.TabIndex = 1;
-            this.btnSanPham.Text = "📱 QUẢN LÝ SẢN PHẨM (BR-03)\r\nDanh mục, cấu hình, Giá bán = Giá nhập × 1.1";
+            this.btnSanPham.Text = "📱 QUẢN LÝ SẢN PHẨM\r\nDanh mục thiết bị di động & cấu hình";
             this.btnSanPham.UseVisualStyleBackColor = false;
             this.btnSanPham.Click += new System.EventHandler(this.btnSanPham_Click);
             // 
@@ -158,7 +175,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnBanHang.Name = "btnBanHang";
             this.btnBanHang.Size = new System.Drawing.Size(360, 105);
             this.btnBanHang.TabIndex = 0;
-            this.btnBanHang.Text = "🛒 BÁN HÀNG TẠI QUẦY (POS)\r\n⚡ Thanh toán VietQR & Webhook MBBank";
+            this.btnBanHang.Text = "🛒 BÁN HÀNG TẠI QUẦY (POS)\r\nLập hóa đơn & Thanh toán VietQR";
             this.btnBanHang.UseVisualStyleBackColor = false;
             this.btnBanHang.Click += new System.EventHandler(this.btnBanHang_Click);
             // 
@@ -188,7 +205,7 @@ namespace NexusRetail.WinForms.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(860, 532);
+            this.ClientSize = new System.Drawing.Size(860, 570);
             this.Controls.Add(this.pnlCenter);
             this.Controls.Add(this.pnlStatus);
             this.Controls.Add(this.pnlTop);
@@ -215,6 +232,7 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Button btnSanPham;
         private System.Windows.Forms.Button btnNhapHang;
         private System.Windows.Forms.Button btnBaoCao;
+        private System.Windows.Forms.Button btnTraCuu;
         private System.Windows.Forms.Button btnDangXuat;
         private System.Windows.Forms.Panel pnlStatus;
         private System.Windows.Forms.Label lblFooterStatus;

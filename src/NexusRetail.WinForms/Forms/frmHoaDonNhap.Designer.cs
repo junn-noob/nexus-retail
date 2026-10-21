@@ -87,7 +87,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSubTitle.Name = "lblSubTitle";
             this.lblSubTitle.Size = new System.Drawing.Size(650, 17);
             this.lblSubTitle.TabIndex = 1;
-            this.lblSubTitle.Text = "Hệ thống tự động thực thi BR-01 (Tăng tồn), BR-02 (Cập nhật giá vốn), BR-03 (Giá bán = Giá vốn x 110%)";
+            this.lblSubTitle.Text = "Lập phiếu nhập kho thiết bị, linh kiện từ các nhà phân phối chính hãng";
             // 
             // lblTitle
             // 

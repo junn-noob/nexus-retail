@@ -52,6 +52,12 @@ namespace NexusRetail.WinForms.Forms
             frm.ShowDialog(this);
         }
 
+        private void btnTraCuu_Click(object sender, EventArgs e)
+        {
+            var frm = new frmTraCuuHoaDon();
+            frm.ShowDialog(this);
+        }
+
         private void btnDangXuat_Click(object sender, EventArgs e)
         {
             Close();

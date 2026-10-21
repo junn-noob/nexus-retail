@@ -190,7 +190,7 @@ namespace NexusRetail.WinForms.Forms
             }
 
             var confirm = MessageBox.Show(
-                $"Xác nhận lập hóa đơn nhập {_cart.Count} mặt hàng từ '{ncc.TenNcc}'?\n\nTổng giá trị nhập: {lblTongTien.Text}\n\nLưu ý: Tồn kho và giá bán sản phẩm (BR-01, BR-02, BR-03) sẽ tự động cập nhật ngay lập tức.",
+                $"Xác nhận lập hóa đơn nhập {_cart.Count} mặt hàng từ '{ncc.TenNcc}'?\n\nTổng giá trị nhập: {lblTongTien.Text}\n\nTồn kho và đơn giá bán của sản phẩm sẽ được tự động cập nhật.",
                 "Xác nhận nhập kho thiết bị",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -224,10 +224,7 @@ namespace NexusRetail.WinForms.Forms
                                   $"• Nhà cung cấp: {ncc.TenNcc}\n" +
                                   $"• Nhân viên tiếp nhận: {nv.TenNv}\n" +
                                   $"• Tổng tiền phiếu nhập: {tongTien.ToString("N0", new CultureInfo("vi-VN"))} đ\n\n" +
-                                  $"Đã tự động áp dụng các quy tắc nghiệp vụ:\n" +
-                                  $"✓ BR-01: Tăng số lượng tồn kho sản phẩm\n" +
-                                  $"✓ BR-02: Cập nhật giá vốn nhập mới nhất\n" +
-                                  $"✓ BR-03: Tự động tính giá bán = Giá vốn x 110%";
+                                  $"✓ Đã cập nhật số lượng tồn kho và giá bán niêm yết thành công.";
 
                     MessageBox.Show(info, "Nhập kho hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

@@ -206,7 +206,7 @@ namespace NexusRetail.WinForms.Forms
             if (success)
             {
                 string phuongThuc = isBankTransfer ? "Chuyển khoản VietQR MBBank (Webhook Tự Động)" : "Tiền mặt tại quầy";
-                MessageBox.Show($"✅ THANH TOÁN THÀNH CÔNG!\n\n• Mã HĐ: {maHdb}\n• Tổng tiền: {total:N0} ₫\n• Phương thức: {phuongThuc}\n• Tồn kho đã được tự động cập nhật trừ kho (BR-01).",
+                MessageBox.Show($"✅ THANH TOÁN THÀNH CÔNG!\n\n• Mã HĐ: {maHdb}\n• Tổng tiền: {total:N0} ₫\n• Phương thức: {phuongThuc}\n• Đã lưu hóa đơn và cập nhật tồn kho thành công.",
                     "Hóa Đơn Bán Lẻ Duy Mobile", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 _cartTable.Clear();

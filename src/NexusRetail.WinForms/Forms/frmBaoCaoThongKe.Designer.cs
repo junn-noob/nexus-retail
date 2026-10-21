@@ -67,7 +67,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSubTitle.Name = "lblSubTitle";
             this.lblSubTitle.Size = new System.Drawing.Size(534, 17);
             this.lblSubTitle.TabIndex = 1;
-            this.lblSubTitle.Text = "Hỗ trợ 4 quy tắc nghiệp vụ BR-06, BR-07, BR-08, BR-09 và tích hợp xuất file Excel tự động";
+            this.lblSubTitle.Text = "Thống kê doanh số bán hàng, đơn nhập kho lớn nhất và xuất báo cáo Excel";
             // 
             // lblTitle
             // 
@@ -243,10 +243,10 @@ namespace NexusRetail.WinForms.Forms
             this.cboLoaiBaoCao.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.cboLoaiBaoCao.FormattingEnabled = true;
             this.cboLoaiBaoCao.Items.AddRange(new object[] {
-            "BR-06: Top 5 sản phẩm bán chạy nhất trong tháng",
-            "BR-07: Hóa đơn nhập hàng lớn nhất trong quý",
-            "BR-08: Tổng kết doanh số bán theo năm",
-            "BR-09: Top 5 nhân viên có doanh số thấp nhất tháng"});
+            "Top 5 sản phẩm bán chạy nhất trong tháng",
+            "Hóa đơn nhập hàng lớn nhất trong quý",
+            "Tổng kết doanh số bán theo năm",
+            "Top 5 nhân viên có doanh số thấp nhất tháng"});
             this.cboLoaiBaoCao.Location = new System.Drawing.Point(115, 29);
             this.cboLoaiBaoCao.Name = "cboLoaiBaoCao";
             this.cboLoaiBaoCao.Size = new System.Drawing.Size(260, 25);

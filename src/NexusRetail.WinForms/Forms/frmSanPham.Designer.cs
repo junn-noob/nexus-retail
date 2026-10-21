@@ -71,7 +71,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSub.Name = "lblSub";
             this.lblSub.Size = new System.Drawing.Size(370, 15);
             this.lblSub.TabIndex = 1;
-            this.lblSub.Text = "Quản lý Danh mục Smartphone • Tự động tính Giá bán = Giá nhập × 1.1 (BR-03)";
+            this.lblSub.Text = "Hệ thống quản lý thông số kỹ thuật, giá vốn và giá niêm yết thiết bị";
             // 
             // lblTitle
             // 
@@ -80,9 +80,9 @@ namespace NexusRetail.WinForms.Forms
             this.lblTitle.ForeColor = System.Drawing.Color.White;
             this.lblTitle.Location = new System.Drawing.Point(18, 12);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(326, 25);
+            this.lblTitle.Size = new System.Drawing.Size(275, 25);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "QUẢN LÝ DANH MỤC SẢN PHẨM (BR-03)";
+            this.lblTitle.Text = "QUẢN LÝ DANH MỤC SẢN PHẨM";
             // 
             // grpThongTin
             // 

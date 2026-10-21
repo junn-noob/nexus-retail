@@ -296,6 +296,85 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
+        // 8. TÌM KIẾM HÓA ĐƠN BÁN & HÓA ĐƠN NHẬP (YÊU CẦU 5)
+        public async Task<List<InvoiceSearchItem>> SearchSaleInvoicesAsync(string? q = null)
+        {
+            try
+            {
+                string url = "api/ban-hang/danh-sach?page=1&pageSize=100";
+                if (!string.IsNullOrWhiteSpace(q))
+                    url += $"&q={Uri.EscapeDataString(q)}";
+
+                using var res = await _client.GetAsync(url);
+                if (res.IsSuccessStatusCode)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("items", out var arr))
+                    {
+                        return JsonSerializer.Deserialize<List<InvoiceSearchItem>>(arr.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                    }
+                }
+            }
+            catch { }
+            return new List<InvoiceSearchItem>();
+        }
+
+        public async Task<List<InvoiceDetailItem>> GetSaleInvoiceDetailsAsync(string maHdb)
+        {
+            try
+            {
+                using var res = await _client.GetAsync($"api/ban-hang/chi-tiet/{Uri.EscapeDataString(maHdb)}");
+                if (res.IsSuccessStatusCode)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("chiTiet", out var arr))
+                    {
+                        return JsonSerializer.Deserialize<List<InvoiceDetailItem>>(arr.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                    }
+                }
+            }
+            catch { }
+            return new List<InvoiceDetailItem>();
+        }
+
+        public async Task<List<InboundInvoiceSearchItem>> SearchInboundInvoicesAsync()
+        {
+            try
+            {
+                var list = await _client.GetFromJsonAsync<List<InboundInvoiceSearchItem>>("api/nhap-hang");
+                return list ?? new();
+            }
+            catch
+            {
+                return new();
+            }
+        }
+
+        public async Task<List<InvoiceDetailItem>> GetInboundInvoiceDetailsAsync(string maHdn)
+        {
+            try
+            {
+                var res = await _client.GetFromJsonAsync<NexusRetail.Shared.DTOs.NhapHang.HoaDonNhapResponseDto>($"api/nhap-hang/{Uri.EscapeDataString(maHdn)}");
+                if (res?.SanPham != null)
+                {
+                    return res.SanPham.Select(x => new InvoiceDetailItem
+                    {
+                        MaSp = x.MaSp,
+                        TenSp = x.TenSp ?? x.MaSp,
+                        SoLuong = x.SoLuong,
+                        DonGia = x.DonGia,
+                        KhuyenMai = x.KhuyenMai,
+                        ThanhTien = x.ThanhTien
+                    }).ToList();
+                }
+            }
+            catch { }
+            return new List<InvoiceDetailItem>();
+        }
+
+
         private static List<NhaCungCapItem> GetDefaultSuppliers() => new()
         {
             new() { MaNcc = "NCC01", TenNcc = "Apple Việt Nam - Synnex FPT", DiaChi = "Tòa nhà FPT Cầu Giấy, Hà Nội", DienThoai = "19006600" },
@@ -364,5 +443,38 @@ namespace NexusRetail.WinForms.Services
         public string DienThoai { get; set; } = "";
         public decimal TongTienBan { get; set; }
     }
+
+    public class InvoiceSearchItem
+    {
+        public string MaHdb { get; set; } = "";
+        public DateTime NgayBan { get; set; }
+        public decimal TongTien { get; set; }
+        public string TenKhach { get; set; } = "";
+        public string DienThoai { get; set; } = "";
+        public string TenNv { get; set; } = "";
+    }
+
+    public class InboundInvoiceSearchItem
+    {
+        public string MaHdn { get; set; } = "";
+        public DateTime NgayNhap { get; set; }
+        public decimal TongTien { get; set; }
+        public string MaNcc { get; set; } = "";
+        public string TenNcc { get; set; } = "";
+        public string MaNv { get; set; } = "";
+        public string TenNv { get; set; } = "";
+        public int SoMatHang { get; set; }
+    }
+
+    public class InvoiceDetailItem
+    {
+        public string MaSp { get; set; } = "";
+        public string TenSp { get; set; } = "";
+        public int SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal KhuyenMai { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
 }
+
 
