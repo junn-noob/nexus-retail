@@ -90,6 +90,7 @@ namespace NexusRetail.WinForms.Forms
             numSoLuong.Value = 10;
             numBaoHanh.Value = 12;
             txtGhiChu.Text = "";
+            txtTenSp.Focus();
         }
 
         private void btnTimKiem_Click(object sender, EventArgs e)
@@ -97,7 +98,167 @@ namespace NexusRetail.WinForms.Forms
             LoadProductsAsync(txtTimKiem.Text.Trim());
         }
 
-        private void btnXoa_Click(object sender, EventArgs e)
+        private async void btnThem_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra dữ liệu đầu vào
+            string tenSp = txtTenSp.Text.Trim();
+            if (string.IsNullOrEmpty(tenSp))
+            {
+                MessageBox.Show("Vui lòng nhập tên sản phẩm!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTenSp.Focus();
+                return;
+            }
+
+            string cleanGia = txtGiaNhap.Text.Replace(",", "").Replace(".", "").Trim();
+            if (!decimal.TryParse(cleanGia, out decimal giaNhap) || giaNhap <= 0)
+            {
+                MessageBox.Show("Giá nhập phải là số hợp lệ lớn hơn 0!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtGiaNhap.Focus();
+                return;
+            }
+
+            // 2. Tự động nhận diện nhãn hiệu và phân loại thông minh theo tên máy
+            string maNhanHieu = "NH01"; // Apple mặc định
+            string maLoai = "L01";      // Flagship
+            string maManHinh = "MH01";  // Super Retina OLED
+
+            string upper = tenSp.ToUpperInvariant();
+            if (upper.Contains("SAMSUNG") || upper.Contains("GALAXY"))
+            {
+                maNhanHieu = "NH02";
+                maManHinh = "MH02";
+                maLoai = upper.Contains("FOLD") || upper.Contains("FLIP") ? "L06" : (upper.Contains("ULTRA") ? "L01" : "L02");
+            }
+            else if (upper.Contains("XIAOMI") || upper.Contains("REDMI"))
+            {
+                maNhanHieu = "NH03";
+                maManHinh = "MH03";
+                maLoai = upper.Contains("NOTE") || upper.Contains("REDMI") ? "L03" : "L01";
+            }
+            else if (upper.Contains("OPPO"))
+            {
+                maNhanHieu = "NH04";
+                maManHinh = "MH04";
+                maLoai = upper.Contains("FIND") ? "L01" : "L02";
+            }
+            else if (upper.Contains("VIVO"))
+            {
+                maNhanHieu = "NH05";
+                maManHinh = "MH05";
+                maLoai = upper.Contains("X100") || upper.Contains("X200") ? "L01" : "L02";
+            }
+            else if (upper.Contains("IPHONE") || upper.Contains("APPLE"))
+            {
+                maNhanHieu = "NH01";
+                maManHinh = "MH01";
+                maLoai = "L01";
+            }
+
+            // 3. Chuẩn bị DTO thêm mới
+            var dto = new ThemSanPhamDto
+            {
+                TenSp = tenSp,
+                MaLoai = maLoai,
+                MaNhanHieu = maNhanHieu,
+                MaManHinh = maManHinh,
+                GiaNhap = giaNhap,
+                SoLuong = (int)numSoLuong.Value,
+                ThoiGianBaoHanh = (int)numBaoHanh.Value,
+                AmThanh = "Loa kép Stereo, Hi-Res Audio",
+                ChupAnh = "Camera AI chống rung OIS",
+                Anh = "/images/products/phone_default.webp",
+                GhiChu = string.IsNullOrWhiteSpace(txtGhiChu.Text) ? "Hàng chính hãng fullbox" : txtGhiChu.Text.Trim()
+            };
+
+            btnThem.Enabled = false;
+            try
+            {
+                var (success, message, maSp) = await WinFormsApiClient.Instance.CreateProductAsync(dto);
+                if (success)
+                {
+                    decimal giaBan = Math.Round(giaNhap * 1.1m, 0);
+                    MessageBox.Show($"✔ Thêm mới sản phẩm '{tenSp}' thành công!\n• Mã sản phẩm: {maSp}\n• Giá nhập: {giaNhap:N0} ₫\n• Giá bán niêm yết (+10%): {giaBan:N0} ₫", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadProductsAsync();
+                    btnLamMoi_Click(sender, e);
+                }
+                else
+                {
+                    MessageBox.Show(message, "Lỗi thêm sản phẩm", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                btnThem.Enabled = true;
+            }
+        }
+
+        private async void btnSua_Click(object sender, EventArgs e)
+        {
+            string maSp = txtMaSp.Text.Trim();
+            if (string.IsNullOrEmpty(maSp))
+            {
+                MessageBox.Show("Vui lòng chọn sản phẩm cần sửa trên danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string tenSp = txtTenSp.Text.Trim();
+            if (string.IsNullOrEmpty(tenSp))
+            {
+                MessageBox.Show("Tên sản phẩm không được để trống!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTenSp.Focus();
+                return;
+            }
+
+            string cleanGia = txtGiaNhap.Text.Replace(",", "").Replace(".", "").Trim();
+            if (!decimal.TryParse(cleanGia, out decimal giaNhap) || giaNhap <= 0)
+            {
+                MessageBox.Show("Giá nhập phải là số hợp lệ và lớn hơn 0!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtGiaNhap.Focus();
+                return;
+            }
+
+            var current = _products.FirstOrDefault(x => x.MaSp == maSp);
+            string maLoai = current?.MaLoai ?? "L01";
+            string maNhanHieu = current?.MaNhanHieu ?? "NH01";
+            string maManHinh = current?.MaManHinh ?? "MH01";
+
+            var dto = new SuaSanPhamDto
+            {
+                TenSp = tenSp,
+                MaLoai = maLoai,
+                MaNhanHieu = maNhanHieu,
+                MaManHinh = maManHinh,
+                GiaNhap = giaNhap,
+                SoLuong = (int)numSoLuong.Value,
+                ThoiGianBaoHanh = (int)numBaoHanh.Value,
+                AmThanh = current?.AmThanh ?? "Loa kép Stereo",
+                ChupAnh = current?.ChupAnh ?? "Camera AI OIS",
+                Anh = current?.Anh ?? "/images/products/phone_default.webp",
+                GhiChu = txtGhiChu.Text.Trim()
+            };
+
+            btnSua.Enabled = false;
+            try
+            {
+                var (success, message) = await WinFormsApiClient.Instance.UpdateProductAsync(maSp, dto);
+                if (success)
+                {
+                    decimal giaBan = Math.Round(giaNhap * 1.1m, 0);
+                    MessageBox.Show($"✔ Cập nhật thông tin sản phẩm '{tenSp}' ({maSp}) thành công!\n• Giá bán mới: {giaBan:N0} ₫\n• Tồn kho: {numSoLuong.Value}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadProductsAsync();
+                }
+                else
+                {
+                    MessageBox.Show(message, "Lỗi cập nhật sản phẩm", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                btnSua.Enabled = true;
+            }
+        }
+
+        private async void btnXoa_Click(object sender, EventArgs e)
         {
             if (_role != "Admin")
             {
@@ -105,16 +266,34 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
-            if (string.IsNullOrEmpty(txtMaSp.Text))
+            string maSp = txtMaSp.Text.Trim();
+            if (string.IsNullOrEmpty(maSp))
             {
-                MessageBox.Show("Vui lòng chọn sản phẩm cần xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng chọn sản phẩm cần xóa trên danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var confirm = MessageBox.Show($"Bạn có chắc chắn muốn xóa sản phẩm {txtTenSp.Text} ({txtMaSp.Text}) không?", "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirm == DialogResult.Yes)
+            var confirm = MessageBox.Show($"Bạn có chắc chắn muốn xóa sản phẩm {txtTenSp.Text} ({maSp}) không?", "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes) return;
+
+            btnXoa.Enabled = false;
+            try
             {
-                MessageBox.Show("Sản phẩm đã phát sinh hóa đơn bán hàng hoặc hóa đơn nhập hàng, hệ thống bảo vệ dữ liệu không cho phép xóa!", "Ràng buộc toàn vẹn", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                var (success, message) = await WinFormsApiClient.Instance.DeleteProductAsync(maSp);
+                if (success)
+                {
+                    MessageBox.Show($"✔ Đã xóa thành công sản phẩm {maSp}!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadProductsAsync();
+                    btnLamMoi_Click(sender, e);
+                }
+                else
+                {
+                    MessageBox.Show("Sản phẩm đã phát sinh hóa đơn bán hàng hoặc hóa đơn nhập hàng, hệ thống bảo vệ toàn vẹn dữ liệu không cho phép xóa!", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            finally
+            {
+                btnXoa.Enabled = true;
             }
         }
     }

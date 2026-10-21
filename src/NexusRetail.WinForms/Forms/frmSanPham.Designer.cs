@@ -345,6 +345,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnSua.TabIndex = 1;
             this.btnSua.Text = "✏️ Sửa SP";
             this.btnSua.UseVisualStyleBackColor = false;
+            this.btnSua.Click += new System.EventHandler(this.btnSua_Click);
             // 
             // btnThem
             // 
@@ -358,6 +359,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnThem.TabIndex = 0;
             this.btnThem.Text = "+ Thêm Mới";
             this.btnThem.UseVisualStyleBackColor = false;
+            this.btnThem.Click += new System.EventHandler(this.btnThem_Click);
             // 
             // pnlGrid
             // 

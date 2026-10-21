@@ -109,6 +109,65 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
+        public async Task<(bool Success, string Message, string? MaSp)> CreateProductAsync(ThemSanPhamDto dto)
+        {
+            try
+            {
+                var response = await _client.PostAsJsonAsync("api/san-pham", dto);
+                if (response.IsSuccessStatusCode)
+                {
+                    var res = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    string? maSp = res.TryGetProperty("maSp", out var m) ? m.GetString() : null;
+                    return (true, "Thêm mới sản phẩm thành công!", maSp);
+                }
+
+                var err = await response.Content.ReadAsStringAsync();
+                return (false, $"Lỗi từ máy chủ: {err}", null);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Không thể kết nối đến máy chủ: {ex.Message}", null);
+            }
+        }
+
+        public async Task<(bool Success, string Message)> UpdateProductAsync(string maSp, SuaSanPhamDto dto)
+        {
+            try
+            {
+                var response = await _client.PutAsJsonAsync($"api/san-pham/{Uri.EscapeDataString(maSp)}", dto);
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, "Cập nhật sản phẩm thành công!");
+                }
+
+                var err = await response.Content.ReadAsStringAsync();
+                return (false, $"Lỗi cập nhật: {err}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Không thể kết nối đến máy chủ: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> DeleteProductAsync(string maSp)
+        {
+            try
+            {
+                var response = await _client.DeleteAsync($"api/san-pham/{Uri.EscapeDataString(maSp)}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, "Xóa sản phẩm thành công!");
+                }
+
+                var err = await response.Content.ReadAsStringAsync();
+                return (false, $"Không thể xóa: {err}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Không thể kết nối đến máy chủ: {ex.Message}");
+            }
+        }
+
         // 3. Tạo hóa đơn bán hàng
         public async Task<(bool Success, string Message, string? MaHdb, decimal TongTien)> CreateSaleOrderAsync(HoaDonBanDto dto)
         {
