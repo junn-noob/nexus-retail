@@ -27,20 +27,48 @@ namespace NexusRetail.WebMvc.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            int totalProducts = 0;
+            int totalOrders = 0;
+            decimal totalRevenue = 0m;
+            int totalCustomers = 0;
+
             try
             {
-                var spRes = await CoreClient.GetFromJsonAsync<PagedResultDto<SanPhamDto>>("api/san-pham?page=1&pageSize=1");
-                ViewBag.TotalProducts = spRes?.TotalItems ?? 0;
-
-                var dhRes = await CoreClient.GetFromJsonAsync<JsonElement>("api/ban-hang/danh-sach?page=1&pageSize=1");
-                ViewBag.TotalOrders = dhRes.TryGetProperty("totalItems", out var ti) ? ti.GetInt32() : 0;
+                var statsRes = await CoreClient.GetFromJsonAsync<JsonElement>("api/ban-hang/thong-ke-dashboard");
+                if (statsRes.TryGetProperty("totalProducts", out var tp)) totalProducts = tp.GetInt32();
+                if (statsRes.TryGetProperty("totalOrders", out var to)) totalOrders = to.GetInt32();
+                if (statsRes.TryGetProperty("totalRevenue", out var tr)) totalRevenue = tr.GetDecimal();
+                if (statsRes.TryGetProperty("totalCustomers", out var tc)) totalCustomers = tc.GetInt32();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi nạp dữ liệu Dashboard Admin");
-                ViewBag.TotalProducts = 0;
-                ViewBag.TotalOrders = 0;
+                _logger.LogWarning(ex, "Không thể gọi api/ban-hang/thong-ke-dashboard, dùng các API riêng lẻ");
+
+                try
+                {
+                    var spRes = await CoreClient.GetFromJsonAsync<PagedResultDto<SanPhamDto>>("api/san-pham?page=1&pageSize=1");
+                    totalProducts = spRes?.TotalItems ?? 0;
+                }
+                catch (Exception exSp)
+                {
+                    _logger.LogError(exSp, "Lỗi nạp tổng số sản phẩm");
+                }
+
+                try
+                {
+                    var dhRes = await CoreClient.GetFromJsonAsync<JsonElement>("api/ban-hang/danh-sach?page=1&pageSize=1");
+                    if (dhRes.TryGetProperty("totalItems", out var ti)) totalOrders = ti.GetInt32();
+                }
+                catch (Exception exDh)
+                {
+                    _logger.LogError(exDh, "Lỗi nạp tổng số đơn hàng");
+                }
             }
+
+            ViewBag.TotalProducts = totalProducts;
+            ViewBag.TotalOrders = totalOrders;
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.TotalCustomers = totalCustomers;
 
             return View();
         }

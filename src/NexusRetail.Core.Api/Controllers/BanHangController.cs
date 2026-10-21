@@ -192,5 +192,120 @@ namespace NexusRetail.Core.Api.Controllers
 
             return Ok(list);
         }
+
+        /// <summary>
+        /// Lấy danh sách hóa đơn bán hàng cho Quản trị viên (có phân trang & tìm kiếm)
+        /// </summary>
+        [HttpGet("danh-sach")]
+        public async Task<IActionResult> layDanhSach(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 15,
+            [FromQuery] string? q = null)
+        {
+            page = Math.Max(page, 1);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            var query = _db.HoaDonBans
+                .AsNoTracking()
+                .Include(x => x.MaKhachNavigation)
+                .Include(x => x.MaNvNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                query = query.Where(x =>
+                    x.MaHdb.Contains(q) ||
+                    (x.MaKhachNavigation != null && (x.MaKhachNavigation.TenKhach.Contains(q) || x.MaKhachNavigation.DienThoai.Contains(q))) ||
+                    (x.MaNvNavigation != null && x.MaNvNavigation.TenNv.Contains(q)));
+            }
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var items = await query
+                .OrderByDescending(x => x.NgayBan)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new
+                {
+                    maHdb = x.MaHdb,
+                    ngayBan = x.NgayBan,
+                    tongTien = x.TongTien,
+                    tenKhach = x.MaKhachNavigation != null ? x.MaKhachNavigation.TenKhach : "Khách Lẻ",
+                    dienThoai = x.MaKhachNavigation != null ? x.MaKhachNavigation.DienThoai : "",
+                    tenNv = x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : "Khách Online"
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                page,
+                pageSize,
+                totalItems,
+                totalPages,
+                items
+            });
+        }
+
+        /// <summary>
+        /// Lấy chi tiết một hóa đơn bán hàng theo mã HDB
+        /// </summary>
+        [HttpGet("chi-tiet/{id}")]
+        public async Task<IActionResult> layChiTiet(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return BadRequest(new { message = "Mã hóa đơn không được để trống!" });
+
+            var hdb = await _db.HoaDonBans
+                .AsNoTracking()
+                .Include(x => x.MaKhachNavigation)
+                .Include(x => x.MaNvNavigation)
+                .Include(x => x.ChiTietHdbs)
+                    .ThenInclude(ct => ct.MaSpNavigation)
+                .FirstOrDefaultAsync(x => x.MaHdb == id);
+
+            if (hdb == null)
+                return NotFound(new { message = $"Không tìm thấy hóa đơn {id}" });
+
+            return Ok(new
+            {
+                maHdb = hdb.MaHdb,
+                ngayBan = hdb.NgayBan,
+                tongTien = hdb.TongTien,
+                tenKhach = hdb.MaKhachNavigation?.TenKhach ?? "Khách Lẻ",
+                dienThoai = hdb.MaKhachNavigation?.DienThoai ?? "",
+                tenNv = hdb.MaNvNavigation?.TenNv ?? "Khách Online",
+                chiTiet = hdb.ChiTietHdbs.Select(ct => new
+                {
+                    maSp = ct.MaSp,
+                    tenSp = ct.MaSpNavigation?.TenSp ?? ct.MaSp,
+                    soLuong = ct.SoLuong,
+                    donGia = ct.MaSpNavigation != null ? ct.MaSpNavigation.GiaBan : (ct.SoLuong > 0 ? ct.ThanhTien / ct.SoLuong : 0),
+                    khuyenMai = ct.KhuyenMai,
+                    thanhTien = ct.ThanhTien
+                }).ToList()
+            });
+        }
+
+        /// <summary>
+        /// Thống kê tổng quan cho Dashboard Quản trị viên
+        /// </summary>
+        [HttpGet("thong-ke-dashboard")]
+        public async Task<IActionResult> layThongKeDashboard()
+        {
+            var totalProducts = await _db.SanPhams.CountAsync();
+            var totalOrders = await _db.HoaDonBans.CountAsync();
+            var totalRevenue = await _db.HoaDonBans.SumAsync(x => (decimal?)x.TongTien) ?? 0m;
+            var totalCustomers = await _db.KhachHangs.CountAsync();
+
+            return Ok(new
+            {
+                totalProducts,
+                totalOrders,
+                totalRevenue,
+                totalCustomers
+            });
+        }
     }
 }

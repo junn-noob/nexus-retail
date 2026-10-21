@@ -2,6 +2,8 @@
     ViewData["Title"] = "Trang quản trị (Admin Dashboard)";
     int totalProducts = ViewBag.TotalProducts ?? 0;
     int totalOrders = ViewBag.TotalOrders ?? 0;
+    decimal totalRevenue = ViewBag.TotalRevenue ?? 0m;
+    int totalCustomers = ViewBag.TotalCustomers ?? 0;
 }
 
 <partial name="_AdminNav" />
@@ -14,8 +16,8 @@
 
     <!-- Quick Stat Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small fw-bold text-secondary text-uppercase">Tổng số sản phẩm</span>
                     <div class="rounded-3 bg-primary-subtle p-2 text-primary fs-4">
@@ -23,14 +25,14 @@
                     </div>
                 </div>
                 <div class="display-6 fw-bolder text-dark mb-2">@totalProducts</div>
-                <a asp-action="SanPham" class="small fw-bold text-primary text-decoration-none">
+                <a asp-action="SanPham" class="small fw-bold text-primary text-decoration-none mt-auto">
                     Xem danh sách sản phẩm <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small fw-bold text-secondary text-uppercase">Tổng số hóa đơn bán</span>
                     <div class="rounded-3 bg-success-subtle p-2 text-success fs-4">
@@ -38,14 +40,29 @@
                     </div>
                 </div>
                 <div class="display-6 fw-bolder text-dark mb-2">@totalOrders</div>
-                <a asp-action="DonHang" class="small fw-bold text-success text-decoration-none">
+                <a asp-action="DonHang" class="small fw-bold text-success text-decoration-none mt-auto">
                     Xem lịch sử đơn hàng <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-secondary text-uppercase">Doanh thu tích lũy</span>
+                    <div class="rounded-3 bg-warning-subtle p-2 text-warning fs-4">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                </div>
+                <div class="fs-4 fw-bolder text-danger mb-2">@totalRevenue.ToString("N0") ₫</div>
+                <a asp-action="BaoCao" asp-route-loai="doanh-so-nam" class="small fw-bold text-warning text-decoration-none mt-auto">
+                    Xem doanh số năm <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small fw-bold text-secondary text-uppercase">Báo cáo & Thống kê</span>
                     <div class="rounded-3 bg-danger-subtle p-2 text-danger fs-4">
@@ -53,7 +70,7 @@
                     </div>
                 </div>
                 <div class="display-6 fw-bolder text-dark mb-2">4 Báo cáo</div>
-                <a asp-action="BaoCao" class="small fw-bold text-danger text-decoration-none">
+                <a asp-action="BaoCao" class="small fw-bold text-danger text-decoration-none mt-auto">
                     Xem & Xuất file Excel <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
