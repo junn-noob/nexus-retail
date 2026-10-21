@@ -5,43 +5,50 @@
     var tenKhach = ViewBag.TenKhach ?? "Quý khách";
 }
 
-<div class="wrap" style="max-width: 650px; margin: 40px auto; padding: 0 16px;">
-    <div style="background: var(--card); border-radius: var(--r); padding: 40px 24px; box-shadow: var(--sh); border: 1px solid var(--line); text-align: center;">
-        <div style="width: 72px; height: 72px; background: #dcfce7; color: var(--ok); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 20px;">
+<div style="max-width:640px; margin:48px auto 80px; padding:0 20px;">
+    <div style="background:var(--card); border-radius:var(--r); padding:48px 32px; box-shadow:var(--sh); border:1px solid var(--line); text-align:center; animation: fadeUp .4s ease both;">
+
+        <div style="width:80px; height:80px; background:linear-gradient(135deg, #dcfce7, #bbf7d0); color:#16a34a; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 24px; box-shadow:0 4px 20px rgba(22,163,74,.2);">
             ✓
         </div>
 
-        <h1 style="font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 8px;">Đặt hàng thành công!</h1>
-        <p style="color: var(--mute); font-size: 15px; margin-bottom: 24px;">
-            Cảm ơn bạn <strong>@tenKhach</strong> đã tin tưởng mua sắm tại <strong>Duy Mobile</strong>.
+        <h1 style="font-size:26px; font-weight:800; color:var(--ink); margin-bottom:8px; letter-spacing:-.5px;">
+            Đặt hàng thành công! 🎉
+        </h1>
+        <p style="color:var(--mute); font-size:15px; margin-bottom:32px; line-height:1.6;">
+            Cảm ơn bạn <strong style="color:var(--ink);">@tenKhach</strong> đã tin tưởng mua sắm tại <strong style="color:var(--ac);">Duy Mobile</strong>.
         </p>
 
-        <div style="background: var(--bg); border-radius: 14px; padding: 20px; margin-bottom: 24px; text-align: left; border: 1px solid var(--line);">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
-                <span style="color: var(--mute);">Mã hóa đơn:</span>
-                <span style="font-weight: 800; color: var(--ac); font-size: 16px;">@maHdb</span>
+        <div style="background:var(--bg); border-radius:14px; padding:22px 24px; margin-bottom:28px; text-align:left; border:1px solid var(--line);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:14px; font-size:14px; align-items:center;">
+                <span style="color:var(--mute);">Mã hóa đơn</span>
+                <span style="font-weight:800; color:var(--ac); font-size:17px; letter-spacing:.5px;">@maHdb</span>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
-                <span style="color: var(--mute);">Thời gian đặt:</span>
-                <span style="font-weight: 600; color: var(--ink);">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:14px; font-size:14px;">
+                <span style="color:var(--mute);">Thời gian đặt hàng</span>
+                <span style="font-weight:600; color:var(--ink);">@DateTime.Now.ToString("HH:mm — dd/MM/yyyy")</span>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
-                <span style="color: var(--mute);">Hình thức thanh toán:</span>
-                <span style="font-weight: 600; color: var(--ink);">Tiền mặt khi nhận hàng (COD)</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:14px; font-size:14px;">
+                <span style="color:var(--mute);">Hình thức thanh toán</span>
+                <span style="font-weight:600; color:var(--ink);">💵 Tiền mặt (COD)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 15px; border-top: 1px dashed var(--line); padding-top: 12px;">
-                <span style="font-weight: 600; color: var(--ink);">Tổng số tiền cần trả:</span>
-                <span style="font-weight: 800; color: var(--ac); font-size: 18px;">@tongTien đ</span>
+            <div style="display:flex; justify-content:space-between; font-size:15px; border-top:1px dashed var(--line); padding-top:16px; align-items:baseline;">
+                <span style="font-weight:600;">Tổng tiền cần thanh toán</span>
+                <span style="font-weight:800; color:var(--ac); font-size:20px;">@tongTien đ</span>
             </div>
         </div>
 
-        <p style="color: var(--mute); font-size: 13px; line-height: 1.6; margin-bottom: 28px;">
-            📞 Nhân viên bán hàng sẽ sớm liên hệ qua số điện thoại để xác nhận địa chỉ và thời gian giao máy cho bạn trong vòng 15-30 phút.
-        </p>
+        <div style="background:linear-gradient(135deg, #eff6ff, #ede9ff); border-radius:12px; padding:16px; margin-bottom:32px; font-size:13.5px; color:#374151; line-height:1.7; border:1px solid rgba(91,75,219,.15);">
+            📞 Nhân viên sẽ sớm liên hệ qua số điện thoại để xác nhận địa chỉ giao hàng trong vòng <strong>15–30 phút</strong>.
+            Bạn cũng có thể tra cứu đơn hàng bằng số điện thoại bất cứ lúc nào.
+        </div>
 
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <a asp-controller="Home" asp-action="Index" class="btn" style="padding: 12px 28px; font-size: 15px; font-weight: 600;">
-                ← Về trang chủ mua sắm
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+            <a asp-controller="Home" asp-action="TraCuu" asp-route-sdt="" class="btn ghost" style="padding:12px 22px; font-size:14px; font-weight:600;">
+                🔍 Tra cứu đơn hàng
+            </a>
+            <a asp-controller="Home" asp-action="Index" class="btn" style="padding:12px 22px; font-size:14px; font-weight:600;">
+                ← Tiếp tục mua sắm
             </a>
         </div>
     </div>

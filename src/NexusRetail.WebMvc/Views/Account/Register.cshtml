@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Tạo tài khoản";
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <span class="auth-logo">Duy<b>Mobile</b></span>
+            <p class="auth-sub">Tạo tài khoản để theo dõi đơn hàng & nhận ưu đãi</p>
+        </div>
+
+        <form class="auth-form" method="post" id="registerForm">
+            <div class="form-field">
+                <label for="regName">Họ và tên</label>
+                <div class="input-wrap">
+                    <span class="input-icon">👤</span>
+                    <input id="regName" name="fullName" type="text" placeholder="Ví dụ: Nguyễn Văn A" autocomplete="name" required />
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="regPhone">Số điện thoại</label>
+                <div class="input-wrap">
+                    <span class="input-icon">📱</span>
+                    <input id="regPhone" name="phone" type="tel" placeholder="Ví dụ: 0912 345 678" autocomplete="tel" required />
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="regPass">Mật khẩu</label>
+                <div class="input-wrap">
+                    <span class="input-icon">🔒</span>
+                    <input id="regPass" name="password" type="password" placeholder="Tối thiểu 8 ký tự..." autocomplete="new-password" required minlength="8" />
+                    <button type="button" class="toggle-pass" onclick="togglePass('regPass', this)" title="Hiện/ẩn mật khẩu">👁</button>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="regPassConfirm">Xác nhận mật khẩu</label>
+                <div class="input-wrap">
+                    <span class="input-icon">🔒</span>
+                    <input id="regPassConfirm" name="confirmPassword" type="password" placeholder="Nhập lại mật khẩu..." autocomplete="new-password" required />
+                    <button type="button" class="toggle-pass" onclick="togglePass('regPassConfirm', this)" title="Hiện/ẩn mật khẩu">👁</button>
+                </div>
+            </div>
+
+            <div class="form-check">
+                <label>
+                    <input type="checkbox" required /> Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn auth-btn">Tạo tài khoản →</button>
+
+            <div class="auth-divider"><span>Đã có tài khoản?</span></div>
+
+            <a asp-controller="Account" asp-action="Login" class="btn ghost auth-btn">
+                Đăng nhập ngay
+            </a>
+        </form>
+
+        <p class="auth-footer">
+            Duy Mobile cam kết bảo mật thông tin cá nhân của bạn.
+        </p>
+    </div>
+
+    <div class="auth-visual">
+        <div class="auth-visual-inner">
+            <div class="auth-badge">🛡️ Bảo mật</div>
+            <h2>Tham gia cộng đồng Duy Mobile</h2>
+            <p>Hàng ngàn khách hàng tin tưởng mua sắm tại Duy Mobile mỗi ngày.</p>
+            <ul class="auth-perks">
+                <li>📦 Theo dõi đơn hàng real-time</li>
+                <li>🎁 Nhận ưu đãi thành viên độc quyền</li>
+                <li>🔔 Thông báo khi hàng về</li>
+                <li>📋 Lịch sử mua hàng đầy đủ</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePass(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        inp.type = 'password';
+        btn.textContent = '👁';
+    }
+}
+</script>

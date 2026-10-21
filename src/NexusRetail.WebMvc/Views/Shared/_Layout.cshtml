@@ -7,7 +7,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Duy Mobile — Chuỗi cửa hàng điện thoại chính hãng. Tư vấn bởi AI, bảo hành 12 tháng, giao hàng miễn phí toàn quốc.">
     <title>@ViewData["Title"] — Duy Mobile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
 </head>
 <body>
@@ -22,10 +25,10 @@
             </form>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <a class="btn ghost" asp-controller="Home" asp-action="TraCuu" style="display: flex; align-items: center; gap: 4px; font-size: 13.5px;">
-                    🔍 Tra cứu đơn
+                    🔍 Tra cứu
                 </a>
                 <a class="btn ghost" asp-controller="Cart" asp-action="Index" style="display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13.5px;">
-                    🛒 Giỏ hàng (<span id="cartCount" style="color: var(--ac);">0</span>)
+                    🛒 <span id="cartCount" style="color: var(--ac);">0</span>
                 </a>
             </div>
             <div class="user">
@@ -49,7 +52,7 @@
 
     <section class="hero">
       <div>
-        <h1>Công nghệ phù hợp với nhu cầu của bạn.</h1>
+        <h1>Công nghệ phù hợp<br>với nhu cầu của bạn.</h1>
         <p>Khám phá sản phẩm, xem cấu hình nhanh và hỏi AI để tìm thiết bị phù hợp.</p>
       </div>
       <div class="aibox">
@@ -61,8 +64,42 @@
 
     @RenderBody()
 
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a class="logo" asp-controller="Home" asp-action="Index">Duy<b>Mobile</b></a>
+                <p>Chuỗi cửa hàng điện thoại chính hãng hàng đầu. Tư vấn bởi AI, bảo hành 12 tháng, giao hàng miễn phí toàn quốc.</p>
+            </div>
+            <div class="footer-col">
+                <h5>Mua sắm</h5>
+                <a asp-controller="Home" asp-action="Index">Tất cả sản phẩm</a>
+                <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
+                <a asp-controller="Home" asp-action="TraCuu">Tra cứu đơn hàng</a>
+            </div>
+            <div class="footer-col">
+                <h5>Hỗ trợ</h5>
+                <a href="#">Chính sách bảo hành</a>
+                <a href="#">Hướng dẫn mua hàng</a>
+                <a href="#">Liên hệ cửa hàng</a>
+            </div>
+            <div class="footer-col">
+                <h5>Về chúng tôi</h5>
+                <a href="#">Giới thiệu</a>
+                <a href="#">Chính sách bảo mật</a>
+                <a href="#">Điều khoản sử dụng</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 Duy Mobile. Tất cả quyền được bảo lưu.</span>
+            <span>🇻🇳 Hàng chính hãng — Bảo hành toàn quốc</span>
+        </div>
+    </footer>
+
     <div class="ov" id="ov" role="dialog" aria-modal="true"><div class="modal" id="modal"></div></div>
     <partial name="_Chat" />
+
+    <button id="scrollTop" title="Lên đầu trang" aria-label="Lên đầu trang">↑</button>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
@@ -76,6 +113,13 @@
                 .catch(() => {});
         }
         document.addEventListener('DOMContentLoaded', updateCartBadge);
+
+        const scrollTopBtn = document.getElementById('scrollTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) scrollTopBtn.classList.add('show');
+            else scrollTopBtn.classList.remove('show');
+        });
+        scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

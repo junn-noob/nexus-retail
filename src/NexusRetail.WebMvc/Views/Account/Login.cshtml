@@ -1,0 +1,81 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    var returnUrl = ViewBag.ReturnUrl as string ?? "/";
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <span class="auth-logo">Duy<b>Mobile</b></span>
+            <p class="auth-sub">Đăng nhập để tiếp tục mua sắm</p>
+        </div>
+
+        <form class="auth-form" method="post" id="loginForm">
+            <div class="form-field">
+                <label for="loginPhone">Số điện thoại</label>
+                <div class="input-wrap">
+                    <span class="input-icon">📱</span>
+                    <input id="loginPhone" name="phone" type="tel" placeholder="Ví dụ: 0912 345 678" autocomplete="tel" required />
+                </div>
+            </div>
+
+            <div class="form-field">
+                <div class="field-header">
+                    <label for="loginPass">Mật khẩu</label>
+                    <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                </div>
+                <div class="input-wrap">
+                    <span class="input-icon">🔒</span>
+                    <input id="loginPass" name="password" type="password" placeholder="Nhập mật khẩu..." autocomplete="current-password" required />
+                    <button type="button" class="toggle-pass" onclick="togglePass('loginPass', this)" title="Hiện/ẩn mật khẩu">👁</button>
+                </div>
+            </div>
+
+            <div class="form-check">
+                <label>
+                    <input type="checkbox" name="remember" /> Ghi nhớ đăng nhập
+                </label>
+            </div>
+
+            <button type="submit" class="btn auth-btn">Đăng nhập →</button>
+
+            <div class="auth-divider"><span>hoặc</span></div>
+
+            <a asp-controller="Account" asp-action="Register" class="btn ghost auth-btn">
+                Tạo tài khoản mới
+            </a>
+        </form>
+
+        <p class="auth-footer">
+            Bằng cách đăng nhập, bạn đồng ý với
+            <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a> của Duy Mobile.
+        </p>
+    </div>
+
+    <div class="auth-visual">
+        <div class="auth-visual-inner">
+            <div class="auth-badge">✨ AI Tư vấn</div>
+            <h2>Trải nghiệm mua sắm thông minh</h2>
+            <p>Được tư vấn bởi AI, hàng chính hãng, bảo hành 12 tháng toàn quốc.</p>
+            <ul class="auth-perks">
+                <li>🚀 Giao hàng miễn phí toàn quốc</li>
+                <li>🛡️ Bảo hành chính hãng 12 tháng</li>
+                <li>🤖 AI tư vấn chọn máy 24/7</li>
+                <li>🔍 Tra cứu đơn hàng & bảo hành</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePass(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        inp.type = 'password';
+        btn.textContent = '👁';
+    }
+}
+</script>

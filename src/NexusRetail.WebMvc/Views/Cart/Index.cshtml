@@ -1,98 +1,85 @@
 @model List<NexusRetail.WebMvc.Models.CartItem>
 @{
-    ViewData["Title"] = "Giỏ hàng của bạn";
+    ViewData["Title"] = "Giỏ hàng";
     var tongTien = Model.Sum(x => x.ThanhTien);
 }
 
-<div class="wrap" style="max-width: 1000px; margin: 30px auto; padding: 0 16px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h1 style="font-size: 26px; font-weight: 700; color: var(--ink);">🛍️ Giỏ hàng của bạn</h1>
-        <a asp-controller="Home" asp-action="Index" class="btn ghost">← Tiếp tục mua sắm</a>
+<div class="page-wrap">
+    <div class="page-header">
+        <h1>🛍️ Giỏ hàng của bạn</h1>
+        <a asp-controller="Home" asp-action="Index" class="btn ghost" style="font-size:13.5px;">← Tiếp tục mua sắm</a>
     </div>
 
     @if (Model.Count == 0)
     {
-        <div style="background: var(--card); padding: 60px 20px; text-align: center; border-radius: var(--r); box-shadow: var(--sh); border: 1px solid var(--line);">
-            <div style="font-size: 54px; margin-bottom: 16px;">🛒</div>
-            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Giỏ hàng của bạn đang trống!</h2>
-            <p style="color: var(--mute); margin-bottom: 24px;">Hãy khám phá các mẫu điện thoại mới nhất và thêm vào giỏ hàng nhé.</p>
-            <a asp-controller="Home" asp-action="Index" class="btn" style="padding: 12px 28px; font-size: 15px;">Xem danh sách sản phẩm</a>
+        <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <h2>Giỏ hàng đang trống!</h2>
+            <p>Hãy khám phá các mẫu điện thoại mới nhất và thêm vào giỏ hàng nhé.</p>
+            <a asp-controller="Home" asp-action="Index" class="btn" style="padding:12px 28px; font-size:15px; display:inline-block; margin-top:4px;">
+                Xem danh sách sản phẩm
+            </a>
         </div>
     }
     else
     {
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;" class="cart-layout">
-            <!-- Danh sách sản phẩm -->
-            <div style="background: var(--card); border-radius: var(--r); padding: 20px; box-shadow: var(--sh); border: 1px solid var(--line);">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 16px;">
-                    <span style="font-weight: 600; color: var(--mute);">Sản phẩm (@Model.Sum(x => x.SoLuong))</span>
-                    <form asp-action="Clear" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa sạch giỏ hàng không?');">
-                        <button type="submit" style="color: #ef4444; font-size: 13px; font-weight: 500;">Xóa tất cả</button>
+        <div class="cart-layout">
+            <div class="cart-items-panel">
+                <div class="cart-panel-header">
+                    <span class="mute-label">Sản phẩm (@Model.Sum(x => x.SoLuong) món)</span>
+                    <form asp-action="Clear" method="post" onsubmit="return confirm('Xóa sạch giỏ hàng?');">
+                        <button type="submit" class="danger-link">Xóa tất cả</button>
                     </form>
                 </div>
 
                 @foreach (var item in Model)
                 {
-                    <div style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); align-items: center;">
-                        <div style="width: 72px; height: 72px; border-radius: 12px; background: #f0f0f5 url('@Url.Content("~/images/products/" + (item.Anh ?? "default.jpg"))') center/cover no-repeat; flex-shrink: 0; border: 1px solid var(--line);"></div>
-                        
-                        <div style="flex: 1;">
-                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--ink);">@item.TenSp</h3>
-                            <div style="color: var(--ac); font-weight: 700; font-size: 15px;">@item.GiaBan.ToString("N0") đ</div>
+                    <div class="cart-item">
+                        <div class="cart-item-img" style="background-image:url('@Url.Content("~/images/products/" + (item.Anh ?? "default.jpg"))')"></div>
+                        <div class="cart-item-info">
+                            <h3>@item.TenSp</h3>
+                            <div class="cart-item-price">@item.GiaBan.ToString("N0") đ</div>
                         </div>
-
-                        <!-- Bộ điều khiển số lượng -->
-                        <div style="display: flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fafafa;">
-                            <form asp-action="UpdateQuantity" method="post" style="display: inline;">
+                        <div class="qty-ctrl">
+                            <form asp-action="UpdateQuantity" method="post" style="display:inline;">
                                 <input type="hidden" name="maSp" value="@item.MaSp" />
                                 <input type="hidden" name="delta" value="-1" />
-                                <button type="submit" style="width: 32px; height: 32px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--ink);">−</button>
+                                <button type="submit" class="qty-btn">−</button>
                             </form>
-                            <span style="width: 36px; text-align: center; font-weight: 600; font-size: 14px;">@item.SoLuong</span>
-                            <form asp-action="UpdateQuantity" method="post" style="display: inline;">
+                            <span class="qty-val">@item.SoLuong</span>
+                            <form asp-action="UpdateQuantity" method="post" style="display:inline;">
                                 <input type="hidden" name="maSp" value="@item.MaSp" />
                                 <input type="hidden" name="delta" value="1" />
-                                <button type="submit" style="width: 32px; height: 32px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--ink);">+</button>
+                                <button type="submit" class="qty-btn">+</button>
                             </form>
                         </div>
-
-                        <div style="width: 120px; text-align: right; font-weight: 700; color: var(--ink); font-size: 15px;">
-                            @item.ThanhTien.ToString("N0") đ
-                        </div>
-
-                        <form asp-action="RemoveItem" method="post" style="margin-left: 8px;">
+                        <div class="cart-item-total">@item.ThanhTien.ToString("N0") đ</div>
+                        <form asp-action="RemoveItem" method="post">
                             <input type="hidden" name="maSp" value="@item.MaSp" />
-                            <button type="submit" title="Xóa sản phẩm" style="color: #9ca3af; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: color .2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'">✕</button>
+                            <button type="submit" class="remove-btn" title="Xóa sản phẩm">✕</button>
                         </form>
                     </div>
                 }
             </div>
 
-            <!-- Tóm tắt & Thanh toán -->
-            <div style="background: var(--card); border-radius: var(--r); padding: 24px; box-shadow: var(--sh); border: 1px solid var(--line); height: fit-content;">
-                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--ink);">Tóm tắt đơn hàng</h3>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--mute);">
+            <div class="cart-summary-panel">
+                <h3>Tóm tắt đơn hàng</h3>
+                <div class="summary-row">
                     <span>Tạm tính</span>
-                    <span style="font-weight: 600; color: var(--ink);">@tongTien.ToString("N0") đ</span>
+                    <span>@tongTien.ToString("N0") đ</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--mute);">
+                <div class="summary-row">
                     <span>Phí vận chuyển</span>
-                    <span style="font-weight: 600; color: var(--ok);">Miễn phí</span>
+                    <span style="color:var(--ok); font-weight:600;">Miễn phí</span>
                 </div>
-
-                <div style="border-top: 1px dashed var(--line); padding-top: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: baseline;">
-                    <span style="font-size: 16px; font-weight: 600;">Tổng thanh toán</span>
-                    <span style="font-size: 22px; font-weight: 800; color: var(--ac);">@tongTien.ToString("N0") đ</span>
+                <div class="summary-total">
+                    <span>Tổng thanh toán</span>
+                    <span class="total-amount">@tongTien.ToString("N0") đ</span>
                 </div>
-
-                <a asp-action="Checkout" class="btn" style="display: block; text-align: center; width: 100%; padding: 14px 0; font-size: 16px; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 14px rgba(91, 75, 219, .3);">
-                    Tiến hành đặt hàng →
-                </a>
-
-                <div style="margin-top: 16px; font-size: 12px; color: var(--mute); text-align: center; line-height: 1.6;">
+                <a asp-action="Checkout" class="btn checkout-btn">Tiến hành đặt hàng →</a>
+                <div class="trust-badges">
                     🛡️ Bảo hành chính hãng 12 tháng<br/>
-                    🚚 Giao hàng tận nơi miễn phí toàn quốc
+                    🚚 Giao hàng miễn phí toàn quốc
                 </div>
             </div>
         </div>
@@ -100,11 +87,42 @@
 </div>
 
 @section Scripts {
-    <style>
-        @@media (max-width: 768px) {
-            .cart-layout {
-                grid-template-columns: 1fr !important;
-            }
-        }
-    </style>
+<style>
+    .page-wrap { max-width: 1040px; margin: 32px auto 80px; padding: 0 20px; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+    .page-header h1 { font-size:26px; font-weight:800; letter-spacing:-.5px; }
+    .empty-state { background:var(--card); padding:64px 20px; text-align:center; border-radius:var(--r); box-shadow:var(--sh); border:1px solid var(--line); }
+    .empty-icon { font-size:56px; margin-bottom:16px; }
+    .empty-state h2 { font-size:20px; font-weight:700; margin-bottom:8px; }
+    .empty-state p { color:var(--mute); margin-bottom:20px; }
+    .cart-layout { display:grid; grid-template-columns:2fr 1fr; gap:24px; align-items:start; }
+    .cart-items-panel { background:var(--card); border-radius:var(--r); padding:22px; box-shadow:var(--sh); border:1px solid var(--line); }
+    .cart-panel-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:16px; }
+    .mute-label { font-weight:600; color:var(--mute); font-size:14px; }
+    .danger-link { color:#ef4444; font-size:13px; font-weight:500; background:none; border:none; cursor:pointer; }
+    .danger-link:hover { text-decoration:underline; }
+    .cart-item { display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--line); align-items:center; }
+    .cart-item:last-child { border-bottom:none; }
+    .cart-item-img { width:72px; height:72px; border-radius:12px; background:#f0f0f5 center/contain no-repeat; flex-shrink:0; border:1px solid var(--line); }
+    .cart-item-info { flex:1; }
+    .cart-item-info h3 { font-size:15px; font-weight:600; margin-bottom:4px; }
+    .cart-item-price { color:var(--ac); font-weight:700; font-size:14px; }
+    .qty-ctrl { display:flex; align-items:center; border:1.5px solid var(--line); border-radius:10px; overflow:hidden; }
+    .qty-btn { width:32px; height:32px; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--ink); transition:background .2s; }
+    .qty-btn:hover { background:var(--soft); color:var(--ac); }
+    .qty-val { width:36px; text-align:center; font-weight:600; font-size:14px; }
+    .cart-item-total { width:110px; text-align:right; font-weight:700; font-size:15px; }
+    .remove-btn { color:#9ca3af; font-size:16px; padding:6px; border-radius:8px; transition:color .2s; }
+    .remove-btn:hover { color:#ef4444; }
+    .cart-summary-panel { background:var(--card); border-radius:var(--r); padding:24px; box-shadow:var(--sh); border:1px solid var(--line); }
+    .cart-summary-panel h3 { font-size:18px; font-weight:700; margin-bottom:20px; }
+    .summary-row { display:flex; justify-content:space-between; margin-bottom:12px; font-size:14px; color:var(--mute); }
+    .summary-row span:last-child { font-weight:600; color:var(--ink); }
+    .summary-total { display:flex; justify-content:space-between; align-items:baseline; border-top:1px dashed var(--line); padding-top:16px; margin:16px 0 24px; }
+    .summary-total span:first-child { font-size:15px; font-weight:600; }
+    .total-amount { font-size:22px; font-weight:800; color:var(--ac); }
+    .checkout-btn { display:block; width:100%; text-align:center; padding:14px; font-size:15px; font-weight:700; border-radius:12px; box-shadow:0 4px 14px rgba(91,75,219,.3); }
+    .trust-badges { margin-top:16px; font-size:12px; color:var(--mute); text-align:center; line-height:1.8; }
+    @@media (max-width: 768px) { .cart-layout { grid-template-columns:1fr; } }
+</style>
 }

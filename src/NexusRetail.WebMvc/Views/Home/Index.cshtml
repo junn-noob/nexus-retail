@@ -3,68 +3,129 @@
 @model PagedResultDto<SanPhamDto>
 
 @{
-  ViewData["Title"] = "Sản phẩm";
-  var prices = new (string? K, string T)[] { 
-      (null, "Tất cả mức giá"), 
-      ("lt20", "Dưới 20 triệu"), 
-      ("mid", "20–30 triệu"), 
-      ("gt30", "Trên 30 triệu") 
-  };
+    ViewData["Title"] = "Điện thoại chính hãng";
+    var q = Context.Request.Query["q"].ToString();
+    var priceFilter = Context.Request.Query["price"].ToString();
+    var prices = new (string? K, string T)[] {
+        (null, "Tất cả"),
+        ("lt10", "Dưới 10 triệu"),
+        ("lt20", "10–20 triệu"),
+        ("lt30", "20–30 triệu"),
+        ("gt30", "Trên 30 triệu")
+    };
 }
 
-<main class="wrap">
-  <aside>
-    <section>
-      <h4>Khoảng giá</h4>
-      @foreach (var (k, t) in prices)
-      {
-        <a class="opt" asp-action="Index" asp-route-page="1">@t</a>
-      }
-    </section>
-  </aside>
+<main class="wrap" id="products">
+    <aside>
+        <section>
+            <h4>Khoảng giá</h4>
+            @foreach (var (k, t) in prices)
+            {
+                <a class="opt @(priceFilter == k ? "on" : "")"
+                   asp-action="Index"
+                   asp-route-page="1"
+                   asp-route-price="@k"
+                   asp-route-q="@q">@t</a>
+            }
+        </section>
 
-  <div>
-    <div id="products" class="grid">
-      @foreach (var p in Model.Items)
-      {
-        <article class="card" data-id="@p.MaSp">
-          <div class="img" style="background-image: url('@Url.Content("~/images/products/" + (p.Anh ?? "default.jpg"))')"></div>
-          <div class="cb">
-            <h3>@p.TenSp</h3>
-            <span class="tag">@p.GhiChu</span>
-            <div class="price">@p.GiaBan.ToString("N0") đ</div>
-            <div style="display: flex; gap: 8px; margin-top: 10px;">
-              <button class="btn ghost" type="button" style="flex: 1;">Xem nhanh</button>
-              <button class="btn" type="button" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ" style="padding: 0 14px; background: var(--soft); color: var(--ac); font-weight: 700; border-radius: 10px;">🛒</button>
-            </div>
-          </div>
-        </article>
-      }
+        <section>
+            <h4>Tìm kiếm nhanh</h4>
+            <form method="get" asp-action="Index" asp-fragment="products">
+                <input name="q" type="search" value="@q" placeholder="Tên sản phẩm…"
+                       style="width:100%; padding:9px 12px; border-radius:10px; border:1px solid var(--line); font-size:13px; outline:none;" />
+                <input type="hidden" name="price" value="@priceFilter" />
+                <button type="submit" class="btn" style="width:100%; margin-top:8px; padding:9px; font-size:13px; border-radius:10px;">
+                    Tìm kiếm
+                </button>
+            </form>
+        </section>
+    </aside>
 
-      @if (!Model.Items.Any()) 
-      { 
-        <div class="empty" style="grid-column:1/-1">Không có sản phẩm phù hợp.</div> 
-      }
-    </div>
+    <div>
+        <div class="bar">
+            <h2>
+                @if (!string.IsNullOrEmpty(q))
+                {
+                    <span>Kết quả cho "<strong>@q</strong>"</span>
+                }
+                else
+                {
+                    <span>Điện thoại chính hãng</span>
+                }
+            </h2>
+            <small>@Model.TotalItems sản phẩm</small>
+        </div>
 
-    @if (Model.TotalPages > 1)
-    {
-      <div id="pagination" class="pg">
-        <a class="@(Model.Page <= 1 ? "off" : "")" 
-           asp-action="Index" 
-           asp-route-page="@(Model.Page - 1)">←</a>
+        <div class="grid">
+            @foreach (var p in Model.Items)
+            {
+                <article class="card" data-id="@p.MaSp">
+                    <div class="img" style="background-image: url('@Url.Content("~/images/products/" + (p.Anh ?? "default.jpg"))')">
+                        @if (p.SoLuong <= 3 && p.SoLuong > 0)
+                        {
+                            <i style="position:absolute;top:10px;left:10px;background:#f97316;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;font-style:normal;">Sắp hết</i>
+                        }
+                        else if (p.SoLuong == 0)
+                        {
+                            <i style="position:absolute;top:10px;left:10px;background:#6b6b82;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;font-style:normal;">Hết hàng</i>
+                        }
+                    </div>
+                    <div class="cb">
+                        <span class="tag">@p.TenNhanHieu</span>
+                        <h3>@p.TenSp</h3>
+                        @if (!string.IsNullOrEmpty(p.GhiChu))
+                        {
+                            <span style="font-size:12px; color:var(--mute); line-height:1.4;">@(p.GhiChu.Length > 60 ? p.GhiChu[..60] + "…" : p.GhiChu)</span>
+                        }
+                        <div class="price">@p.GiaBan.ToString("N0") đ</div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <button class="btn ghost" type="button" style="flex: 1; font-size:13px; padding:8px 0;" data-open="@p.MaSp">Xem nhanh</button>
+                            <button class="btn" type="button"
+                                    onclick="quickAddToCart(event, '@p.MaSp')"
+                                    title="Thêm vào giỏ"
+                                    style="padding: 0 14px; font-size:18px; border-radius: 10px;"
+                                    @(p.SoLuong == 0 ? "disabled" : "")>🛒</button>
+                        </div>
+                    </div>
+                </article>
+            }
 
-        @for (var i = 1; i <= Model.TotalPages; i++)
+            @if (!Model.Items.Any())
+            {
+                <div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:var(--card); border-radius:var(--r); border:1px solid var(--line);">
+                    <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+                    <h3 style="font-size:18px; font-weight:600; margin-bottom:8px;">Không tìm thấy sản phẩm</h3>
+                    <p style="color:var(--mute);">Thử tìm với từ khóa khác hoặc thay đổi bộ lọc giá.</p>
+                    <a asp-action="Index" class="btn" style="display:inline-block; margin-top:16px; padding:10px 24px;">Xem tất cả sản phẩm</a>
+                </div>
+            }
+        </div>
+
+        @if (Model.TotalPages > 1)
         {
-          <a class="@(i == Model.Page ? "on" : "")" 
-             asp-action="Index" 
-             asp-route-page="@i">@i</a>
-        }
+            <div id="pagination" class="pg" style="display:flex; gap:8px; margin-top:28px; justify-content:center; flex-wrap:wrap;">
+                <a class="@(Model.Page <= 1 ? "off" : "")"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-q="@q"
+                   asp-route-price="@priceFilter">←</a>
 
-        <a class="@(Model.Page >= Model.TotalPages ? "off" : "")" 
-           asp-action="Index" 
-           asp-route-page="@(Model.Page + 1)">→</a>
-      </div>
-    }
-  </div>
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="@(i == Model.Page ? "on" : "")"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-q="@q"
+                       asp-route-price="@priceFilter">@i</a>
+                }
+
+                <a class="@(Model.Page >= Model.TotalPages ? "off" : "")"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-q="@q"
+                   asp-route-price="@priceFilter">→</a>
+            </div>
+        }
+    </div>
 </main>
