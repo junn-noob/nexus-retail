@@ -66,55 +66,99 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
-        // 1. Xác thực tài khoản
+        private static readonly string[] AuthCandidateUrls = [
+            "http://localhost:5001/",  // Identity.Api direct
+            "http://localhost:5000/",  // Gateway
+            "https://localhost:7143/", // Core.Api (monolith fallback)
+            "http://localhost:5050/"   // Core.Api HTTP (monolith fallback)
+        ];
+
+        // 1. Xác thực tài khoản (hỗ trợ gọi trực tiếp Identity.Api hoặc thông qua Gateway)
         public async Task<(bool Success, string Role, string Message)> LoginAsync(string username, string password)
         {
-            try
-            {
-                var response = await _client.PostAsJsonAsync("api/auth/login", new { username, password });
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-                    CurrentUser = result?.Username ?? username;
-                    CurrentRole = result?.Role ?? "Staff";
-                    return (true, CurrentRole, "Đăng nhập thành công!");
-                }
+            string lastError = "Tên đăng nhập hoặc mật khẩu không chính xác!";
+            bool reachedAnyAuthService = false;
 
-                string err = "Tên đăng nhập hoặc mật khẩu không chính xác!";
+            foreach (var authUrl in AuthCandidateUrls)
+            {
                 try
                 {
-                    var errObj = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
-                    if (errObj.TryGetProperty("message", out var m))
+                    using var authClient = CreateHttpClient(authUrl);
+                    var response = await authClient.PostAsJsonAsync("api/auth/login", new { username, password });
+                    
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
-                        err = m.GetString() ?? err;
+                        // Endpoint này không có route api/auth/login (ví dụ Core.Api), thử tiếp candidate url khác
+                        continue;
                     }
-                }
-                catch { }
 
-                return (false, "", err);
-            }
-            catch (Exception ex)
-            {
-                // Thử kết nối cổng thay thế (5050) nếu cổng chính 7143 không phản hồi
-                if (BaseUrl.Contains("7143"))
-                {
+                    reachedAnyAuthService = true;
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                        CurrentUser = result?.Username ?? username;
+                        CurrentRole = result?.Role ?? "Staff";
+
+                        if (!string.IsNullOrEmpty(result?.Token))
+                        {
+                            _client.DefaultRequestHeaders.Authorization = 
+                                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
+                        }
+
+                        // Đồng thời tự động phát hiện và kết nối cổng Core API đang chạy (7143, 5050 hoặc 5000)
+                        await EnsureCoreApiConnectedAsync();
+
+                        return (true, CurrentRole, "Đăng nhập thành công!");
+                    }
+
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        return (false, "", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+                    }
+
                     try
                     {
-                        using var altClient = CreateHttpClient("http://localhost:5050/");
-                        var altRes = await altClient.PostAsJsonAsync("api/auth/login", new { username, password });
-                        if (altRes.IsSuccessStatusCode)
+                        var errObj = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+                        if (errObj.TryGetProperty("message", out var m))
                         {
-                            SwitchPort("http://localhost:5050/");
-                            var result = await altRes.Content.ReadFromJsonAsync<AuthResponseDto>();
-                            CurrentUser = result?.Username ?? username;
-                            CurrentRole = result?.Role ?? "Staff";
-                            return (true, CurrentRole, "Đăng nhập thành công!");
+                            return (false, "", m.GetString() ?? lastError);
                         }
                     }
                     catch { }
-                }
 
-                return (false, "", $"Không thể kết nối đến máy chủ Backend ({ex.Message})!");
+                    return (false, "", lastError);
+                }
+                catch
+                {
+                    // Lỗi kết nối cổng này, thử candidate tiếp theo
+                }
+            }
+
+            if (!reachedAnyAuthService)
+            {
+                return (false, "", "Không thể kết nối đến máy chủ xác thực Identity (Port 5001) hoặc Gateway (Port 5000)!\nVui lòng kiểm tra dịch vụ NexusRetail.Identity.Api đã được khởi động chưa.");
+            }
+
+            return (false, "", lastError);
+        }
+
+        private async Task EnsureCoreApiConnectedAsync()
+        {
+            string[] coreCandidateUrls = ["https://localhost:7143/", "http://localhost:5050/", "http://localhost:5000/"];
+            foreach (var url in coreCandidateUrls)
+            {
+                try
+                {
+                    using var testClient = CreateHttpClient(url);
+                    var testRes = await testClient.GetAsync("api/san-pham?page=1&pageSize=1");
+                    if (testRes.IsSuccessStatusCode)
+                    {
+                        SwitchPort(url);
+                        break;
+                    }
+                }
+                catch { }
             }
         }
 
