@@ -34,6 +34,7 @@ namespace NexusRetail.WinForms.Services
         public static WinFormsApiClient Instance => _instance.Value;
 
         private HttpClient _client;
+        private string? _token;
         public string BaseUrl { get; set; } = "https://localhost:7143/";
         public string? CurrentUser { get; set; }
         public string? CurrentRole { get; set; }
@@ -63,7 +64,20 @@ namespace NexusRetail.WinForms.Services
             {
                 BaseUrl = newBaseUrl;
                 _client = CreateHttpClient(newBaseUrl);
+                if (!string.IsNullOrEmpty(_token))
+                {
+                    _client.DefaultRequestHeaders.Authorization = 
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _token);
+                }
             }
+        }
+
+        public void Logout()
+        {
+            CurrentUser = null;
+            CurrentRole = null;
+            _token = null;
+            _client.DefaultRequestHeaders.Authorization = null;
         }
 
         private static readonly string[] AuthCandidateUrls = [
@@ -99,11 +113,12 @@ namespace NexusRetail.WinForms.Services
                         var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
                         CurrentUser = result?.Username ?? username;
                         CurrentRole = result?.Role ?? "Staff";
+                        _token = result?.Token;
 
-                        if (!string.IsNullOrEmpty(result?.Token))
+                        if (!string.IsNullOrEmpty(_token))
                         {
                             _client.DefaultRequestHeaders.Authorization = 
-                                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
+                                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _token);
                         }
 
                         // Đồng thời tự động phát hiện và kết nối cổng Core API đang chạy (7143, 5050 hoặc 5000)

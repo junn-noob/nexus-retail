@@ -7,6 +7,7 @@ namespace NexusRetail.WinForms.Forms
         private readonly string _username;
         private readonly string _role;
         private readonly System.Windows.Forms.Timer _clockTimer;
+        public bool IsLogoutRequested { get; private set; }
 
         public frmMain(string username, string role)
         {
@@ -143,7 +144,13 @@ namespace NexusRetail.WinForms.Forms
 
         private void btnDangXuat_Click(object sender, EventArgs e)
         {
-            Close();
+            var confirm = MessageBox.Show("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?", "Xác nhận đăng xuất", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm == DialogResult.Yes)
+            {
+                IsLogoutRequested = true;
+                NexusRetail.WinForms.Services.WinFormsApiClient.Instance.Logout();
+                Close();
+            }
         }
     }
 }

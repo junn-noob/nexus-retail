@@ -15,6 +15,35 @@ namespace NexusRetail.WinForms.Forms
 
             UiTheme.BeautifyForm(this);
             ApplyCustomStyles();
+
+            KeyPreview = true;
+            KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Escape)
+                {
+                    Close();
+                }
+            };
+
+            txtTimKiemBan.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    btnTimKiemBan_Click(this, EventArgs.Empty);
+                }
+            };
+
+            txtTimKiemNhap.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    btnTimKiemNhap_Click(this, EventArgs.Empty);
+                }
+            };
         }
 
         private void ApplyCustomStyles()

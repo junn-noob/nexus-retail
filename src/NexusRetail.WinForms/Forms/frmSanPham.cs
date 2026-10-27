@@ -26,6 +26,31 @@ namespace NexusRetail.WinForms.Forms
                 btnXoa.ForeColor = Color.FromArgb(148, 163, 184);
             }
 
+            KeyPreview = true;
+            KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.F5)
+                {
+                    e.Handled = true;
+                    btnLamMoi_Click(this, EventArgs.Empty);
+                    LoadProductsAsync();
+                }
+                else if (e.KeyCode == Keys.Escape)
+                {
+                    Close();
+                }
+            };
+
+            txtTimKiem.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    btnTimKiem_Click(this, EventArgs.Empty);
+                }
+            };
+
             LoadProductsAsync();
         }
 

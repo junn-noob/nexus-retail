@@ -47,7 +47,19 @@ namespace NexusRetail.WinForms.Forms
             {
                 Hide();
                 var frmMain = new frmMain(user, role);
-                frmMain.FormClosed += (s, args) => Close();
+                frmMain.FormClosed += (s, args) =>
+                {
+                    if (frmMain.IsLogoutRequested)
+                    {
+                        txtPass.Clear();
+                        txtUser.Focus();
+                        Show();
+                    }
+                    else
+                    {
+                        Close();
+                    }
+                };
                 frmMain.Show();
             }
             else

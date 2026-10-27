@@ -13,6 +13,20 @@ namespace NexusRetail.WinForms.Forms
 
             UiTheme.BeautifyForm(this);
             ApplyCustomStyles();
+
+            KeyPreview = true;
+            KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.F5)
+                {
+                    e.Handled = true;
+                    btnXemBaoCao_Click(this, EventArgs.Empty);
+                }
+                else if (e.KeyCode == Keys.Escape)
+                {
+                    Close();
+                }
+            };
         }
 
         private void ApplyCustomStyles()
@@ -20,10 +34,10 @@ namespace NexusRetail.WinForms.Forms
             UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "BÁO CÁO THỐNG KÊ DOANH THU & KHO", "Thống kê doanh số bán hàng, hóa đơn nhập kho lớn nhất và xuất báo cáo Excel");
             UiTheme.ApplyModernGrid(dgvBaoCao);
 
-            UiTheme.ApplyPrimaryButton(btnXemBaoCao, "🔍 Xem Báo Cáo");
+            UiTheme.ApplyPrimaryButton(btnXemBaoCao, "🔍 Xem Báo Cáo (F5)");
             UiTheme.ApplySuccessButton(btnXuatExcel, "📥 Xuất File Excel (ClosedXML)");
             UiTheme.ApplySecondaryButton(btnBieuMauKho, "📄 Xem Biểu Mẫu BM03");
-            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng");
+            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng (Esc)");
 
             lblTongKet.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
             lblTongKet.ForeColor = UiTheme.PrimaryDark;
@@ -34,7 +48,8 @@ namespace NexusRetail.WinForms.Forms
             cboLoaiBaoCao.SelectedIndex = 0;
             numThang.Value = DateTime.Now.Month;
             numQuy.Value = (DateTime.Now.Month - 1) / 3 + 1;
-            numNam.Value = 2026;
+            int curYear = DateTime.Now.Year;
+            numNam.Value = (curYear >= numNam.Minimum && curYear <= numNam.Maximum) ? curYear : 2026;
 
             await TaiDuLieuBaoCaoAsync();
         }

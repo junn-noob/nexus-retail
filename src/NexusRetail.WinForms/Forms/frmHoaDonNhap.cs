@@ -21,6 +21,30 @@ namespace NexusRetail.WinForms.Forms
 
             UiTheme.BeautifyForm(this);
             ApplyCustomStyles();
+
+            KeyPreview = true;
+            KeyDown += FrmHoaDonNhap_KeyDown;
+        }
+
+        private void FrmHoaDonNhap_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F8)
+            {
+                e.Handled = true;
+                btnLuuNhapKho_Click(this, EventArgs.Empty);
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                if (_cart.Count > 0)
+                {
+                    var res = MessageBox.Show("Phiếu nhập đang có mặt hàng, bạn có chắc chắn muốn đóng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (res == DialogResult.Yes) Close();
+                }
+                else
+                {
+                    Close();
+                }
+            }
         }
 
         private void ApplyCustomStyles()

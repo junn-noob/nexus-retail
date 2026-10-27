@@ -20,9 +20,38 @@ namespace NexusRetail.WinForms.Forms
             UiTheme.BeautifyForm(this);
             ApplyCustomStyles();
 
+            KeyPreview = true;
+            KeyDown += FrmHoaDonBan_KeyDown;
+
             txtNhanVien.Text = _nhanVien;
             InitCartTable();
             LoadProductsAsync();
+        }
+
+        private void FrmHoaDonBan_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F8)
+            {
+                e.Handled = true;
+                btnThanhToanTienMat_Click(this, EventArgs.Empty);
+            }
+            else if (e.KeyCode == Keys.F9)
+            {
+                e.Handled = true;
+                btnThanhToanQR_Click(this, EventArgs.Empty);
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                if (_cartTable.Rows.Count > 0)
+                {
+                    var res = MessageBox.Show("Đơn hàng đang có sản phẩm, bạn có chắc chắn muốn đóng màn hình bán hàng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (res == DialogResult.Yes) Close();
+                }
+                else
+                {
+                    Close();
+                }
+            }
         }
 
         private void ApplyCustomStyles()
@@ -125,8 +154,11 @@ namespace NexusRetail.WinForms.Forms
                     MessageBox.Show($"Tổng số lượng đặt ({newSl}) vượt quá tồn kho ({sp.SoLuong})!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
+                decimal currentKm = existing.Field<decimal>("KhuyenMai");
+                decimal newKm = currentKm + km;
                 existing["SoLuong"] = newSl;
-                existing["ThanhTien"] = (newSl * sp.GiaBan) - km;
+                existing["KhuyenMai"] = newKm;
+                existing["ThanhTien"] = Math.Max(0, (newSl * sp.GiaBan) - newKm);
             }
             else
             {
