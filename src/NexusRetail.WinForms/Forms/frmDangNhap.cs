@@ -9,6 +9,9 @@ namespace NexusRetail.WinForms.Forms
         {
             InitializeComponent();
 
+            AcceptButton = btnDangNhap;
+            CancelButton = btnThoat;
+
             UiTheme.BeautifyForm(this);
             ApplyCustomStyles();
         }
