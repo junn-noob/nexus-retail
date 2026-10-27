@@ -41,7 +41,7 @@ namespace NexusRetail.WinForms.Forms
             var (success, role, message) = await WinFormsApiClient.Instance.LoginAsync(user, pass);
 
             btnDangNhap.Enabled = true;
-            btnDangNhap.Text = "ĐĂNG NHẬP HỆ THỐNG";
+            btnDangNhap.Text = "🔐 ĐĂNG NHẬP HỆ THỐNG";
 
             if (success)
             {

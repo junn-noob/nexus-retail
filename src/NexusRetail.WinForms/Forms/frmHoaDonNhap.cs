@@ -313,7 +313,7 @@ namespace NexusRetail.WinForms.Forms
             finally
             {
                 btnLuuNhapKho.Enabled = true;
-                btnLuuNhapKho.Text = "💾 Lưu & Hoàn tất nhập kho";
+                btnLuuNhapKho.Text = "💾 LƯU PHIẾU NHẬP (F8)";
             }
         }
 
