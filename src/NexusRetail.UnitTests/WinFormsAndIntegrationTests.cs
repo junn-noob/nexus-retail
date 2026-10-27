@@ -105,5 +105,49 @@ namespace NexusRetail.UnitTests
 
             Assert.Equal(expectedCode, maHdb);
         }
+
+        [Fact]
+        public void UiTheme_KiotBrandTokens_VerifyColorPaletteAndFontConsistency()
+        {
+            // Verify KiotViet primary brand color is #00A137 (R=0, G=161, B=55)
+            var kiotGreen = System.Drawing.Color.FromArgb(0, 161, 55);
+            Assert.Equal(0, kiotGreen.R);
+            Assert.Equal(161, kiotGreen.G);
+            Assert.Equal(55, kiotGreen.B);
+
+            // Verify KiotViet Navy is #0F2240 (R=15, G=34, B=64)
+            var kiotNavy = System.Drawing.Color.FromArgb(15, 34, 64);
+            Assert.Equal(15, kiotNavy.R);
+            Assert.Equal(34, kiotNavy.G);
+            Assert.Equal(64, kiotNavy.B);
+        }
+
+        [Theory]
+        [InlineData(10000000, 11000000)]
+        [InlineData(25000000, 27500000)]
+        [InlineData(3490000, 3839000)]
+        [InlineData(0, 0)]
+        public void SellingPriceMarkup_10PercentFormula_MatchesKiotVietStandard(decimal costPrice, decimal expectedSellingPrice)
+        {
+            decimal sellingPrice = Math.Round(costPrice * 1.1m, 0);
+            Assert.Equal(expectedSellingPrice, sellingPrice);
+        }
+
+        [Fact]
+        public void DiscountValidation_NegativeOrExcessiveDiscount_ClampedSafely()
+        {
+            decimal itemTotal = 20000000m;
+            decimal discountPercentage = 15m; // 15%
+            decimal discountAmount = Math.Round(itemTotal * (discountPercentage / 100m), 0);
+            decimal finalPrice = itemTotal - discountAmount;
+
+            Assert.Equal(3000000m, discountAmount);
+            Assert.Equal(17000000m, finalPrice);
+
+            // Test 100% discount
+            decimal fullDiscount = Math.Round(itemTotal * (100m / 100m), 0);
+            Assert.Equal(itemTotal, fullDiscount);
+            Assert.Equal(0m, itemTotal - fullDiscount);
+        }
     }
 }

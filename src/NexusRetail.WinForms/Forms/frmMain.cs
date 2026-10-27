@@ -1,3 +1,4 @@
+using NexusRetail.WinForms.Services;
 using NexusRetail.WinForms.UI;
 
 namespace NexusRetail.WinForms.Forms
@@ -46,82 +47,61 @@ namespace NexusRetail.WinForms.Forms
             lblBrand.ForeColor = Color.White;
             lblUserDisplay.ForeColor = UiTheme.PrimaryLight;
 
-            // Bán hàng POS (Primary Action - Nổi bật nhất)
-            btnBanHang.FlatStyle = FlatStyle.Flat;
-            btnBanHang.FlatAppearance.BorderSize = 0;
-            btnBanHang.BackColor = UiTheme.Primary;
-            btnBanHang.ForeColor = Color.White;
-            btnBanHang.Font = new Font("Segoe UI", 13f, FontStyle.Bold);
-            btnBanHang.Cursor = Cursors.Hand;
-            btnBanHang.FlatAppearance.MouseOverBackColor = UiTheme.PrimaryDark;
+            // KiotViet Ribbon Navigation Styles
+            UiTheme.ApplyPrimaryButton(btnBanHang, "⚡ BÁN HÀNG POS (F9)");
+            UiTheme.ApplySecondaryButton(btnSanPham, "📱 Quản Lý Sản Phẩm");
+            UiTheme.ApplySecondaryButton(btnNhapHang, "📦 Hóa Đơn Nhập Kho");
+            UiTheme.ApplySecondaryButton(btnTraCuu, "🔍 Tra Cứu Hóa Đơn & Sổ");
+            UiTheme.ApplySecondaryButton(btnBaoCao, "📊 Báo Cáo Doanh Thu");
+            UiTheme.ApplyDangerButton(btnDangXuat, "🚪 Đăng xuất");
 
-            // Nhập hàng
-            btnNhapHang.FlatStyle = FlatStyle.Flat;
-            btnNhapHang.FlatAppearance.BorderSize = 1;
-            btnNhapHang.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
-            btnNhapHang.BackColor = Color.White;
-            btnNhapHang.ForeColor = UiTheme.TextMain;
-            btnNhapHang.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
-            btnNhapHang.Cursor = Cursors.Hand;
-            btnNhapHang.FlatAppearance.MouseOverBackColor = Color.FromArgb(241, 245, 249);
+            // Beautify Card borders
+            pnlCard1.BackColor = Color.White;
+            pnlCard2.BackColor = Color.White;
+            pnlCard3.BackColor = Color.White;
+            pnlCard4.BackColor = Color.White;
+            pnlBanner.BackColor = Color.White;
 
-            // Sản phẩm
-            btnSanPham.FlatStyle = FlatStyle.Flat;
-            btnSanPham.FlatAppearance.BorderSize = 1;
-            btnSanPham.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
-            btnSanPham.BackColor = Color.White;
-            btnSanPham.ForeColor = UiTheme.TextMain;
-            btnSanPham.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
-            btnSanPham.Cursor = Cursors.Hand;
-            btnSanPham.FlatAppearance.MouseOverBackColor = Color.FromArgb(241, 245, 249);
+            LoadDashboardStatsAsync();
+        }
 
-            // Báo cáo
-            btnBaoCao.FlatStyle = FlatStyle.Flat;
-            btnBaoCao.FlatAppearance.BorderSize = 1;
-            btnBaoCao.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
-            btnBaoCao.BackColor = Color.White;
-            btnBaoCao.ForeColor = UiTheme.TextMain;
-            btnBaoCao.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
-            btnBaoCao.Cursor = Cursors.Hand;
-            btnBaoCao.FlatAppearance.MouseOverBackColor = Color.FromArgb(241, 245, 249);
+        private async void LoadDashboardStatsAsync()
+        {
+            try
+            {
+                var products = await WinFormsApiClient.Instance.GetProductsAsync();
+                lblCard3Val.Text = $"{products.Count} Sản Phẩm";
+                int lowStock = products.Count(p => p.SoLuong <= 5);
+                lblCard4Val.Text = lowStock > 0 ? $"⚠️ {lowStock} SP sắp hết" : "Tồn kho: Ổn định";
+                lblCard4Val.ForeColor = lowStock > 0 ? Color.FromArgb(220, 38, 38) : Color.FromArgb(16, 185, 129);
 
-            // Tra cứu
-            btnTraCuu.FlatStyle = FlatStyle.Flat;
-            btnTraCuu.FlatAppearance.BorderSize = 1;
-            btnTraCuu.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
-            btnTraCuu.BackColor = Color.White;
-            btnTraCuu.ForeColor = UiTheme.TextMain;
-            btnTraCuu.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
-            btnTraCuu.Cursor = Cursors.Hand;
-            btnTraCuu.FlatAppearance.MouseOverBackColor = Color.FromArgb(241, 245, 249);
-
-            // Đăng xuất
-            btnDangXuat.FlatStyle = FlatStyle.Flat;
-            btnDangXuat.FlatAppearance.BorderSize = 1;
-            btnDangXuat.FlatAppearance.BorderColor = Color.FromArgb(254, 202, 202);
-            btnDangXuat.BackColor = Color.FromArgb(254, 242, 242);
-            btnDangXuat.ForeColor = UiTheme.Danger;
-            btnDangXuat.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
-            btnDangXuat.Cursor = Cursors.Hand;
-            btnDangXuat.FlatAppearance.MouseOverBackColor = Color.FromArgb(254, 226, 226);
+                var invoices = await WinFormsApiClient.Instance.SearchSaleInvoicesAsync();
+                lblCard2Val.Text = $"{invoices.Count} Hóa Đơn";
+                decimal totalRev = invoices.Sum(i => i.TongTien);
+                lblCard1Val.Text = $"{totalRev:N0} ₫";
+            }
+            catch { }
         }
 
         private void btnBanHang_Click(object sender, EventArgs e)
         {
             var frm = new frmHoaDonBan(_username);
             frm.ShowDialog(this);
+            LoadDashboardStatsAsync();
         }
 
         private void btnSanPham_Click(object sender, EventArgs e)
         {
             var frm = new frmSanPham(_role);
             frm.ShowDialog(this);
+            LoadDashboardStatsAsync();
         }
 
         private void btnNhapHang_Click(object sender, EventArgs e)
         {
             var frm = new frmHoaDonNhap(_username);
             frm.ShowDialog(this);
+            LoadDashboardStatsAsync();
         }
 
         private void btnBaoCao_Click(object sender, EventArgs e)

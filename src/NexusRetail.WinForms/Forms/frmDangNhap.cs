@@ -18,10 +18,10 @@ namespace NexusRetail.WinForms.Forms
 
         private void ApplyCustomStyles()
         {
-            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSub, "DUY MOBILE RETAIL POS", "Cổng đăng nhập hệ thống quản trị & POS bán lẻ");
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSub, "KIOTVIET • DUY MOBILE POS", "Cổng đăng nhập hệ thống Quản lý Bán lẻ & Thu ngân");
 
             UiTheme.ApplyPrimaryButton(btnDangNhap, "🔐 ĐĂNG NHẬP HỆ THỐNG");
-            UiTheme.ApplySecondaryButton(btnThoat, "❌ Thoát");
+            UiTheme.ApplySecondaryButton(btnThoat, "❌ Thoát ứng dụng (Esc)");
         }
 
         private async void btnDangNhap_Click(object sender, EventArgs e)

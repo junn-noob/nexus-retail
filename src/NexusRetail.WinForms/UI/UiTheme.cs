@@ -12,31 +12,31 @@ namespace NexusRetail.WinForms.UI
     /// </summary>
     public static class UiTheme
     {
-        // 1. Color Palette Tokens
-        public static readonly Color Primary = Color.FromArgb(79, 70, 229);        // Indigo #4F46E5
-        public static readonly Color PrimaryDark = Color.FromArgb(67, 56, 202);    // #4338CA
-        public static readonly Color PrimaryLight = Color.FromArgb(224, 231, 255); // #E0E7FF
-        public static readonly Color DarkSlate = Color.FromArgb(15, 23, 42);       // #0F172A
-        public static readonly Color SurfaceNavy = Color.FromArgb(30, 41, 59);     // #1E293B
-        public static readonly Color Background = Color.FromArgb(248, 250, 252);   // #F8FAFC
+        // 1. Color Palette Tokens - Chuẩn KiotViet Brand 2026
+        public static readonly Color Primary = Color.FromArgb(0, 161, 55);         // KiotViet Green #00A137
+        public static readonly Color PrimaryDark = Color.FromArgb(0, 136, 46);     // #00882E
+        public static readonly Color PrimaryLight = Color.FromArgb(232, 248, 238); // #E8F8EE
+        public static readonly Color DarkSlate = Color.FromArgb(15, 34, 64);        // KiotViet Dark Navy #0F2240
+        public static readonly Color SurfaceNavy = Color.FromArgb(30, 41, 59);      // #1E293B
+        public static readonly Color Background = Color.FromArgb(241, 245, 249);    // #F1F5F9
         public static readonly Color CardWhite = Color.FromArgb(255, 255, 255);
-        public static readonly Color BorderLight = Color.FromArgb(226, 232, 240);  // #E2E8F0
-        public static readonly Color Success = Color.FromArgb(16, 185, 129);       // #10B981 Emerald
-        public static readonly Color SuccessDark = Color.FromArgb(5, 150, 105);
-        public static readonly Color Warning = Color.FromArgb(245, 158, 11);       // #F59E0B Amber
-        public static readonly Color Danger = Color.FromArgb(239, 68, 68);         // #EF4444 Rose
-        public static readonly Color DangerDark = Color.FromArgb(220, 38, 38);
+        public static readonly Color BorderLight = Color.FromArgb(226, 232, 240);   // #E2E8F0
+        public static readonly Color Success = Color.FromArgb(0, 161, 55);          // KiotViet Green
+        public static readonly Color SuccessDark = Color.FromArgb(0, 136, 46);
+        public static readonly Color Warning = Color.FromArgb(245, 158, 11);        // #F59E0B Amber
+        public static readonly Color Danger = Color.FromArgb(220, 38, 38);          // #DC2626
+        public static readonly Color DangerDark = Color.FromArgb(185, 28, 28);
         public static readonly Color TextMain = Color.FromArgb(15, 23, 42);
-        public static readonly Color TextMuted = Color.FromArgb(100, 116, 139);    // #64748B
+        public static readonly Color TextMuted = Color.FromArgb(100, 116, 139);     // #64748B
         public static readonly Color RowAlternate = Color.FromArgb(248, 250, 252);
-        public static readonly Color SelectionRow = Color.FromArgb(238, 242, 255); // Soft Indigo
+        public static readonly Color SelectionRow = Color.FromArgb(232, 248, 238);  // Kiot Soft Green
 
         // 2. Typography
         public static readonly Font FontSm = new Font("Segoe UI", 9f, FontStyle.Regular);
         public static readonly Font FontRegular = new Font("Segoe UI", 10f, FontStyle.Regular);
         public static readonly Font FontBold = new Font("Segoe UI", 10f, FontStyle.Bold);
         public static readonly Font FontButton = new Font("Segoe UI", 10.5f, FontStyle.Bold);
-        public static readonly Font FontHeader = new Font("Segoe UI", 13.5f, FontStyle.Bold);
+        public static readonly Font FontHeader = new Font("Segoe UI", 14f, FontStyle.Bold);
         public static readonly Font FontTitle = new Font("Segoe UI", 16f, FontStyle.Bold);
         public static readonly Font FontDisplay = new Font("Segoe UI", 20f, FontStyle.Bold);
 
