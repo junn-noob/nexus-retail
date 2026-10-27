@@ -50,7 +50,7 @@ th{color:var(--mute);font-weight:600;background:#fafaff;white-space:nowrap}tr:la
 @media(max-width:900px){body{grid-template-columns:1fr}.side{position:fixed;z-index:50;width:260px;left:0;transform:translateX(-100%);transition:.25s;box-shadow:var(--sh)}.side.open{transform:none}.scrim.on{display:block;position:fixed;inset:0;background:rgba(18,16,44,.4);z-index:40}.burger{display:block}.two{grid-template-columns:1fr}.f{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* ---- Bổ sung cho MVC ---- */
+/* MVC Enhancements */
 a.nv{text-decoration:none}a.btn{display:inline-block;text-decoration:none}
 .ra a{padding:6px 12px;border-radius:9px;font-size:13px;font-weight:600;background:var(--bg);text-decoration:none;color:inherit}
 .ra a:hover{background:var(--soft);color:var(--ac)}.ra form{display:contents}

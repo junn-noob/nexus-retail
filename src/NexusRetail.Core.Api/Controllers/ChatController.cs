@@ -50,9 +50,7 @@ namespace NexusRetail.Core.Api.Controllers
             string originalMessage = request.Message.Trim();
             string text = originalMessage.ToLowerInvariant();
 
-            // =========================================================
-            // 1. TRA CỨU ĐƠN HÀNG THEO SỐ ĐIỆN THOẠI
-            // =========================================================
+            // 1. Tra cứu đơn hàng theo số điện thoại
             var phoneMatch = Regex.Match(text, @"(?<!\d)(?:\+?84|0)(?:3|5|7|8|9)\d{8}(?!\d)");
             if (phoneMatch.Success)
             {
@@ -103,9 +101,7 @@ namespace NexusRetail.Core.Api.Controllers
                 });
             }
 
-            // =========================================================
-            // 2. PHÂN TÍCH Ý ĐỊNH, THƯƠNG HIỆU & NGÂN SÁCH CỦA KHÁCH
-            // =========================================================
+            // 2. Phân tích ý định, thương hiệu & ngân sách của khách
             decimal? maxBudget = ExtractBudget(text);
 
             string? detectedBrand = null;
@@ -121,9 +117,7 @@ namespace NexusRetail.Core.Api.Controllers
             bool isFold = text.Contains("gập") || text.Contains("fold") || text.Contains("flip");
             bool isCheap = text.Contains("giá rẻ") || text.Contains("tiết kiệm") || text.Contains("học sinh") || text.Contains("sinh viên") || text.Contains("bình dân") || text.Contains("dưới 5") || text.Contains("dưới 4");
 
-            // =========================================================
-            // 3. TRUY VẤN VÀ CHẤM ĐIỂM SẢN PHẨM PHÙ HỢP TỪ DATABASE
-            // =========================================================
+            // 3. Truy vấn và chấm điểm sản phẩm phù hợp từ database
             var inStockProducts = await _db.SanPhams
                 .AsNoTracking()
                 .Include(sp => sp.MaNhanHieuNavigation)
@@ -245,9 +239,7 @@ namespace NexusRetail.Core.Api.Controllers
                 }
             }
 
-            // =========================================================
-            // 4. XÂY DỰNG DANH MỤC CONTEXT & SYSTEM PROMPT CHO AI
-            // =========================================================
+            // 4. Xây dựng danh mục context & system prompt cho AI
             var topCandidateProducts = relevantProducts.Take(8).ToList();
             string catalogText = string.Join("\n", topCandidateProducts.Select(p =>
                 $"- Mã SP: {p.MaSp} | Tên: {p.TenSp} | Hãng: {p.MaNhanHieuNavigation?.TenNhanHieu ?? ""} | Giá bán: {p.GiaBan:N0} ₫ | Tồn kho: {p.SoLuong} | Đặc điểm: {p.GhiChu ?? "Chính hãng VN/A"}"
@@ -267,14 +259,10 @@ namespace NexusRetail.Core.Api.Controllers
                 5. Cam kết chính hãng 100%, bảo hành 12-18 tháng, hỗ trợ trả góp 0% và thu cũ đổi mới trợ giá cao.
                 """;
 
-            // =========================================================
-            // 5. GỌI GEMINI HOẶC DÙNG SMART CATALOG FALLBACK
-            // =========================================================
+            // 5. Gọi Gemini hoặc dùng smart catalog fallback
             var (geminiReply, source, note) = await _geminiService.GenerateConsultationAsync(systemPrompt, originalMessage);
 
-            // =========================================================
-            // 6. KHỚP SẢN PHẨM TRẢ VỀ FRONTEND (MATCHED CARDS)
-            // =========================================================
+            // 6. Khớp sản phẩm trả về frontend (matched cards)
             var matchedItems = new List<object>();
             var selectedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -318,9 +306,7 @@ namespace NexusRetail.Core.Api.Controllers
                 }
             }
 
-            // =========================================================
-            // 7. GHI LOG TƯ VẤN VÀO CƠ SỞ DỮ LIỆU
-            // =========================================================
+            // 7. Ghi log tư vấn vào cơ sở dữ liệu
             try
             {
                 string? topMaSp = topCandidateProducts.FirstOrDefault()?.MaSp;

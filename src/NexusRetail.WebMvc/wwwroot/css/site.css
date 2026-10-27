@@ -1,7 +1,4 @@
-/* ==========================================================================
-   DUY MOBILE - PREMIUM E-COMMERCE DESIGN SYSTEM
-   Modern, Sleek, Public-Grade UI Theme built on Bootstrap 5
-   ========================================================================== */
+/* Duy Mobile - Premium E-Commerce Design System */
 
 :root {
     --dm-primary: #4f46e5;
@@ -27,9 +24,7 @@
     --dm-shadow-hover: 0 20px 40px -8px rgba(79, 70, 229, 0.18);
 }
 
-/* ==========================================================================
-   GLOBAL RESET & TYPOGRAPHY
-   ========================================================================== */
+/* Global Reset & Typography */
 body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background-color: var(--dm-bg);
@@ -64,9 +59,7 @@ a:hover {
     background: #94a3b8;
 }
 
-/* ==========================================================================
-   TOP ANNOUNCEMENT BAR
-   ========================================================================== */
+/* Top Announcement Bar */
 .dm-topbar {
     background: #0f172a;
     color: #94a3b8;
@@ -84,9 +77,7 @@ a:hover {
     color: #ffffff;
 }
 
-/* ==========================================================================
-   MAIN HEADER & NAVIGATION
-   ========================================================================== */
+/* Main Header & Navigation */
 .dm-navbar {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
@@ -237,9 +228,7 @@ a:hover {
     font-weight: 800;
 }
 
-/* ==========================================================
-   HERO BANNER & TRUST STRIP
-   ========================================================== */
+/* Hero Banner & Trust Strip */
 .dm-hero {
     position: relative;
     background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
@@ -336,9 +325,7 @@ a:hover {
     flex-shrink: 0;
 }
 
-/* ==========================================================
-   PRODUCT CARD & CATALOG GRID
-   ========================================================== */
+/* Product Card & Catalog Grid */
 .dm-filter-card {
     background: #ffffff;
     border-radius: var(--dm-radius);
@@ -526,9 +513,7 @@ a:hover {
     transform: scale(1.05);
 }
 
-/* ==========================================================
-   MODAL QUICK VIEW & COMPARISON
-   ========================================================== */
+/* Modal Quick View & Comparison */
 .dm-modal-content {
     border-radius: var(--dm-radius-lg);
     border: 1px solid var(--dm-border);
@@ -555,9 +540,7 @@ a:hover {
     font-weight: 600;
 }
 
-/* ==========================================================
-   FLOATING GEMINI AI CHATBOT
-   ========================================================== */
+/* Floating Gemini AI Chatbot */
 .dm-chat-fab {
     position: fixed;
     bottom: 28px;
@@ -677,9 +660,7 @@ a:hover {
     50% { opacity: 1; }
 }
 
-/* ==========================================================
-   FOOTER
-   ========================================================== */
+/* Footer */
 .dm-footer {
     background: #0f172a;
     color: #94a3b8;

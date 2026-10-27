@@ -25,10 +25,9 @@ namespace NexusRetail.Core.Api.Controllers
         }
         #endregion
 
-        // =========================================================================
-        // =========================================================================
-        // BR-06: BÁO CÁO TOP 5 SẢN PHẨM BÁN CHẠY NHẤT THEO THÁNG / NĂM
-        // =========================================================================
+        /// <summary>
+        /// Báo cáo top 5 sản phẩm bán chạy nhất theo tháng / năm
+        /// </summary>
         [HttpGet("sp-ban-chay")]
         public async Task<IActionResult> laySpBanChay([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
@@ -133,9 +132,9 @@ namespace NexusRetail.Core.Api.Controllers
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_Top5_SanPham_Thang_{m}_{y}.xlsx");
         }
 
-        // =========================================================================
-        // BR-07: BÁO CÁO HÓA ĐƠN NHẬP LỚN NHẤT THEO QUÝ / NĂM
-        // =========================================================================
+        /// <summary>
+        /// Báo cáo hóa đơn nhập lớn nhất theo quý / năm
+        /// </summary>
         [HttpGet("hdn-lon-nhat")]
         [HttpGet("nhap-lon-nhat-quy")]
         public async Task<IActionResult> layHdnLonNhat([FromQuery] int? quarter = null, [FromQuery] int? quy = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
@@ -216,9 +215,9 @@ namespace NexusRetail.Core.Api.Controllers
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_HDN_LonNhat_Quy_{q}_{y}.xlsx");
         }
 
-        // =========================================================================
-        // BR-08: BÁO CÁO DOANH SỐ BÁN THEO NĂM
-        // =========================================================================
+        /// <summary>
+        /// Báo cáo tổng kết doanh số bán theo năm
+        /// </summary>
         [HttpGet("doanh-so-nam")]
         public async Task<IActionResult> layDoanhSoNam([FromQuery] int? year = null, [FromQuery] int? nam = null)
         {
@@ -286,9 +285,9 @@ namespace NexusRetail.Core.Api.Controllers
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_DoanhSo_Nam_{y}.xlsx");
         }
 
-        // =========================================================================
-        // BR-09: TOP 5 NHÂN VIÊN CÓ DOANH SỐ THẤP NHẤT TRONG THÁNG
-        // =========================================================================
+        /// <summary>
+        /// Báo cáo top 5 nhân viên có doanh số thấp nhất trong tháng
+        /// </summary>
         [HttpGet("nv-doanh-so-thap")]
         [HttpGet("nv-ban-it-nhat")]
         public async Task<IActionResult> layNvDoanhSoThap([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
