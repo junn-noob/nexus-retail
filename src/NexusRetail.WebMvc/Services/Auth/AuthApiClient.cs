@@ -18,7 +18,6 @@ namespace NexusRetail.WebMvc.Services.Auth
         {
             username = username.Trim();
 
-            // 1. Thử gọi IdentityApi
             try
             {
                 var response = await _client.PostAsJsonAsync("api/auth/login", new
@@ -42,62 +41,33 @@ namespace NexusRetail.WebMvc.Services.Auth
                         };
                     }
                 }
-                else
+
+                string errorMsg = "Tên đăng nhập hoặc mật khẩu không chính xác!";
+                try
                 {
-                    // Kiểm tra xem có phải tài khoản demo dự phòng không
-                    if (CheckDemoAccount(username, password, out var demoRole, out var demoEmail))
+                    var errObj = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    if (errObj.TryGetProperty("message", out var m))
                     {
-                        return new AuthResult
-                        {
-                            Success = true,
-                            Username = username,
-                            Email = demoEmail,
-                            Role = demoRole,
-                            Token = "demo-local-token"
-                        };
+                        errorMsg = m.GetString() ?? errorMsg;
                     }
-
-                    string errorMsg = "Tên đăng nhập hoặc mật khẩu không chính xác!";
-                    try
-                    {
-                        var errObj = await response.Content.ReadFromJsonAsync<JsonElement>();
-                        if (errObj.TryGetProperty("message", out var m))
-                        {
-                            errorMsg = m.GetString() ?? errorMsg;
-                        }
-                    }
-                    catch { }
-
-                    return new AuthResult
-                    {
-                        Success = false,
-                        ErrorMessage = errorMsg
-                    };
                 }
+                catch { }
+
+                return new AuthResult
+                {
+                    Success = false,
+                    ErrorMessage = errorMsg
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("[AuthApiClient] IdentityApi không phản hồi ({Ex}). Kiểm tra tài khoản Demo dự phòng.", ex.Message);
-            }
-
-            // 2. Fallback sang Demo Account nếu IdentityApi không khả dụng
-            if (CheckDemoAccount(username, password, out var role, out var email))
-            {
+                _logger.LogError(ex, "[AuthApiClient] Lỗi kết nối đến dịch vụ xác thực IdentityApi.");
                 return new AuthResult
                 {
-                    Success = true,
-                    Username = username,
-                    Email = email,
-                    Role = role,
-                    Token = "demo-local-token"
+                    Success = false,
+                    ErrorMessage = "Không thể kết nối đến máy chủ xác thực tài khoản. Vui lòng kiểm tra dịch vụ và thử lại!"
                 };
             }
-
-            return new AuthResult
-            {
-                Success = false,
-                ErrorMessage = "Tên đăng nhập hoặc mật khẩu không chính xác!"
-            };
         }
 
         public async Task<(bool Success, string? ErrorMessage)> RegisterAsync(RegisterDto dto)
@@ -133,40 +103,9 @@ namespace NexusRetail.WebMvc.Services.Auth
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("[AuthApiClient] IdentityApi không phản hồi ({Ex}). Cho phép tài khoản hoạt động ở chế độ Demo.", ex.Message);
-                return (true, null);
+                _logger.LogError(ex, "[AuthApiClient] Lỗi kết nối đến dịch vụ IdentityApi khi đăng ký.");
+                return (false, "Không thể kết nối đến máy chủ xác thực tài khoản. Vui lòng thử lại sau!");
             }
-        }
-
-        private static bool CheckDemoAccount(string username, string password, out string role, out string email)
-        {
-            role = "Customer";
-            email = $"{username}@duymobile.vn";
-
-            var u = username.Trim().ToLower();
-
-            if (u == "admin" && password == "admin123")
-            {
-                role = "Admin";
-                email = "admin@duymobile.vn";
-                return true;
-            }
-
-            if ((u == "nhanvien" || u == "staff") && password == "123456")
-            {
-                role = "Staff";
-                email = "nhanvien@duymobile.vn";
-                return true;
-            }
-
-            if ((u == "khachhang" || u == "customer") && password == "123456")
-            {
-                role = "Customer";
-                email = "khachhang@duymobile.vn";
-                return true;
-            }
-
-            return false;
         }
     }
 }

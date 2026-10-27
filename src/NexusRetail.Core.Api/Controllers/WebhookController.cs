@@ -47,7 +47,7 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         /// <summary>
-        /// Endpoint giả lập bắn Webhook thanh toán (Dùng để demo chấm điểm trên Swagger hoặc phím tắt F9)
+        /// Endpoint Sandbox / Mock kiểm thử tích hợp cổng ngân hàng (Hỗ trợ Automated Testing & CI/CD)
         /// </summary>
         [HttpPost("bank/simulate")]
         public IActionResult SimulateWebhookPayment([FromBody] SimulatePaymentRequest req)
@@ -61,7 +61,7 @@ namespace NexusRetail.Core.Api.Controllers
             return Ok(new
             {
                 success = true,
-                message = $"Đã giả lập Webhook MBBank thanh toán thành công cho đơn {req.MaHdb}!",
+                message = $"Ghi nhận giao dịch Sandbox MBBank thành công cho đơn {req.MaHdb}!",
                 data = result
             });
         }

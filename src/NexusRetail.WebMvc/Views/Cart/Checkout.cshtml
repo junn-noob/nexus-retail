@@ -54,12 +54,33 @@
             <div class="card border-0 shadow-sm rounded-4 p-4">
                 <h5 class="fw-bold text-dark mb-3">2. Phương thức thanh toán</h5>
                 
-                <div class="p-3 border border-2 border-primary rounded-3 bg-primary-subtle d-flex align-items-center gap-3">
-                    <input class="form-check-input mt-0 fs-5" type="radio" checked id="codPayment" name="paymentOption" />
-                    <label class="form-check-label text-dark fw-bold" for="codPayment">
-                        💵 Thanh toán khi nhận hàng (COD)
-                        <span class="d-block text-secondary small fw-normal">Kiểm tra sản phẩm nguyên seal trước khi thanh toán cho shipper</span>
-                    </label>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                        <input class="form-check-input mt-0 fs-5" type="radio" checked id="codPayment" name="paymentOption" value="COD" />
+                        <label class="form-check-label text-dark fw-bold flex-grow-1" for="codPayment">
+                            💵 Thanh toán khi nhận hàng (COD)
+                            <span class="d-block text-secondary small fw-normal">Kiểm tra sản phẩm nguyên seal trước khi thanh toán cho shipper</span>
+                        </label>
+                        <span class="badge bg-success-subtle text-success">Khuyên dùng</span>
+                    </div>
+
+                    <div class="p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                        <input class="form-check-input mt-0 fs-5" type="radio" id="qrPayment" name="paymentOption" value="VietQR" />
+                        <label class="form-check-label text-dark fw-bold flex-grow-1" for="qrPayment">
+                            📱 Chuyển khoản VietQR MBBank 24/7
+                            <span class="d-block text-secondary small fw-normal">Quét mã QR từ mọi App ngân hàng, xác nhận tự động sau 3 giây</span>
+                        </label>
+                        <span class="badge bg-primary-subtle text-primary">Nhanh nhất</span>
+                    </div>
+
+                    <div class="p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                        <input class="form-check-input mt-0 fs-5" type="radio" id="cardPayment" name="paymentOption" value="Card" />
+                        <label class="form-check-label text-dark fw-bold flex-grow-1" for="cardPayment">
+                            💳 Thẻ tín dụng / Ghi nợ (Visa, Mastercard)
+                            <span class="d-block text-secondary small fw-normal">Hỗ trợ trả góp 0% lãi suất qua thẻ ngân hàng</span>
+                        </label>
+                        <span class="badge bg-secondary-subtle text-secondary">0% Phí</span>
+                    </div>
                 </div>
             </div>
         </div>

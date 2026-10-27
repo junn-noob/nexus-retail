@@ -1,6 +1,7 @@
 using NexusRetail.Shared.DTOs.NhapHang;
 using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 using System.Globalization;
 
 namespace NexusRetail.WinForms.Forms
@@ -17,6 +18,23 @@ namespace NexusRetail.WinForms.Forms
         {
             _currentUser = currentUser;
             InitializeComponent();
+
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+        }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "LẬP HÓA ĐƠN NHẬP KHO THIẾT BỊ", "Cập nhật tồn kho (BR-01), cập nhật giá nhập (BR-02) và tự động tính giá niêm yết (BR-03)");
+            UiTheme.ApplyModernGrid(dgvChiTiet);
+
+            UiTheme.ApplyPrimaryButton(btnThemSp, "➕ Thêm Vào Phiếu Nhập");
+            UiTheme.ApplyDangerButton(btnXoaDong, "🗑️ Xóa Dòng Đang Chọn");
+            UiTheme.ApplySuccessButton(btnLuuNhapKho, "💾 LƯU PHIẾU NHẬP KHO (F8)");
+            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng");
+
+            lblTongTien.Font = UiTheme.FontDisplay;
+            lblTongTien.ForeColor = UiTheme.Danger;
         }
 
         private async void frmHoaDonNhap_Load(object sender, EventArgs e)
@@ -219,7 +237,7 @@ namespace NexusRetail.WinForms.Forms
 
                 if (success)
                 {
-                    string effectiveMaHdn = !string.IsNullOrWhiteSpace(maHdn) ? maHdn : $"HDN-{DateTime.Now:yyyy-MMdd}";
+                    string effectiveMaHdn = !string.IsNullOrWhiteSpace(maHdn) ? maHdn : string.Empty;
 
                     // Trích xuất danh sách sản phẩm sang dữ liệu biểu mẫu BM01
                     var bieuMauItems = _cart.Select((x, idx) => new ItemBieuMauNhap

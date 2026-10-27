@@ -8,8 +8,11 @@
 
 # Private scripts & Bank crawler bots
 scripts/
+scratch/
 login_data.json
 history.json
+appsettings.Local.json
+appsettings.*.Local.json
 
 # User-specific files
 *.rsuser

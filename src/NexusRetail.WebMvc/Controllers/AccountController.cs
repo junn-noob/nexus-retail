@@ -31,26 +31,7 @@ namespace NexusRetail.WebMvc.Controllers
             return View(new LoginDto { ReturnUrl = returnUrl });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> QuickLogin(string role, string? returnUrl = null)
-        {
-            string username = "khachhang";
-            string password = "123456";
 
-            if (string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase))
-            {
-                username = "admin";
-                password = "admin123";
-            }
-            else if (string.Equals(role, "staff", StringComparison.OrdinalIgnoreCase) ||
-                     string.Equals(role, "nhanvien", StringComparison.OrdinalIgnoreCase))
-            {
-                username = "nhanvien";
-                password = "123456";
-            }
-
-            return await ExecuteLoginAsync(username, password, false, returnUrl, null);
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]

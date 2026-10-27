@@ -1,4 +1,5 @@
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 
 namespace NexusRetail.WinForms.Forms
 {
@@ -7,6 +8,17 @@ namespace NexusRetail.WinForms.Forms
         public frmDangNhap()
         {
             InitializeComponent();
+
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+        }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSub, "DUY MOBILE RETAIL POS", "Cổng đăng nhập hệ thống quản trị & POS bán lẻ");
+
+            UiTheme.ApplyPrimaryButton(btnDangNhap, "🔐 ĐĂNG NHẬP HỆ THỐNG");
+            UiTheme.ApplySecondaryButton(btnThoat, "❌ Thoát");
         }
 
         private async void btnDangNhap_Click(object sender, EventArgs e)
@@ -39,20 +51,6 @@ namespace NexusRetail.WinForms.Forms
             {
                 MessageBox.Show(message, "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void btnQuickAdmin_Click(object sender, EventArgs e)
-        {
-            txtUser.Text = "admin";
-            txtPass.Text = "admin123";
-            btnDangNhap_Click(sender, e);
-        }
-
-        private void btnQuickStaff_Click(object sender, EventArgs e)
-        {
-            txtUser.Text = "nhanvien";
-            txtPass.Text = "123456";
-            btnDangNhap_Click(sender, e);
         }
 
         private void btnThoat_Click(object sender, EventArgs e)

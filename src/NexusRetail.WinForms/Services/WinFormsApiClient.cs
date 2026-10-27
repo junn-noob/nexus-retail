@@ -23,6 +23,11 @@ namespace NexusRetail.WinForms.Services
         public string MaHdb { get; set; } = "";
     }
 
+    public class NextInboundCodeResult
+    {
+        public string MaHdn { get; set; } = "";
+    }
+
     public class WinFormsApiClient
     {
         private static readonly Lazy<WinFormsApiClient> _instance = new(() => new WinFormsApiClient());
@@ -75,25 +80,22 @@ namespace NexusRetail.WinForms.Services
                     return (true, CurrentRole, "Đăng nhập thành công!");
                 }
 
-                // Fallback demo
-                if (username == "admin" && password == "admin123")
+                string err = "Tên đăng nhập hoặc mật khẩu không chính xác!";
+                try
                 {
-                    CurrentUser = "admin";
-                    CurrentRole = "Admin";
-                    return (true, "Admin", "Đăng nhập quyền Admin thành công (Demo)!");
+                    var errObj = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+                    if (errObj.TryGetProperty("message", out var m))
+                    {
+                        err = m.GetString() ?? err;
+                    }
                 }
-                if (username == "nhanvien" && password == "123456")
-                {
-                    CurrentUser = "nhanvien";
-                    CurrentRole = "Staff";
-                    return (true, "Staff", "Đăng nhập quyền Nhân viên thành công (Demo)!");
-                }
+                catch { }
 
-                return (false, "", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+                return (false, "", err);
             }
-            catch
+            catch (Exception ex)
             {
-                // Thử fallback sang cổng 5050 nếu cổng 7143 không phản hồi
+                // Thử kết nối cổng thay thế (5050) nếu cổng chính 7143 không phản hồi
                 if (BaseUrl.Contains("7143"))
                 {
                     try
@@ -106,27 +108,13 @@ namespace NexusRetail.WinForms.Services
                             var result = await altRes.Content.ReadFromJsonAsync<AuthResponseDto>();
                             CurrentUser = result?.Username ?? username;
                             CurrentRole = result?.Role ?? "Staff";
-                            return (true, CurrentRole, "Đăng nhập thành công (Cổng 5050)!");
+                            return (true, CurrentRole, "Đăng nhập thành công!");
                         }
                     }
                     catch { }
                 }
 
-                // Cho phép offline demo nếu CoreApi chưa chạy
-                if (username == "admin" && password == "admin123")
-                {
-                    CurrentUser = "admin";
-                    CurrentRole = "Admin";
-                    return (true, "Admin", "Đăng nhập chế độ Offline thành công!");
-                }
-                if (username == "nhanvien" && password == "123456")
-                {
-                    CurrentUser = "nhanvien";
-                    CurrentRole = "Staff";
-                    return (true, "Staff", "Đăng nhập chế độ Offline thành công!");
-                }
-
-                return (false, "", "Không thể kết nối đến máy chủ Backend!");
+                return (false, "", $"Không thể kết nối đến máy chủ Backend ({ex.Message})!");
             }
         }
 
@@ -262,13 +250,13 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
-        // 5. GIẢ LẬP BẮN WEBHOOK TEST (F9)
+        // 5. CỔNG SANDBOX / TEST GATEWAY
         public async Task<(bool Success, string Message)> SimulateBankPaymentAsync(string maHdb, decimal amount)
         {
             try
             {
                 var response = await _client.PostAsJsonAsync("api/webhook/bank/simulate", new { MaHdb = maHdb, Amount = amount });
-                return (response.IsSuccessStatusCode, "Đã gửi Webhook giả lập MBBank thành công!");
+                return (response.IsSuccessStatusCode, "Đã gửi tín hiệu xác nhận Sandbox MBBank!");
             }
             catch (Exception ex)
             {
@@ -276,19 +264,34 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
-        // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB12)
-        public async Task<string> GetNextInvoiceCodeAsync()
+        // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB13)
+        public async Task<string?> GetNextInvoiceCodeAsync()
         {
             try
             {
-                var res = await _client.GetFromJsonAsync<NextCodeResult>("api/BanHang/next-ma-hdb");
+                var res = await _client.GetFromJsonAsync<NextCodeResult>("api/ban-hang/next-ma-hdb");
                 if (!string.IsNullOrWhiteSpace(res?.MaHdb))
                 {
                     return res.MaHdb;
                 }
             }
             catch { }
-            return "HDB12";
+            return null;
+        }
+
+        // Lấy mã hóa đơn nhập kế tiếp chuẩn từ Server (Ví dụ: HDN04)
+        public async Task<string?> GetNextInboundInvoiceCodeAsync()
+        {
+            try
+            {
+                var res = await _client.GetFromJsonAsync<NextInboundCodeResult>("api/nhap-hang/next-ma-hdn");
+                if (!string.IsNullOrWhiteSpace(res?.MaHdn))
+                {
+                    return res.MaHdn;
+                }
+            }
+            catch { }
+            return null;
         }
 
         // 6. NHẬP HÀNG - LẤY NHÀ CUNG CẤP & NHÂN VIÊN

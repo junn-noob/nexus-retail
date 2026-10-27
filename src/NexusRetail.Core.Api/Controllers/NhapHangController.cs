@@ -166,14 +166,22 @@ namespace NexusRetail.Core.Api.Controllers
 
                 foreach (var item in dto.DanhSachMon)
                 {
-                    var sp = await _db.SanPhams.AsNoTracking().FirstOrDefaultAsync(x => x.MaSp == item.MaSp);
+                    var sp = await _db.SanPhams.FirstOrDefaultAsync(x => x.MaSp == item.MaSp);
                     if (sp == null)
                     {
                         await tx.RollbackAsync();
                         return BadRequest(new { message = $"Không tìm thấy sản phẩm mã '{item.MaSp}' để nhập hàng!" });
                     }
 
-                    // BR-01, BR-02, BR-03: Được thực thi tự động qua trigger trg_ChiTietHDN_Change (Tăng tồn kho, cập nhật giá nhập và tính giá bán = 1.1 * giá nhập)
+                    // BR-01, BR-02, BR-03: Trên SQL Server, trigger trg_ChiTietHDN_Change tự động thực thi.
+                    // Nếu đang chạy môi trường test InMemory, thực hiện trực tiếp trong bộ nhớ.
+                    if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+                    {
+                        sp.SoLuong += item.SoLuong;
+                        sp.GiaNhap = item.DonGia;
+                        sp.GiaBan = Math.Round(item.DonGia * 1.10m, 0);
+                    }
+
                     // Tính thành tiền có chiết khấu/khuyến mãi nếu có
                     decimal thanhTien = item.SoLuong * item.DonGia * (1 - item.KhuyenMai / 100m);
                     tongTienHoaDon += thanhTien;

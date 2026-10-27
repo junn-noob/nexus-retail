@@ -215,7 +215,7 @@ namespace NexusRetail.WinForms.Forms
             this.txtGiaNhap.Name = "txtGiaNhap";
             this.txtGiaNhap.Size = new System.Drawing.Size(130, 23);
             this.txtGiaNhap.TabIndex = 5;
-            this.txtGiaNhap.Text = "10000000";
+            this.txtGiaNhap.Text = "";
             this.txtGiaNhap.TextChanged += new System.EventHandler(this.txtGiaNhap_TextChanged);
             // 
             // lblGiaNhap

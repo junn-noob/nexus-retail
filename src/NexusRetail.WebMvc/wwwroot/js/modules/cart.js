@@ -6,6 +6,27 @@
     "use strict";
 
     function showCartToast(msg, isSuccess = true) {
+        if (typeof Swal !== "undefined") {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "bottom-end",
+                showConfirmButton: false,
+                timer: 2600,
+                timerProgressBar: true,
+                background: "#0f172a",
+                color: "#ffffff",
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: isSuccess ? "success" : "error",
+                title: msg
+            });
+            return;
+        }
+
         let toastEl = document.getElementById("cartToast");
         if (!toastEl) {
             toastEl = document.createElement("div");

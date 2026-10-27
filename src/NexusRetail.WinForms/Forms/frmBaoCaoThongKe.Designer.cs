@@ -17,389 +17,369 @@ namespace NexusRetail.WinForms.Forms
 
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.pnlHeader = new System.Windows.Forms.Panel();
-            this.lblSubTitle = new System.Windows.Forms.Label();
-            this.lblTitle = new System.Windows.Forms.Label();
-            this.pnlControls = new System.Windows.Forms.Panel();
-            this.btnBieuMauKho = new System.Windows.Forms.Button();
-            this.btnXuatExcel = new System.Windows.Forms.Button();
-            this.btnXemBaoCao = new System.Windows.Forms.Button();
-            this.numNam = new System.Windows.Forms.NumericUpDown();
-            this.lblNam = new System.Windows.Forms.Label();
-            this.numQuy = new System.Windows.Forms.NumericUpDown();
-            this.lblQuy = new System.Windows.Forms.Label();
-            this.numThang = new System.Windows.Forms.NumericUpDown();
-            this.lblThang = new System.Windows.Forms.Label();
-            this.cboLoaiBaoCao = new System.Windows.Forms.ComboBox();
-            this.lblLoaiBaoCao = new System.Windows.Forms.Label();
-            this.dgvBaoCao = new System.Windows.Forms.DataGridView();
-            this.pnlFooter = new System.Windows.Forms.Panel();
-            this.btnDong = new System.Windows.Forms.Button();
-            this.lblTongKet = new System.Windows.Forms.Label();
-            this.lblSoDong = new System.Windows.Forms.Label();
-            this.pnlHeader.SuspendLayout();
-            this.pnlControls.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numNam)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numQuy)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numThang)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvBaoCao)).BeginInit();
-            this.pnlFooter.SuspendLayout();
-            this.SuspendLayout();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            pnlHeader = new Panel();
+            lblSubTitle = new Label();
+            lblTitle = new Label();
+            pnlControls = new Panel();
+            btnBieuMauKho = new Button();
+            btnXuatExcel = new Button();
+            btnXemBaoCao = new Button();
+            numNam = new NumericUpDown();
+            lblNam = new Label();
+            numQuy = new NumericUpDown();
+            lblQuy = new Label();
+            numThang = new NumericUpDown();
+            lblThang = new Label();
+            cboLoaiBaoCao = new ComboBox();
+            lblLoaiBaoCao = new Label();
+            dgvBaoCao = new DataGridView();
+            pnlFooter = new Panel();
+            btnDong = new Button();
+            lblTongKet = new Label();
+            lblSoDong = new Label();
+            pnlHeader.SuspendLayout();
+            pnlControls.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numNam).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numQuy).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numThang).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvBaoCao).BeginInit();
+            pnlFooter.SuspendLayout();
+            SuspendLayout();
             // 
             // pnlHeader
             // 
-            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
-            this.pnlHeader.Controls.Add(this.lblSubTitle);
-            this.pnlHeader.Controls.Add(this.lblTitle);
-            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
-            this.pnlHeader.Name = "pnlHeader";
-            this.pnlHeader.Size = new System.Drawing.Size(1034, 75);
-            this.pnlHeader.TabIndex = 0;
+            pnlHeader.BackColor = Color.FromArgb(15, 23, 42);
+            pnlHeader.Controls.Add(lblSubTitle);
+            pnlHeader.Controls.Add(lblTitle);
+            pnlHeader.Dock = DockStyle.Top;
+            pnlHeader.Location = new Point(0, 0);
+            pnlHeader.Margin = new Padding(4, 5, 4, 5);
+            pnlHeader.Name = "pnlHeader";
+            pnlHeader.Size = new Size(1811, 125);
+            pnlHeader.TabIndex = 0;
             // 
             // lblSubTitle
             // 
-            this.lblSubTitle.AutoSize = true;
-            this.lblSubTitle.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.lblSubTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.lblSubTitle.Location = new System.Drawing.Point(24, 43);
-            this.lblSubTitle.Name = "lblSubTitle";
-            this.lblSubTitle.Size = new System.Drawing.Size(534, 17);
-            this.lblSubTitle.TabIndex = 1;
-            this.lblSubTitle.Text = "Thống kê doanh số bán hàng, đơn nhập kho lớn nhất và xuất báo cáo Excel";
+            lblSubTitle.AutoSize = true;
+            lblSubTitle.Font = new Font("Segoe UI", 9.5F);
+            lblSubTitle.ForeColor = Color.FromArgb(148, 163, 184);
+            lblSubTitle.Location = new Point(34, 72);
+            lblSubTitle.Margin = new Padding(4, 0, 4, 0);
+            lblSubTitle.Name = "lblSubTitle";
+            lblSubTitle.Size = new Size(644, 25);
+            lblSubTitle.TabIndex = 1;
+            lblSubTitle.Text = "Thống kê doanh số bán hàng, đơn nhập kho lớn nhất và xuất báo cáo Excel";
             // 
             // lblTitle
             // 
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.White;
-            this.lblTitle.Location = new System.Drawing.Point(22, 11);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(434, 30);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "BÁO CÁO THỐNG KÊ DOANH THU & KHO";
+            lblTitle.AutoSize = true;
+            lblTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.White;
+            lblTitle.Location = new Point(31, 18);
+            lblTitle.Margin = new Padding(4, 0, 4, 0);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(630, 45);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "BÁO CÁO THỐNG KÊ DOANH THU & KHO";
             // 
             // pnlControls
             // 
-            this.pnlControls.BackColor = System.Drawing.Color.White;
-            this.pnlControls.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlControls.Controls.Add(this.btnBieuMauKho);
-            this.pnlControls.Controls.Add(this.btnXuatExcel);
-            this.pnlControls.Controls.Add(this.btnXemBaoCao);
-            this.pnlControls.Controls.Add(this.numNam);
-            this.pnlControls.Controls.Add(this.lblNam);
-            this.pnlControls.Controls.Add(this.numQuy);
-            this.pnlControls.Controls.Add(this.lblQuy);
-            this.pnlControls.Controls.Add(this.numThang);
-            this.pnlControls.Controls.Add(this.lblThang);
-            this.pnlControls.Controls.Add(this.cboLoaiBaoCao);
-            this.pnlControls.Controls.Add(this.lblLoaiBaoCao);
-            this.pnlControls.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlControls.Location = new System.Drawing.Point(0, 75);
-            this.pnlControls.Name = "pnlControls";
-            this.pnlControls.Padding = new System.Windows.Forms.Padding(16, 12, 16, 12);
-            this.pnlControls.Size = new System.Drawing.Size(1034, 80);
-            this.pnlControls.TabIndex = 1;
-            // 
+            pnlControls.BackColor = Color.White;
+            pnlControls.BorderStyle = BorderStyle.FixedSingle;
+            pnlControls.Controls.Add(btnBieuMauKho);
+            pnlControls.Controls.Add(btnXuatExcel);
+            pnlControls.Controls.Add(btnXemBaoCao);
+            pnlControls.Controls.Add(numNam);
+            pnlControls.Controls.Add(lblNam);
+            pnlControls.Controls.Add(numQuy);
+            pnlControls.Controls.Add(lblQuy);
+            pnlControls.Controls.Add(numThang);
+            pnlControls.Controls.Add(lblThang);
+            pnlControls.Controls.Add(cboLoaiBaoCao);
+            pnlControls.Controls.Add(lblLoaiBaoCao);
+            pnlControls.Dock = DockStyle.Top;
+            pnlControls.Location = new Point(0, 125);
+            pnlControls.Margin = new Padding(4, 5, 4, 5);
+            pnlControls.Name = "pnlControls";
+            pnlControls.Padding = new Padding(23, 20, 23, 20);
+            pnlControls.Size = new Size(1811, 132);
+            pnlControls.TabIndex = 1;
             // 
             // btnBieuMauKho
             // 
-            this.btnBieuMauKho.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnBieuMauKho.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(105)))), ((int)(((byte)(161)))));
-            this.btnBieuMauKho.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnBieuMauKho.FlatAppearance.BorderSize = 0;
-            this.btnBieuMauKho.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBieuMauKho.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnBieuMauKho.ForeColor = System.Drawing.Color.White;
-            this.btnBieuMauKho.Location = new System.Drawing.Point(885, 22);
-            this.btnBieuMauKho.Name = "btnBieuMauKho";
-            this.btnBieuMauKho.Size = new System.Drawing.Size(135, 36);
-            this.btnBieuMauKho.TabIndex = 10;
-            this.btnBieuMauKho.Text = "📋 Biểu Mẫu BM03";
-            this.btnBieuMauKho.UseVisualStyleBackColor = false;
-            this.btnBieuMauKho.Click += new System.EventHandler(this.btnBieuMauKho_Click);
+            btnBieuMauKho.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnBieuMauKho.BackColor = Color.FromArgb(3, 105, 161);
+            btnBieuMauKho.Cursor = Cursors.Hand;
+            btnBieuMauKho.FlatAppearance.BorderSize = 0;
+            btnBieuMauKho.FlatStyle = FlatStyle.Flat;
+            btnBieuMauKho.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btnBieuMauKho.ForeColor = Color.White;
+            btnBieuMauKho.Location = new Point(1583, 33);
+            btnBieuMauKho.Margin = new Padding(4, 5, 4, 5);
+            btnBieuMauKho.Name = "btnBieuMauKho";
+            btnBieuMauKho.Size = new Size(199, 60);
+            btnBieuMauKho.TabIndex = 10;
+            btnBieuMauKho.Text = "📋 Biểu Mẫu BM03";
+            btnBieuMauKho.UseVisualStyleBackColor = false;
+            btnBieuMauKho.Click += btnBieuMauKho_Click;
             // 
             // btnXuatExcel
             // 
-            this.btnXuatExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnXuatExcel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(5)))), ((int)(((byte)(150)))), ((int)(((byte)(105)))));
-            this.btnXuatExcel.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnXuatExcel.FlatAppearance.BorderSize = 0;
-            this.btnXuatExcel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnXuatExcel.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnXuatExcel.ForeColor = System.Drawing.Color.White;
-            this.btnXuatExcel.Location = new System.Drawing.Point(755, 22);
-            this.btnXuatExcel.Name = "btnXuatExcel";
-            this.btnXuatExcel.Size = new System.Drawing.Size(120, 36);
-            this.btnXuatExcel.TabIndex = 9;
-            this.btnXuatExcel.Text = "📊 Xuất Excel";
-            this.btnXuatExcel.UseVisualStyleBackColor = false;
-            this.btnXuatExcel.Click += new System.EventHandler(this.btnXuatExcel_Click);
+            btnXuatExcel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnXuatExcel.BackColor = Color.FromArgb(5, 150, 105);
+            btnXuatExcel.Cursor = Cursors.Hand;
+            btnXuatExcel.FlatAppearance.BorderSize = 0;
+            btnXuatExcel.FlatStyle = FlatStyle.Flat;
+            btnXuatExcel.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btnXuatExcel.ForeColor = Color.White;
+            btnXuatExcel.Location = new Point(1390, 33);
+            btnXuatExcel.Margin = new Padding(4, 5, 4, 5);
+            btnXuatExcel.Name = "btnXuatExcel";
+            btnXuatExcel.Size = new Size(171, 60);
+            btnXuatExcel.TabIndex = 9;
+            btnXuatExcel.Text = "📊 Xuất Excel";
+            btnXuatExcel.UseVisualStyleBackColor = false;
+            btnXuatExcel.Click += btnXuatExcel_Click;
             // 
             // btnXemBaoCao
             // 
-            this.btnXemBaoCao.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnXemBaoCao.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(79)))), ((int)(((byte)(70)))), ((int)(((byte)(229)))));
-            this.btnXemBaoCao.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnXemBaoCao.FlatAppearance.BorderSize = 0;
-            this.btnXemBaoCao.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnXemBaoCao.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnXemBaoCao.ForeColor = System.Drawing.Color.White;
-            this.btnXemBaoCao.Location = new System.Drawing.Point(625, 22);
-            this.btnXemBaoCao.Name = "btnXemBaoCao";
-            this.btnXemBaoCao.Size = new System.Drawing.Size(120, 36);
-            this.btnXemBaoCao.TabIndex = 8;
-            this.btnXemBaoCao.Text = "🔍 Xem Báo Cáo";
-            this.btnXemBaoCao.UseVisualStyleBackColor = false;
-            this.btnXemBaoCao.Click += new System.EventHandler(this.btnXemBaoCao_Click);
+            btnXemBaoCao.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnXemBaoCao.BackColor = Color.FromArgb(79, 70, 229);
+            btnXemBaoCao.Cursor = Cursors.Hand;
+            btnXemBaoCao.FlatAppearance.BorderSize = 0;
+            btnXemBaoCao.FlatStyle = FlatStyle.Flat;
+            btnXemBaoCao.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btnXemBaoCao.ForeColor = Color.White;
+            btnXemBaoCao.Location = new Point(1196, 33);
+            btnXemBaoCao.Margin = new Padding(4, 5, 4, 5);
+            btnXemBaoCao.Name = "btnXemBaoCao";
+            btnXemBaoCao.Size = new Size(171, 60);
+            btnXemBaoCao.TabIndex = 8;
+            btnXemBaoCao.Text = "🔍 Xem Báo Cáo";
+            btnXemBaoCao.UseVisualStyleBackColor = false;
+            btnXemBaoCao.Click += btnXemBaoCao_Click;
             // 
             // numNam
             // 
-            this.numNam.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.numNam.Location = new System.Drawing.Point(645, 29);
-            this.numNam.Maximum = new decimal(new int[] {
-            2035,
-            0,
-            0,
-            0});
-            this.numNam.Minimum = new decimal(new int[] {
-            2020,
-            0,
-            0,
-            0});
-            this.numNam.Name = "numNam";
-            this.numNam.Size = new System.Drawing.Size(75, 24);
-            this.numNam.TabIndex = 7;
-            this.numNam.Value = new decimal(new int[] {
-            2026,
-            0,
-            0,
-            0});
+            numNam.Font = new Font("Segoe UI", 9.5F);
+            numNam.Location = new Point(970, 47);
+            numNam.Margin = new Padding(4, 5, 4, 5);
+            numNam.Maximum = new decimal(new int[] { 2035, 0, 0, 0 });
+            numNam.Minimum = new decimal(new int[] { 2020, 0, 0, 0 });
+            numNam.Name = "numNam";
+            numNam.Size = new Size(107, 33);
+            numNam.TabIndex = 7;
+            numNam.Value = new decimal(new int[] { 2026, 0, 0, 0 });
             // 
             // lblNam
             // 
-            this.lblNam.AutoSize = true;
-            this.lblNam.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblNam.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.lblNam.Location = new System.Drawing.Point(605, 33);
-            this.lblNam.Name = "lblNam";
-            this.lblNam.Size = new System.Drawing.Size(36, 15);
-            this.lblNam.TabIndex = 6;
-            this.lblNam.Text = "Năm:";
+            lblNam.AutoSize = true;
+            lblNam.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblNam.ForeColor = Color.FromArgb(51, 65, 85);
+            lblNam.Location = new Point(905, 55);
+            lblNam.Margin = new Padding(4, 0, 4, 0);
+            lblNam.Name = "lblNam";
+            lblNam.Size = new Size(57, 25);
+            lblNam.TabIndex = 6;
+            lblNam.Text = "Năm:";
             // 
             // numQuy
             // 
-            this.numQuy.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.numQuy.Location = new System.Drawing.Point(540, 29);
-            this.numQuy.Maximum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-            this.numQuy.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numQuy.Name = "numQuy";
-            this.numQuy.Size = new System.Drawing.Size(50, 24);
-            this.numQuy.TabIndex = 5;
-            this.numQuy.Value = new decimal(new int[] {
-            3,
-            0,
-            0,
-            0});
+            numQuy.Font = new Font("Segoe UI", 9.5F);
+            numQuy.Location = new Point(826, 47);
+            numQuy.Margin = new Padding(4, 5, 4, 5);
+            numQuy.Maximum = new decimal(new int[] { 4, 0, 0, 0 });
+            numQuy.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numQuy.Name = "numQuy";
+            numQuy.Size = new Size(71, 33);
+            numQuy.TabIndex = 5;
+            numQuy.Value = new decimal(new int[] { 3, 0, 0, 0 });
             // 
             // lblQuy
             // 
-            this.lblQuy.AutoSize = true;
-            this.lblQuy.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblQuy.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.lblQuy.Location = new System.Drawing.Point(505, 33);
-            this.lblQuy.Name = "lblQuy";
-            this.lblQuy.Size = new System.Drawing.Size(32, 15);
-            this.lblQuy.TabIndex = 4;
-            this.lblQuy.Text = "Quý:";
+            lblQuy.AutoSize = true;
+            lblQuy.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblQuy.ForeColor = Color.FromArgb(51, 65, 85);
+            lblQuy.Location = new Point(766, 55);
+            lblQuy.Margin = new Padding(4, 0, 4, 0);
+            lblQuy.Name = "lblQuy";
+            lblQuy.Size = new Size(52, 25);
+            lblQuy.TabIndex = 4;
+            lblQuy.Text = "Quý:";
             // 
             // numThang
             // 
-            this.numThang.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.numThang.Location = new System.Drawing.Point(440, 29);
-            this.numThang.Maximum = new decimal(new int[] {
-            12,
-            0,
-            0,
-            0});
-            this.numThang.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numThang.Name = "numThang";
-            this.numThang.Size = new System.Drawing.Size(50, 24);
-            this.numThang.TabIndex = 3;
-            this.numThang.Value = new decimal(new int[] {
-            9,
-            0,
-            0,
-            0});
+            numThang.Font = new Font("Segoe UI", 9.5F);
+            numThang.Location = new Point(687, 47);
+            numThang.Margin = new Padding(4, 5, 4, 5);
+            numThang.Maximum = new decimal(new int[] { 12, 0, 0, 0 });
+            numThang.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numThang.Name = "numThang";
+            numThang.Size = new Size(71, 33);
+            numThang.TabIndex = 3;
+            numThang.Value = new decimal(new int[] { 9, 0, 0, 0 });
             // 
             // lblThang
             // 
-            this.lblThang.AutoSize = true;
-            this.lblThang.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblThang.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.lblThang.Location = new System.Drawing.Point(390, 33);
-            this.lblThang.Name = "lblThang";
-            this.lblThang.Size = new System.Drawing.Size(45, 15);
-            this.lblThang.TabIndex = 2;
-            this.lblThang.Text = "Tháng:";
+            lblThang.AutoSize = true;
+            lblThang.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblThang.ForeColor = Color.FromArgb(51, 65, 85);
+            lblThang.Location = new Point(608, 55);
+            lblThang.Margin = new Padding(4, 0, 4, 0);
+            lblThang.Name = "lblThang";
+            lblThang.Size = new Size(71, 25);
+            lblThang.TabIndex = 2;
+            lblThang.Text = "Tháng:";
             // 
             // cboLoaiBaoCao
             // 
-            this.cboLoaiBaoCao.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboLoaiBaoCao.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.cboLoaiBaoCao.FormattingEnabled = true;
-            this.cboLoaiBaoCao.Items.AddRange(new object[] {
-            "Top 5 sản phẩm bán chạy nhất trong tháng",
-            "Hóa đơn nhập hàng lớn nhất trong quý",
-            "Tổng kết doanh số bán theo năm",
-            "Top 5 nhân viên có doanh số thấp nhất tháng",
-            "Báo cáo tổng hợp xuất - nhập - tồn kho (Biểu mẫu BM03)"});
-            this.cboLoaiBaoCao.Location = new System.Drawing.Point(115, 29);
-            this.cboLoaiBaoCao.Name = "cboLoaiBaoCao";
-            this.cboLoaiBaoCao.Size = new System.Drawing.Size(260, 25);
-            this.cboLoaiBaoCao.TabIndex = 1;
-            this.cboLoaiBaoCao.SelectedIndexChanged += new System.EventHandler(this.cboLoaiBaoCao_SelectedIndexChanged);
+            cboLoaiBaoCao.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboLoaiBaoCao.Font = new Font("Segoe UI", 9.5F);
+            cboLoaiBaoCao.FormattingEnabled = true;
+            cboLoaiBaoCao.Items.AddRange(new object[] { "Top 5 sản phẩm bán chạy nhất trong tháng", "Hóa đơn nhập hàng lớn nhất trong quý", "Tổng kết doanh số bán theo năm", "Top 5 nhân viên có doanh số thấp nhất tháng", "Báo cáo tổng hợp xuất - nhập - tồn kho (Biểu mẫu BM03)" });
+            cboLoaiBaoCao.Location = new Point(164, 48);
+            cboLoaiBaoCao.Margin = new Padding(4, 5, 4, 5);
+            cboLoaiBaoCao.Name = "cboLoaiBaoCao";
+            cboLoaiBaoCao.Size = new Size(436, 33);
+            cboLoaiBaoCao.TabIndex = 1;
+            cboLoaiBaoCao.SelectedIndexChanged += cboLoaiBaoCao_SelectedIndexChanged;
             // 
             // lblLoaiBaoCao
             // 
-            this.lblLoaiBaoCao.AutoSize = true;
-            this.lblLoaiBaoCao.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblLoaiBaoCao.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.lblLoaiBaoCao.Location = new System.Drawing.Point(20, 33);
-            this.lblLoaiBaoCao.Name = "lblLoaiBaoCao";
-            this.lblLoaiBaoCao.Size = new System.Drawing.Size(81, 15);
-            this.lblLoaiBaoCao.TabIndex = 0;
-            this.lblLoaiBaoCao.Text = "Loại báo cáo:";
+            lblLoaiBaoCao.AutoSize = true;
+            lblLoaiBaoCao.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblLoaiBaoCao.ForeColor = Color.FromArgb(51, 65, 85);
+            lblLoaiBaoCao.Location = new Point(29, 55);
+            lblLoaiBaoCao.Margin = new Padding(4, 0, 4, 0);
+            lblLoaiBaoCao.Name = "lblLoaiBaoCao";
+            lblLoaiBaoCao.Size = new Size(124, 25);
+            lblLoaiBaoCao.TabIndex = 0;
+            lblLoaiBaoCao.Text = "Loại báo cáo:";
             // 
             // dgvBaoCao
             // 
-            this.dgvBaoCao.AllowUserToAddRows = false;
-            this.dgvBaoCao.AllowUserToDeleteRows = false;
-            this.dgvBaoCao.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvBaoCao.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
-            this.dgvBaoCao.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvBaoCao.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.dgvBaoCao.ColumnHeadersHeight = 35;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(231)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgvBaoCao.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvBaoCao.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvBaoCao.EnableHeadersVisualStyles = false;
-            this.dgvBaoCao.Location = new System.Drawing.Point(0, 155);
-            this.dgvBaoCao.MultiSelect = false;
-            this.dgvBaoCao.Name = "dgvBaoCao";
-            this.dgvBaoCao.ReadOnly = true;
-            this.dgvBaoCao.RowHeadersVisible = false;
-            this.dgvBaoCao.RowTemplate.Height = 30;
-            this.dgvBaoCao.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvBaoCao.Size = new System.Drawing.Size(1034, 455);
-            this.dgvBaoCao.TabIndex = 2;
+            dgvBaoCao.AllowUserToAddRows = false;
+            dgvBaoCao.AllowUserToDeleteRows = false;
+            dgvBaoCao.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvBaoCao.BackgroundColor = Color.FromArgb(248, 250, 252);
+            dgvBaoCao.BorderStyle = BorderStyle.None;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(241, 245, 249);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(51, 65, 85);
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvBaoCao.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvBaoCao.ColumnHeadersHeight = 35;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.White;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(224, 231, 255);
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(15, 23, 42);
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvBaoCao.DefaultCellStyle = dataGridViewCellStyle2;
+            dgvBaoCao.Dock = DockStyle.Fill;
+            dgvBaoCao.EnableHeadersVisualStyles = false;
+            dgvBaoCao.Location = new Point(0, 257);
+            dgvBaoCao.Margin = new Padding(4, 5, 4, 5);
+            dgvBaoCao.MultiSelect = false;
+            dgvBaoCao.Name = "dgvBaoCao";
+            dgvBaoCao.ReadOnly = true;
+            dgvBaoCao.RowHeadersVisible = false;
+            dgvBaoCao.RowHeadersWidth = 62;
+            dgvBaoCao.RowTemplate.Height = 30;
+            dgvBaoCao.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvBaoCao.Size = new Size(1811, 761);
+            dgvBaoCao.TabIndex = 2;
             // 
             // pnlFooter
             // 
-            this.pnlFooter.BackColor = System.Drawing.Color.White;
-            this.pnlFooter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlFooter.Controls.Add(this.btnDong);
-            this.pnlFooter.Controls.Add(this.lblTongKet);
-            this.pnlFooter.Controls.Add(this.lblSoDong);
-            this.pnlFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlFooter.Location = new System.Drawing.Point(0, 610);
-            this.pnlFooter.Name = "pnlFooter";
-            this.pnlFooter.Padding = new System.Windows.Forms.Padding(16, 12, 16, 12);
-            this.pnlFooter.Size = new System.Drawing.Size(1034, 60);
-            this.pnlFooter.TabIndex = 3;
+            pnlFooter.BackColor = Color.White;
+            pnlFooter.BorderStyle = BorderStyle.FixedSingle;
+            pnlFooter.Controls.Add(btnDong);
+            pnlFooter.Controls.Add(lblTongKet);
+            pnlFooter.Controls.Add(lblSoDong);
+            pnlFooter.Dock = DockStyle.Bottom;
+            pnlFooter.Location = new Point(0, 1018);
+            pnlFooter.Margin = new Padding(4, 5, 4, 5);
+            pnlFooter.Name = "pnlFooter";
+            pnlFooter.Padding = new Padding(23, 20, 23, 20);
+            pnlFooter.Size = new Size(1811, 99);
+            pnlFooter.TabIndex = 3;
             // 
             // btnDong
             // 
-            this.btnDong.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnDong.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
-            this.btnDong.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnDong.FlatAppearance.BorderSize = 0;
-            this.btnDong.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnDong.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnDong.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.btnDong.Location = new System.Drawing.Point(925, 12);
-            this.btnDong.Name = "btnDong";
-            this.btnDong.Size = new System.Drawing.Size(95, 34);
-            this.btnDong.TabIndex = 2;
-            this.btnDong.Text = "Đóng";
-            this.btnDong.UseVisualStyleBackColor = false;
-            this.btnDong.Click += new System.EventHandler(this.btnDong_Click);
+            btnDong.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnDong.BackColor = Color.FromArgb(241, 245, 249);
+            btnDong.Cursor = Cursors.Hand;
+            btnDong.FlatAppearance.BorderSize = 0;
+            btnDong.FlatStyle = FlatStyle.Flat;
+            btnDong.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btnDong.ForeColor = Color.FromArgb(71, 85, 105);
+            btnDong.Location = new Point(1656, 20);
+            btnDong.Margin = new Padding(4, 5, 4, 5);
+            btnDong.Name = "btnDong";
+            btnDong.Size = new Size(136, 57);
+            btnDong.TabIndex = 2;
+            btnDong.Text = "Đóng";
+            btnDong.UseVisualStyleBackColor = false;
+            btnDong.Click += btnDong_Click;
             // 
             // lblTongKet
             // 
-            this.lblTongKet.AutoSize = true;
-            this.lblTongKet.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
-            this.lblTongKet.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.lblTongKet.Location = new System.Drawing.Point(220, 18);
-            this.lblTongKet.Name = "lblTongKet";
-            this.lblTongKet.Size = new System.Drawing.Size(130, 20);
-            this.lblTongKet.TabIndex = 1;
-            this.lblTongKet.Text = "Tổng giá trị: 0 đ";
+            lblTongKet.AutoSize = true;
+            lblTongKet.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblTongKet.ForeColor = Color.FromArgb(220, 38, 38);
+            lblTongKet.Location = new Point(314, 30);
+            lblTongKet.Margin = new Padding(4, 0, 4, 0);
+            lblTongKet.Name = "lblTongKet";
+            lblTongKet.Size = new Size(179, 30);
+            lblTongKet.TabIndex = 1;
+            lblTongKet.Text = "Tổng giá trị: 0 đ";
             // 
             // lblSoDong
             // 
-            this.lblSoDong.AutoSize = true;
-            this.lblSoDong.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.lblSoDong.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.lblSoDong.Location = new System.Drawing.Point(20, 20);
-            this.lblSoDong.Name = "lblSoDong";
-            this.lblSoDong.Size = new System.Drawing.Size(126, 17);
-            this.lblSoDong.TabIndex = 0;
-            this.lblSoDong.Text = "Tổng số kết quả: 0";
+            lblSoDong.AutoSize = true;
+            lblSoDong.Font = new Font("Segoe UI", 9.5F);
+            lblSoDong.ForeColor = Color.FromArgb(71, 85, 105);
+            lblSoDong.Location = new Point(29, 33);
+            lblSoDong.Margin = new Padding(4, 0, 4, 0);
+            lblSoDong.Name = "lblSoDong";
+            lblSoDong.Size = new Size(165, 25);
+            lblSoDong.TabIndex = 0;
+            lblSoDong.Text = "Tổng số kết quả: 0";
             // 
             // frmBaoCaoThongKe
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1034, 670);
-            this.Controls.Add(this.dgvBaoCao);
-            this.Controls.Add(this.pnlFooter);
-            this.Controls.Add(this.pnlControls);
-            this.Controls.Add(this.pnlHeader);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.MinimumSize = new System.Drawing.Size(950, 600);
-            this.Name = "frmBaoCaoThongKe";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Nexus Retail - Báo Cáo Thống Kê & Phân Tích Nghiệp Vụ";
-            this.Load += new System.EventHandler(this.frmBaoCaoThongKe_Load);
-            this.pnlHeader.ResumeLayout(false);
-            this.pnlHeader.PerformLayout();
-            this.pnlControls.ResumeLayout(false);
-            this.pnlControls.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numNam)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numQuy)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numThang)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvBaoCao)).EndInit();
-            this.pnlFooter.ResumeLayout(false);
-            this.pnlFooter.PerformLayout();
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1811, 1117);
+            Controls.Add(dgvBaoCao);
+            Controls.Add(pnlFooter);
+            Controls.Add(pnlControls);
+            Controls.Add(pnlHeader);
+            Font = new Font("Segoe UI", 9F);
+            Margin = new Padding(4, 5, 4, 5);
+            MinimumSize = new Size(1348, 963);
+            Name = "frmBaoCaoThongKe";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Nexus Retail - Báo Cáo Thống Kê & Phân Tích Nghiệp Vụ";
+            Load += frmBaoCaoThongKe_Load;
+            pnlHeader.ResumeLayout(false);
+            pnlHeader.PerformLayout();
+            pnlControls.ResumeLayout(false);
+            pnlControls.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numNam).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numQuy).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numThang).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvBaoCao).EndInit();
+            pnlFooter.ResumeLayout(false);
+            pnlFooter.PerformLayout();
+            ResumeLayout(false);
 
         }
 

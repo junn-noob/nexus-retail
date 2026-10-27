@@ -11,15 +11,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@ViewData["Title"] — Duy Mobile • Hệ Thống Bán Lẻ Công Nghệ</title>
     
-    <!-- Google Fonts & Bootstrap Icons -->
+    <!-- Google Fonts & Modern Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Bootstrap 5.3 Framework -->
+    <!-- Bootstrap 5.3 Framework & Animate.css -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
+    <!-- SweetAlert2 Modern Dialogs -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Chart.js Modern Data Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Custom E-Commerce Theme -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
     
@@ -124,11 +133,6 @@
                                     }
                                     <li><a class="dropdown-item rounded-3 py-2" asp-controller="Home" asp-action="TraCuu"><i class="bi bi-receipt me-2"></i> Đơn hàng của tôi</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li class="dropdown-header small text-secondary py-1">Kiểm thử vai trò khác:</li>
-                                    <li><a class="dropdown-item rounded-3 small py-1.5" asp-controller="Account" asp-action="QuickLogin" asp-route-role="admin"><span class="badge bg-danger me-1">Admin</span> Quản trị viên</a></li>
-                                    <li><a class="dropdown-item rounded-3 small py-1.5" asp-controller="Account" asp-action="QuickLogin" asp-route-role="staff"><span class="badge bg-warning text-dark me-1">Staff</span> Nhân viên bán hàng</a></li>
-                                    <li><a class="dropdown-item rounded-3 small py-1.5" asp-controller="Account" asp-action="QuickLogin" asp-route-role="customer"><span class="badge bg-primary me-1">Customer</span> Khách hàng</a></li>
-                                    <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form method="post" asp-controller="Account" asp-action="Logout" class="m-0">
                                             @Html.AntiForgeryToken()
@@ -144,18 +148,6 @@
                     else
                     {
                         <div class="d-flex align-items-center gap-2">
-                            <!-- Quick Demo Role Switcher for Instructor -->
-                            <div class="dropdown d-none d-sm-block">
-                                <button class="btn btn-outline-secondary btn-sm rounded-pill dropdown-toggle fw-bold py-1.5 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Tài khoản mẫu
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 220px;">
-                                    <li class="dropdown-header small text-secondary py-1">Đăng nhập 1-chạm (Kiểm thử):</li>
-                                    <li><a class="dropdown-item rounded-3 py-2 small fw-bold" asp-controller="Account" asp-action="QuickLogin" asp-route-role="admin"><span class="badge bg-danger me-2">Admin</span> Quản trị toàn quyền</a></li>
-                                    <li><a class="dropdown-item rounded-3 py-2 small fw-bold" asp-controller="Account" asp-action="QuickLogin" asp-route-role="staff"><span class="badge bg-warning text-dark me-2">Nhân viên</span> Quản lý SP & Đơn</a></li>
-                                    <li><a class="dropdown-item rounded-3 py-2 small fw-bold" asp-controller="Account" asp-action="QuickLogin" asp-route-role="customer"><span class="badge bg-primary me-2">Khách hàng</span> Mua sắm & Tra cứu</a></li>
-                                </ul>
-                            </div>
                             <a class="btn btn-light fw-bold text-dark rounded-3 px-3 py-1.5 border" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                             <a class="btn btn-primary fw-bold rounded-3 px-3 py-1.5 shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
                         </div>

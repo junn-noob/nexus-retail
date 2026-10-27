@@ -1,6 +1,7 @@
 using NexusRetail.Shared.DTOs.Common;
 using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 
 namespace NexusRetail.WinForms.Forms
 {
@@ -14,13 +15,30 @@ namespace NexusRetail.WinForms.Forms
             _role = role;
             InitializeComponent();
 
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+
             if (_role != "Admin")
             {
                 btnXoa.Enabled = false;
-                btnXoa.Text += " 🔒";
+                btnXoa.Text = "🔒 Xóa (Admin)";
+                btnXoa.BackColor = Color.FromArgb(241, 245, 249);
+                btnXoa.ForeColor = Color.FromArgb(148, 163, 184);
             }
 
             LoadProductsAsync();
+        }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlTop, lblTitle, lblSub, "QUẢN LÝ DANH MỤC THIẾT BỊ DI ĐỘNG", "Quản lý tồn kho, giá vốn và giá niêm yết tự động (Markup 10%)");
+            UiTheme.ApplyModernGrid(dgvSanPham);
+
+            UiTheme.ApplySuccessButton(btnThem, "➕ Thêm Mới");
+            UiTheme.ApplyPrimaryButton(btnSua, "✏️ Cập Nhật");
+            UiTheme.ApplyDangerButton(btnXoa, "🗑️ Xóa");
+            UiTheme.ApplySecondaryButton(btnLamMoi, "🔄 Làm Mới");
+            UiTheme.ApplyPrimaryButton(btnTimKiem, "🔍 Tìm Kiếm");
         }
 
         private async void LoadProductsAsync(string? q = null)

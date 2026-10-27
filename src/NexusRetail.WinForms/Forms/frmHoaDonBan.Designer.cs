@@ -113,7 +113,7 @@ namespace NexusRetail.WinForms.Forms
             this.txtDienThoai.Name = "txtDienThoai";
             this.txtDienThoai.Size = new System.Drawing.Size(150, 23);
             this.txtDienThoai.TabIndex = 7;
-            this.txtDienThoai.Text = "0912345678";
+            this.txtDienThoai.Text = "";
             // 
             // lblDienThoai
             // 

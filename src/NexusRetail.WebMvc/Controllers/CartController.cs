@@ -196,7 +196,7 @@ namespace NexusRetail.WebMvc.Controllers
 
                 return RedirectToAction(nameof(OrderSuccess), new
                 {
-                    maHdb = maHdb ?? "HDB01",
+                    maHdb = maHdb ?? string.Empty,
                     tongTien = tongTien > 0 ? tongTien : model.TongTien,
                     tenKhach = model.TenKhach,
                     dienThoai = model.DienThoai

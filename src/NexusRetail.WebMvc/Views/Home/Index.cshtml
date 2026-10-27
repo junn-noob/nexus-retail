@@ -207,11 +207,19 @@
                                 <div class="dm-product-brand">@(string.IsNullOrEmpty(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu)</div>
                                 <h3 class="dm-product-title" onclick="openProduct('@p.MaSp')" title="@p.TenSp">@p.TenSp</h3>
                                 
-                                <span class="dm-product-tag">
-                                    @(string.IsNullOrWhiteSpace(p.GhiChu) ? "Bảo hành 12 tháng VNA" : p.GhiChu)
-                                </span>
+                                <div class="d-flex align-items-center justify-content-between my-1">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2" style="font-size: 11px;">
+                                        <i class="bi bi-shield-check me-1"></i>Chính hãng VNA
+                                    </span>
+                                    <span class="text-secondary small">
+                                        <i class="bi bi-star-fill text-warning"></i> 5.0 (50+)
+                                    </span>
+                                </div>
 
-                                <div class="dm-product-price">@p.GiaBan.ToString("N0") ₫</div>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <div class="dm-product-price">@p.GiaBan.ToString("N0") ₫</div>
+                                    <span class="text-secondary text-decoration-line-through small">@((p.GiaBan * 1.12m).ToString("N0")) ₫</span>
+                                </div>
 
                                 <div class="dm-card-actions">
                                     <button type="button" class="dm-btn-quickview" onclick="openProduct('@p.MaSp')">

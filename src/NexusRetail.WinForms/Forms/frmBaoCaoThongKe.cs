@@ -1,4 +1,5 @@
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -9,6 +10,23 @@ namespace NexusRetail.WinForms.Forms
         public frmBaoCaoThongKe()
         {
             InitializeComponent();
+
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+        }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "BÁO CÁO THỐNG KÊ DOANH THU & KHO", "Thống kê doanh số bán hàng, hóa đơn nhập kho lớn nhất và xuất báo cáo Excel");
+            UiTheme.ApplyModernGrid(dgvBaoCao);
+
+            UiTheme.ApplyPrimaryButton(btnXemBaoCao, "🔍 Xem Báo Cáo");
+            UiTheme.ApplySuccessButton(btnXuatExcel, "📥 Xuất File Excel (ClosedXML)");
+            UiTheme.ApplySecondaryButton(btnBieuMauKho, "📄 Xem Biểu Mẫu BM03");
+            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng");
+
+            lblTongKet.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
+            lblTongKet.ForeColor = UiTheme.PrimaryDark;
         }
 
         private async void frmBaoCaoThongKe_Load(object sender, EventArgs e)

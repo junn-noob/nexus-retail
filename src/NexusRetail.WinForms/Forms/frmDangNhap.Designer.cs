@@ -24,12 +24,7 @@ namespace NexusRetail.WinForms.Forms
             this.txtPass = new System.Windows.Forms.TextBox();
             this.btnDangNhap = new System.Windows.Forms.Button();
             this.btnThoat = new System.Windows.Forms.Button();
-            this.pnlDemo = new System.Windows.Forms.Panel();
-            this.lblDemoTitle = new System.Windows.Forms.Label();
-            this.btnQuickAdmin = new System.Windows.Forms.Button();
-            this.btnQuickStaff = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
-            this.pnlDemo.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlHeader
@@ -81,9 +76,9 @@ namespace NexusRetail.WinForms.Forms
             this.txtUser.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtUser.Location = new System.Drawing.Point(30, 128);
             this.txtUser.Name = "txtUser";
+            this.txtUser.PlaceholderText = "Nhập tài khoản (admin / nhanvien)...";
             this.txtUser.Size = new System.Drawing.Size(360, 27);
             this.txtUser.TabIndex = 2;
-            this.txtUser.Text = "admin";
             // 
             // lblPass
             // 
@@ -101,9 +96,9 @@ namespace NexusRetail.WinForms.Forms
             this.txtPass.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtPass.Location = new System.Drawing.Point(30, 193);
             this.txtPass.Name = "txtPass";
+            this.txtPass.PlaceholderText = "Nhập mật khẩu...";
             this.txtPass.Size = new System.Drawing.Size(360, 27);
             this.txtPass.TabIndex = 4;
-            this.txtPass.Text = "admin123";
             this.txtPass.UseSystemPasswordChar = true;
             // 
             // btnDangNhap
@@ -112,9 +107,9 @@ namespace NexusRetail.WinForms.Forms
             this.btnDangNhap.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDangNhap.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnDangNhap.ForeColor = System.Drawing.Color.White;
-            this.btnDangNhap.Location = new System.Drawing.Point(30, 240);
+            this.btnDangNhap.Location = new System.Drawing.Point(30, 245);
             this.btnDangNhap.Name = "btnDangNhap";
-            this.btnDangNhap.Size = new System.Drawing.Size(360, 42);
+            this.btnDangNhap.Size = new System.Drawing.Size(360, 44);
             this.btnDangNhap.TabIndex = 5;
             this.btnDangNhap.Text = "ĐĂNG NHẬP HỆ THỐNG";
             this.btnDangNhap.UseVisualStyleBackColor = false;
@@ -125,64 +120,13 @@ namespace NexusRetail.WinForms.Forms
             this.btnThoat.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
             this.btnThoat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnThoat.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.btnThoat.Location = new System.Drawing.Point(30, 292);
+            this.btnThoat.Location = new System.Drawing.Point(30, 298);
             this.btnThoat.Name = "btnThoat";
-            this.btnThoat.Size = new System.Drawing.Size(360, 32);
+            this.btnThoat.Size = new System.Drawing.Size(360, 34);
             this.btnThoat.TabIndex = 6;
             this.btnThoat.Text = "Thoát ứng dụng";
             this.btnThoat.UseVisualStyleBackColor = false;
             this.btnThoat.Click += new System.EventHandler(this.btnThoat_Click);
-            // 
-            // pnlDemo
-            // 
-            this.pnlDemo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
-            this.pnlDemo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlDemo.Controls.Add(this.lblDemoTitle);
-            this.pnlDemo.Controls.Add(this.btnQuickAdmin);
-            this.pnlDemo.Controls.Add(this.btnQuickStaff);
-            this.pnlDemo.Location = new System.Drawing.Point(30, 345);
-            this.pnlDemo.Name = "pnlDemo";
-            this.pnlDemo.Size = new System.Drawing.Size(360, 75);
-            this.pnlDemo.TabIndex = 7;
-            // 
-            // lblDemoTitle
-            // 
-            this.lblDemoTitle.AutoSize = true;
-            this.lblDemoTitle.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblDemoTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.lblDemoTitle.Location = new System.Drawing.Point(12, 10);
-            this.lblDemoTitle.Name = "lblDemoTitle";
-            this.lblDemoTitle.Size = new System.Drawing.Size(185, 15);
-            this.lblDemoTitle.TabIndex = 0;
-            this.lblDemoTitle.Text = "ĐĂNG NHẬP NHANH (BẢO VỆ):";
-            // 
-            // btnQuickAdmin
-            // 
-            this.btnQuickAdmin.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(231)))), ((int)(((byte)(255)))));
-            this.btnQuickAdmin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnQuickAdmin.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnQuickAdmin.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(67)))), ((int)(((byte)(56)))), ((int)(((byte)(202)))));
-            this.btnQuickAdmin.Location = new System.Drawing.Point(12, 32);
-            this.btnQuickAdmin.Name = "btnQuickAdmin";
-            this.btnQuickAdmin.Size = new System.Drawing.Size(160, 30);
-            this.btnQuickAdmin.TabIndex = 1;
-            this.btnQuickAdmin.Text = "Admin (Toàn quyền)";
-            this.btnQuickAdmin.UseVisualStyleBackColor = false;
-            this.btnQuickAdmin.Click += new System.EventHandler(this.btnQuickAdmin_Click);
-            // 
-            // btnQuickStaff
-            // 
-            this.btnQuickStaff.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
-            this.btnQuickStaff.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnQuickStaff.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnQuickStaff.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.btnQuickStaff.Location = new System.Drawing.Point(180, 32);
-            this.btnQuickStaff.Name = "btnQuickStaff";
-            this.btnQuickStaff.Size = new System.Drawing.Size(165, 30);
-            this.btnQuickStaff.TabIndex = 2;
-            this.btnQuickStaff.Text = "Nhân viên (POS)";
-            this.btnQuickStaff.UseVisualStyleBackColor = false;
-            this.btnQuickStaff.Click += new System.EventHandler(this.btnQuickStaff_Click);
             // 
             // frmDangNhap
             // 
@@ -190,8 +134,7 @@ namespace NexusRetail.WinForms.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(420, 440);
-            this.Controls.Add(this.pnlDemo);
+            this.ClientSize = new System.Drawing.Size(420, 360);
             this.Controls.Add(this.btnThoat);
             this.Controls.Add(this.btnDangNhap);
             this.Controls.Add(this.txtPass);
@@ -207,8 +150,6 @@ namespace NexusRetail.WinForms.Forms
             this.Text = "Đăng Nhập Hệ Thống Duy Mobile";
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();
-            this.pnlDemo.ResumeLayout(false);
-            this.pnlDemo.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -223,9 +164,5 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.TextBox txtPass;
         private System.Windows.Forms.Button btnDangNhap;
         private System.Windows.Forms.Button btnThoat;
-        private System.Windows.Forms.Panel pnlDemo;
-        private System.Windows.Forms.Label lblDemoTitle;
-        private System.Windows.Forms.Button btnQuickAdmin;
-        private System.Windows.Forms.Button btnQuickStaff;
     }
 }

@@ -77,6 +77,35 @@
         </div>
     </div>
 
+    <!-- Charts Row (Visual Analytics) -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark m-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i> Xu hướng doanh thu 6 tháng gần nhất</h5>
+                        <small class="text-secondary">Dữ liệu phân tích doanh số bán lẻ thiết bị di động tại Duy Mobile</small>
+                    </div>
+                    <span class="badge bg-success-subtle text-success py-2 px-3 fw-bold">+18.5% Tăng trưởng</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <div class="mb-3">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-pie-chart-fill text-warning me-2"></i> Thị phần Nhãn hiệu</h5>
+                    <small class="text-secondary">Tỷ trọng doanh số theo thương hiệu</small>
+                </div>
+                <div style="height: 210px;" class="d-flex align-items-center justify-content-center">
+                    <canvas id="brandChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions Panel -->
     <div class="card border-0 shadow-sm rounded-4 p-4">
         <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i> Thao tác nhanh quản trị</h5>
@@ -96,3 +125,78 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const revCtx = document.getElementById("revenueChart");
+        if (revCtx && typeof Chart !== "undefined") {
+            new Chart(revCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10'],
+                    datasets: [{
+                        label: 'Doanh thu (Triệu VNĐ)',
+                        data: [125, 178, 210, 280, 345, 412],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                        tension: 0.38,
+                        fill: true,
+                        pointBackgroundColor: '#4f46e5',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString('vi-VN') + ' Triệu VNĐ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => v + ' tr' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        const brandCtx = document.getElementById("brandChart");
+        if (brandCtx && typeof Chart !== "undefined") {
+            new Chart(brandCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Apple (iPhone)', 'Samsung', 'Xiaomi', 'Khác'],
+                    datasets: [{
+                        data: [46, 34, 14, 6],
+                        backgroundColor: ['#0f172a', '#2563eb', '#f97316', '#64748b'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+    });
+</script>
+}

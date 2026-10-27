@@ -1,6 +1,7 @@
 using NexusRetail.Shared.DTOs.BanHang;
 using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 using System.Data;
 
 namespace NexusRetail.WinForms.Forms
@@ -16,9 +17,26 @@ namespace NexusRetail.WinForms.Forms
             _nhanVien = nhanVien;
             InitializeComponent();
 
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+
             txtNhanVien.Text = _nhanVien;
             InitCartTable();
             LoadProductsAsync();
+        }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlTop, lblTitle, lblSub, "LẬP HÓA ĐƠN BÁN HÀNG TẠI QUẦY (POS)", "Hệ thống Bán Lẻ Thu Ngân • Lập hóa đơn và thanh toán tức thì");
+            UiTheme.ApplyModernGrid(dgvChiTiet);
+
+            UiTheme.ApplyPrimaryButton(btnThemMon, "➕ Thêm Vào Đơn");
+            UiTheme.ApplyDangerButton(btnXoaMon, "🗑️ Xóa Món Đang Chọn");
+            UiTheme.ApplySuccessButton(btnThanhToanTienMat, "💵 THANH TOÁN TIỀN MẶT (F8)");
+            UiTheme.ApplyPrimaryButton(btnThanhToanQR, "📱 THANH TOÁN VIETQR (F9)");
+
+            lblTongTien.Font = UiTheme.FontDisplay;
+            lblTongTien.ForeColor = UiTheme.Danger;
         }
 
         private void InitCartTable()
@@ -160,8 +178,13 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
-            // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB12)
-            string maHdb = await WinFormsApiClient.Instance.GetNextInvoiceCodeAsync();
+            // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB13)
+            string? maHdb = await WinFormsApiClient.Instance.GetNextInvoiceCodeAsync();
+            if (string.IsNullOrWhiteSpace(maHdb))
+            {
+                MessageBox.Show("Không thể kết nối đến máy chủ API để tạo mã hóa đơn! Vui lòng đảm bảo dịch vụ Backend đang hoạt động.", "Lỗi kết nối", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             // Mở Popup VietQR MBBank lắng nghe Webhook tự động với đúng mã hóa đơn
             using var qrForm = new frmThanhToanQR(maHdb, total);
@@ -206,7 +229,7 @@ namespace NexusRetail.WinForms.Forms
 
             if (success)
             {
-                string effectiveMaHdb = !string.IsNullOrWhiteSpace(maHdb) ? maHdb : (!string.IsNullOrWhiteSpace(maHdbGiaoDich) ? maHdbGiaoDich : $"HDB-{DateTime.Now:yyyy-MMdd-HHmm}");
+                string effectiveMaHdb = !string.IsNullOrWhiteSpace(maHdb) ? maHdb : (maHdbGiaoDich ?? string.Empty);
 
                 // Trích xuất danh sách sản phẩm sang dữ liệu biểu mẫu BM02
                 var bieuMauItems = _cartTable.AsEnumerable().Select((r, idx) =>

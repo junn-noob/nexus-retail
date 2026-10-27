@@ -1,4 +1,5 @@
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 using System.Globalization;
 
 namespace NexusRetail.WinForms.Forms
@@ -11,6 +12,29 @@ namespace NexusRetail.WinForms.Forms
         public frmTraCuuHoaDon()
         {
             InitializeComponent();
+
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+        }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "TRA CỨU HÓA ĐƠN BÁN & NHẬP KHO", "Tra cứu chứng từ bán hàng, xuất nhập kho theo đối tác và thời gian");
+
+            UiTheme.ApplyModernGrid(dgvHoaDonBan);
+            UiTheme.ApplyModernGrid(dgvChiTietBan);
+            UiTheme.ApplyModernGrid(dgvHoaDonNhap);
+            UiTheme.ApplyModernGrid(dgvChiTietNhap);
+
+            UiTheme.ApplyPrimaryButton(btnTimKiemBan, "🔍 Tìm");
+            UiTheme.ApplySecondaryButton(btnLamMoiBan, "🔄 Làm Mới");
+            UiTheme.ApplySuccessButton(btnInBieuMauBan, "📄 Xem Biểu Mẫu BM02");
+
+            UiTheme.ApplyPrimaryButton(btnTimKiemNhap, "🔍 Tìm");
+            UiTheme.ApplySecondaryButton(btnLamMoiNhap, "🔄 Làm Mới");
+            UiTheme.ApplySuccessButton(btnInBieuMauNhap, "📄 Xem Biểu Mẫu BM01");
+
+            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng");
         }
 
         private async void frmTraCuuHoaDon_Load(object sender, EventArgs e)

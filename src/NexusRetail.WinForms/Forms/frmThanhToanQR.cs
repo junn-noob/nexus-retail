@@ -1,4 +1,6 @@
+using NexusRetail.Shared.Helpers;
 using NexusRetail.WinForms.Services;
+using NexusRetail.WinForms.UI;
 using QRCoder;
 using System.Diagnostics;
 using System.Drawing;
@@ -26,10 +28,13 @@ namespace NexusRetail.WinForms.Forms
 
             InitializeComponent();
 
+            UiTheme.BeautifyForm(this);
+            ApplyCustomStyles();
+
             KeyPreview = true;
             KeyDown += FrmThanhToanQR_KeyDown;
 
-            lblMaDon.Text = $"Mã HĐ: {_maHdb}";
+            lblMaDon.Text = $"Mã đơn hàng: {_maHdb}  •  Tự động khớp lệnh Webhook";
             lblSoTien.Text = $"{_soTien:N0} ₫";
             lblNoiDung.Text = $"DUYMOBILE {_maHdb}";
             lblStk.Text = _accountNumber;
@@ -54,6 +59,17 @@ namespace NexusRetail.WinForms.Forms
             _pollingTimer.Tick += PollingTimer_Tick;
             _pollingTimer.Start();
         }
+
+        private void ApplyCustomStyles()
+        {
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblMaDon, "THANH TOÁN VIETQR (NAPAS 24/7 • MBBANK)", $"Mã đơn hàng: {_maHdb}");
+            lblSoTien.Font = UiTheme.FontTitle;
+            lblSoTien.ForeColor = UiTheme.Danger;
+
+            UiTheme.ApplyPrimaryButton(btnKiemTra, "🔄 Kiểm Tra Thanh Toán (F5)");
+            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng Giao Dịch (Esc)");
+        }
+
 
         /// <summary>
         /// Tạo và hiển thị mã VietQR EMVCo chuẩn NAPAS hoàn toàn offline bằng code C#
@@ -116,99 +132,23 @@ namespace NexusRetail.WinForms.Forms
         }
 
         #region Thuật toán tạo chuỗi VietQR EMVCo (NAPAS 247) 100% Offline
-
-        private static string Tlv(string tag, string value)
-        {
-            if (string.IsNullOrEmpty(value)) return string.Empty;
-            return $"{tag}{value.Length:D2}{value}";
-        }
-
         public static string BuildVietQrEmvCoString(string bin, string accountNumber, long amount, string content)
-        {
-            // Tag 00: Version (01)
-            string payload = "000201";
-
-            // Tag 01: Phương thức khởi tạo (11: Động có số tiền, 12: Tĩnh)
-            payload += amount > 0 ? "010211" : "010212";
-
-            // Tag 38: Thông tin tài khoản thụ hưởng NAPAS
-            string sub00 = "0010A000000727"; // GUID NAPAS
-            string subSub00 = Tlv("00", bin); // Mã định danh ngân hàng (MB: 970422)
-            string subSub01 = Tlv("01", accountNumber); // Số tài khoản thụ hưởng
-            string sub01 = Tlv("01", subSub00 + subSub01);
-            string sub02 = "0208QRIBFTTA"; // Mã dịch vụ chuyển nhanh NAPAS 24/7 đến tài khoản
-            payload += Tlv("38", sub00 + sub01 + sub02);
-
-            // Tag 53: Mã tiền tệ (704 = VND)
-            payload += "5303704";
-
-            // Tag 54: Số tiền giao dịch
-            if (amount > 0)
-            {
-                payload += Tlv("54", amount.ToString());
-            }
-
-            // Tag 58: Mã quốc gia (VN)
-            payload += "5802VN";
-
-            // Tag 62: Thông tin bổ sung (Nội dung chuyển khoản)
-            if (!string.IsNullOrWhiteSpace(content))
-            {
-                string cleanContent = RemoveDiacritics(content.Trim());
-                string sub62_08 = Tlv("08", cleanContent);
-                payload += Tlv("62", sub62_08);
-            }
-
-            // Tag 63: Khai báo trường CRC (Độ dài 04)
-            payload += "6304";
-
-            // Tính mã kiểm tra CRC-16/CCITT-FALSE (Đa thức 0x1021, Khởi tạo 0xFFFF)
-            string crc = ComputeCrc16(payload);
-            return payload + crc;
-        }
+            => VietQrHelper.BuildVietQrEmvCoString(bin, accountNumber, amount, content);
 
         public static string RemoveDiacritics(string text)
-        {
-            var normalizedString = text.Normalize(NormalizationForm.FormD);
-            var sb = new StringBuilder();
-
-            foreach (var c in normalizedString)
-            {
-                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-                {
-                    sb.Append(c);
-                }
-            }
-
-            return sb.ToString().Normalize(NormalizationForm.FormC).Replace('đ', 'd').Replace('Đ', 'D');
-        }
+            => VietQrHelper.RemoveDiacritics(text);
 
         public static string ComputeCrc16(string data)
-        {
-            ushort crc = 0xFFFF;
-            byte[] bytes = Encoding.UTF8.GetBytes(data);
-
-            foreach (byte b in bytes)
-            {
-                crc ^= (ushort)(b << 8);
-                for (int i = 0; i < 8; i++)
-                {
-                    if ((crc & 0x8000) != 0)
-                        crc = (ushort)((crc << 1) ^ 0x1021);
-                    else
-                        crc = (ushort)(crc << 1);
-                }
-            }
-
-            return crc.ToString("X4");
-        }
-
+            => VietQrHelper.ComputeCrc16(data);
         #endregion
 
         private async void PollingTimer_Tick(object? sender, EventArgs e)
         {
+            if (IsDisposed || !Visible || IsPaymentSuccessful) return;
+
             var result = await WinFormsApiClient.Instance.CheckBankPaymentStatusAsync(_maHdb, _soTien);
+
+            if (IsDisposed || !Visible || IsPaymentSuccessful) return;
 
             if (result.PaidAmount > 0)
             {
@@ -232,10 +172,12 @@ namespace NexusRetail.WinForms.Forms
         private async void OnPaymentSuccess(string txCode, decimal? paidAmount = null)
         {
             if (IsPaymentSuccessful) return;
-            _pollingTimer.Stop();
             IsPaymentSuccessful = true;
+            _pollingTimer.Stop();
 
             decimal amount = paidAmount ?? _soTien;
+
+            if (IsDisposed) return;
 
             // Đổi trạng thái sang màu xanh lục
             pnlStatus.BackColor = Color.FromArgb(16, 185, 129); // Modern Emerald Green
@@ -265,12 +207,12 @@ namespace NexusRetail.WinForms.Forms
             }
         }
 
-        // Bấm phím F9 hoặc nút Simulate để giả lập Webhook tức thì (Dùng cho Demo bảo vệ)
+        // Bấm phím F5 hoặc nút Kiểm tra để đối soát ngân hàng ngay lập tức
         private async void FrmThanhToanQR_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.F9)
+            if (e.KeyCode == Keys.F5)
             {
-                await TriggerSimulateAsync();
+                await KiemTraThanhToanAsync();
             }
             else if (e.KeyCode == Keys.Enter && IsPaymentSuccessful)
             {
@@ -286,35 +228,55 @@ namespace NexusRetail.WinForms.Forms
             }
         }
 
-        private async void btnSimulate_Click(object sender, EventArgs e)
+        private async void btnKiemTra_Click(object sender, EventArgs e)
         {
-            await TriggerSimulateAsync();
+            await KiemTraThanhToanAsync();
         }
 
-        private async Task TriggerSimulateAsync()
+        private async Task KiemTraThanhToanAsync()
         {
-            btnSimulate.Enabled = false;
-            btnSimulate.Text = "Đang gửi Webhook giả lập...";
+            if (IsDisposed || !Visible || IsPaymentSuccessful) return;
+
+            btnKiemTra.Enabled = false;
+            btnKiemTra.Text = "Đang kiểm tra...";
+            lblStatus.Text = "⏳ Đang kết nối ngân hàng đối soát giao dịch...";
+
             try
             {
-                var (success, _) = await WinFormsApiClient.Instance.SimulateBankPaymentAsync(_maHdb, _soTien);
-                if (success)
+                var result = await WinFormsApiClient.Instance.CheckBankPaymentStatusAsync(_maHdb, _soTien);
+
+                if (IsDisposed || !Visible || IsPaymentSuccessful) return;
+
+                if (result.PaidAmount > 0)
                 {
-                    OnPaymentSuccess("SIM_MBBANK", _soTien);
+                    if (result.PaidAmount < _soTien || !result.IsPaid)
+                    {
+                        pnlStatus.BackColor = Color.FromArgb(239, 68, 68);
+                        lblStatus.ForeColor = Color.White;
+                        decimal missing = _soTien - result.PaidAmount;
+                        lblStatus.Text = $"⚠ KHÁCH CHUYỂN THIẾU TIỀN: Đã nhận {result.PaidAmount:N0}đ / Cần {_soTien:N0}đ (Thiếu {missing:N0}đ)!";
+                    }
+                    else
+                    {
+                        OnPaymentSuccess(result.TransactionCode ?? "MB_AUTO", result.PaidAmount);
+                    }
                 }
                 else
                 {
-                    OnPaymentSuccess("SIM_OFFLINE", _soTien);
+                    lblStatus.Text = "⏳ Chưa phát hiện giao dịch khớp. Vui lòng kiểm tra lại app ngân hàng!";
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                OnPaymentSuccess("SIM_OFFLINE", _soTien);
+                lblStatus.Text = $"Lỗi kiểm tra giao dịch: {ex.Message}";
             }
             finally
             {
-                btnSimulate.Enabled = true;
-                btnSimulate.Text = "⚡ Giả lập Webhook MBBank (F9)";
+                if (!IsDisposed && !IsPaymentSuccessful)
+                {
+                    btnKiemTra.Enabled = true;
+                    btnKiemTra.Text = "🔄 Kiểm Tra Thanh Toán (F5)";
+                }
             }
         }
 

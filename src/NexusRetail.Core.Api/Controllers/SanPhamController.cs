@@ -226,20 +226,26 @@ namespace NexusRetail.Core.Api.Controllers
 
         private async Task<string> sinhMaSanPham()
         {
-            // Tìm mã lớn nhất hiện có trong DB dạng "SP___"
-            var maCuoi = await _db.SanPhams
+            var allCodes = await _db.SanPhams
                 .Where(x => x.MaSp.StartsWith("SP"))
-                .OrderByDescending(x => x.MaSp)
                 .Select(x => x.MaSp)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (maCuoi == null) return "SP01"; // DB trống → bắt đầu từ SP01
+            int maxNumber = 0;
+            foreach (var code in allCodes)
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(code, @"^SP(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int num))
+                {
+                    if (num < 10000 && num > maxNumber)
+                    {
+                        maxNumber = num;
+                    }
+                }
+            }
 
-            // Tách phần số: "SP012" → 12
-            if (int.TryParse(maCuoi.Substring(2), out int soHienTai))
-                return $"SP{(soHienTai + 1):D2}";
-
-            return $"SP{Guid.NewGuid().ToString()[..6].ToUpper()}"; // fallback nếu parse lỗi
+            int nextNumber = maxNumber + 1;
+            return $"SP{nextNumber:D2}";
         }
 
 
@@ -304,6 +310,14 @@ namespace NexusRetail.Core.Api.Controllers
         {
             var sp = await _db.SanPhams.FindAsync(maSP);
             if (sp == null) return NotFound();
+
+            var daPhatSinhGiaoDich = await _db.ChiTietHdbs.AnyAsync(x => x.MaSp == maSP) 
+                                  || await _db.ChiTietHdns.AnyAsync(x => x.MaSp == maSP);
+            if (daPhatSinhGiaoDich)
+            {
+                return BadRequest(new { message = "Không thể xóa sản phẩm đã phát sinh hóa đơn bán hoặc nhập!" });
+            }
+
             try
             {
                 _db.SanPhams.Remove(sp);

@@ -32,7 +32,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblLabelNganHang = new System.Windows.Forms.Label();
             this.pnlStatus = new System.Windows.Forms.Panel();
             this.lblStatus = new System.Windows.Forms.Label();
-            this.btnSimulate = new System.Windows.Forms.Button();
+            this.btnKiemTra = new System.Windows.Forms.Button();
             this.btnDong = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picQr)).BeginInit();
@@ -229,19 +229,19 @@ namespace NexusRetail.WinForms.Forms
             this.lblStatus.Text = "⏳ Đang lắng nghe Webhook ngân hàng xác nhận...";
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // btnSimulate
+            // btnKiemTra
             // 
-            this.btnSimulate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
-            this.btnSimulate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSimulate.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnSimulate.ForeColor = System.Drawing.Color.White;
-            this.btnSimulate.Location = new System.Drawing.Point(24, 588);
-            this.btnSimulate.Name = "btnSimulate";
-            this.btnSimulate.Size = new System.Drawing.Size(256, 38);
-            this.btnSimulate.TabIndex = 4;
-            this.btnSimulate.Text = "⚡ Giả lập Webhook MBBank (F9)";
-            this.btnSimulate.UseVisualStyleBackColor = false;
-            this.btnSimulate.Click += new System.EventHandler(this.btnSimulate_Click);
+            this.btnKiemTra.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
+            this.btnKiemTra.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnKiemTra.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.btnKiemTra.ForeColor = System.Drawing.Color.White;
+            this.btnKiemTra.Location = new System.Drawing.Point(24, 588);
+            this.btnKiemTra.Name = "btnKiemTra";
+            this.btnKiemTra.Size = new System.Drawing.Size(256, 38);
+            this.btnKiemTra.TabIndex = 4;
+            this.btnKiemTra.Text = "🔄 Kiểm Tra Thanh Toán (F5)";
+            this.btnKiemTra.UseVisualStyleBackColor = false;
+            this.btnKiemTra.Click += new System.EventHandler(this.btnKiemTra_Click);
             // 
             // btnDong
             // 
@@ -263,7 +263,7 @@ namespace NexusRetail.WinForms.Forms
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(460, 642);
             this.Controls.Add(this.btnDong);
-            this.Controls.Add(this.btnSimulate);
+            this.Controls.Add(this.btnKiemTra);
             this.Controls.Add(this.pnlStatus);
             this.Controls.Add(this.pnlInfo);
             this.Controls.Add(this.picQr);
@@ -301,7 +301,7 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Label lblSoTien;
         private System.Windows.Forms.Panel pnlStatus;
         private System.Windows.Forms.Label lblStatus;
-        private System.Windows.Forms.Button btnSimulate;
+        private System.Windows.Forms.Button btnKiemTra;
         private System.Windows.Forms.Button btnDong;
     }
 }

@@ -1,6 +1,8 @@
+
+using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace NexusRetail.Core.Api.Services.Chat
 {
@@ -10,151 +12,350 @@ namespace NexusRetail.Core.Api.Services.Chat
         private readonly IConfiguration _config;
         private readonly ILogger<GeminiChatService> _logger;
 
-        public GeminiChatService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<GeminiChatService> logger)
+        private const string DefaultModel = "gemini-1.5-flash";
+
+        public GeminiChatService(
+            IHttpClientFactory httpClientFactory,
+            IConfiguration config,
+            ILogger<GeminiChatService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _config = config;
             _logger = logger;
         }
 
-        public async Task<(string Reply, string Source, string? Note)> GenerateConsultationAsync(string systemPrompt, string userMessage)
+        public async Task<(string Reply, string Source, string? Note)>
+            GenerateConsultationAsync(
+                string systemPrompt,
+                string userMessage)
         {
+            // 1. Lấy API Key từ cấu hình hoặc biến môi trường.
             string apiKey = _config["Gemini:ApiKey"] ?? "";
-            if (string.IsNullOrEmpty(apiKey) || apiKey.Contains("YOUR_GEMINI_API_KEY"))
+
+            if (string.IsNullOrWhiteSpace(apiKey) ||
+                apiKey.Contains("YOUR_GEMINI_API_KEY",
+                    StringComparison.OrdinalIgnoreCase))
             {
-                apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? "";
+                apiKey = Environment.GetEnvironmentVariable(
+                    "GEMINI_API_KEY") ?? "";
             }
 
-            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Contains("YOUR_GEMINI_API_KEY"))
+            if (string.IsNullOrWhiteSpace(apiKey) ||
+                apiKey.Contains("YOUR_GEMINI_API_KEY",
+                    StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("[GeminiChatService] Chưa cấu hình Gemini:ApiKey. Sử dụng bộ tư vấn thông minh từ danh mục kho hàng.");
-                return (GenerateSmartRecommendation(userMessage), "local_smart_catalog", "Chưa cấu hình API Key");
+                _logger.LogWarning(
+                    "[GeminiChatService] Chưa cấu hình Gemini API Key.");
+
+                return (
+                    GenerateSmartRecommendation(userMessage),
+                    "local_smart_catalog",
+                    "Chưa cấu hình Gemini API Key."
+                );
             }
 
-            var configuredModel = _config["Gemini:Model"] ?? "gemini-flash-lite-latest";
+            // 2. Chọn model từ appsettings.json.
+            string configuredModel = DefaultModel;
+
+            configuredModel = configuredModel.Trim();
+
+            // Model chính được thử trước, sau đó là các model chính thức từ Google
             var modelsToTry = new List<string>();
-            if (!string.IsNullOrWhiteSpace(configuredModel)) modelsToTry.Add(configuredModel);
-            if (!modelsToTry.Contains("gemini-flash-lite-latest")) modelsToTry.Add("gemini-flash-lite-latest");
-            if (!modelsToTry.Contains("gemini-3.5-flash-lite")) modelsToTry.Add("gemini-3.5-flash-lite");
-            if (!modelsToTry.Contains("gemini-3.8-flash")) modelsToTry.Add("gemini-3.8-flash");
-            if (!modelsToTry.Contains("gemini-flash-latest")) modelsToTry.Add("gemini-flash-latest");
 
-            var client = _httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(15);
+            if (!string.IsNullOrWhiteSpace(configuredModel))
+                modelsToTry.Add(configuredModel);
 
-            var requestBody = new
+            var officialModels = new[] { "gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite" };
+            foreach (var m in officialModels)
             {
-                contents = new[]
+                if (!modelsToTry.Contains(m, StringComparer.OrdinalIgnoreCase))
                 {
-                    new
-                    {
-                        role = "user",
-                        parts = new[]
-                        {
-                            new { text = systemPrompt + "\n\nKhách hàng hỏi: " + userMessage }
-                        }
-                    }
-                },
-                generationConfig = new
-                {
-                    temperature = 0.7,
-                    maxOutputTokens = 2048
+                    modelsToTry.Add(m);
                 }
-            };
+            }
 
-            string lastError = "";
-            int index = 0;
-            while (index < modelsToTry.Count)
+            // 3. Tạo HTTP client.
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(30);
+
+            string lastError = "Không nhận được phản hồi từ Gemini.";
+
+            // 4. Thử lần lượt các model.
+            foreach (string model in modelsToTry)
             {
-                var model = modelsToTry[index++];
-                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
                 try
                 {
-                    _logger.LogInformation("[GeminiChatService] Đang gửi yêu cầu đến Google Gemini API (model: {Model})...", model);
-                    var json = JsonSerializer.Serialize(requestBody);
-                    using var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    using var response = await client.PostAsync(url, content);
-
-                    if (response.IsSuccessStatusCode)
+                    var requestBody = new
                     {
-                        var responseJson = await response.Content.ReadAsStringAsync();
-                        using var doc = JsonDocument.Parse(responseJson);
-
-                        if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
-                            candidates.GetArrayLength() > 0 &&
-                            candidates[0].TryGetProperty("content", out var candContent) &&
-                            candContent.TryGetProperty("parts", out var parts) &&
-                            parts.GetArrayLength() > 0 &&
-                            parts[0].TryGetProperty("text", out var textEl))
+                        systemInstruction = new
                         {
-                            string? reply = textEl.GetString();
-                            if (!string.IsNullOrWhiteSpace(reply))
+                            parts = new[]
                             {
-                                _logger.LogInformation("[GeminiChatService] Nhận phản hồi thành công từ Google Gemini (model: {Model})", model);
-                                return (reply.Trim(), "gemini", $"Google Gemini API ({model})");
+                                new { text = systemPrompt }
                             }
+                        },
+                        contents = new[]
+                        {
+                            new
+                            {
+                                role = "user",
+                                parts = new[]
+                                {
+                                    new { text = userMessage }
+                                }
+                            }
+                        },
+                        generationConfig = new
+                        {
+                            temperature = 0.7,
+                            maxOutputTokens = 2048
                         }
-                    }
-                    else
+                    };
+
+                    string url =
+                        "https://generativelanguage.googleapis.com/" +
+                        $"v1beta/models/{Uri.EscapeDataString(model)}:" +
+                        "generateContent";
+
+                    string json = JsonSerializer.Serialize(requestBody);
+
+                    using var request = new HttpRequestMessage(
+                        HttpMethod.Post, url);
+
+                    request.Headers.Add("x-goog-api-key", apiKey);
+
+                    request.Content = new StringContent(
+                        json,
+                        Encoding.UTF8,
+                        "application/json");
+
+                    _logger.LogInformation(
+                        "[GeminiChatService] Gọi Gemini model {Model}.",
+                        model);
+
+                    using var response = await client.SendAsync(request);
+
+                    string responseJson =
+                        await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
                     {
-                        var errorBody = await response.Content.ReadAsStringAsync();
-                        lastError = $"HTTP {(int)response.StatusCode}: {errorBody}";
-                        _logger.LogWarning("[GeminiChatService] Google Gemini API trả lỗi ({Model}): {Error}", model, lastError);
+                        lastError =
+                            $"HTTP {(int)response.StatusCode}: " +
+                            GetSafeErrorMessage(responseJson);
 
-                        var recMatches = Regex.Matches(errorBody, @"models/(gemini-[a-zA-Z0-9.\-_]+)");
-                        foreach (Match recMatch in recMatches)
+                        _logger.LogWarning(
+                            "[GeminiChatService] Model {Model} trả về " +
+                            "HTTP {StatusCode}.",
+                            model,
+                            (int)response.StatusCode);
+
+                        // Chỉ chuyển model khi có khả năng model hoặc
+                        // cấu hình request không hợp lệ.
+                        if (response.StatusCode == HttpStatusCode.NotFound ||
+                            response.StatusCode == HttpStatusCode.BadRequest)
                         {
-                            string candidateModel = recMatch.Groups[1].Value;
-                            if (!string.Equals(candidateModel, model, StringComparison.OrdinalIgnoreCase) && !modelsToTry.Contains(candidateModel))
-                            {
-                                _logger.LogInformation("[GeminiChatService] Tìm thấy model thay thế: {RecModel}. Thử ngay...", candidateModel);
-                                modelsToTry.Insert(index, candidateModel);
-                                break;
-                            }
+                            continue;
                         }
+
+                        // Ví dụ: API Key sai, hết quota hoặc lỗi máy chủ.
+                        // Thử model khác không chắc giải quyết được.
+                        break;
                     }
+
+                    using var document =
+                        JsonDocument.Parse(responseJson);
+
+                    string reply = ExtractResponseText(
+                        document.RootElement);
+
+                    if (string.IsNullOrWhiteSpace(reply))
+                    {
+                        lastError =
+                            "Gemini trả về thành công nhưng không có nội dung.";
+
+                        _logger.LogWarning(
+                            "[GeminiChatService] Model {Model} không có text.",
+                            model);
+
+                        continue;
+                    }
+
+                    _logger.LogInformation(
+                        "[GeminiChatService] Nhận phản hồi từ model {Model}.",
+                        model);
+
+                    return (
+                        reply.Trim(),
+                        "gemini",
+                        $"Google Gemini API ({model})"
+                    );
+                }
+                catch (OperationCanceledException ex)
+                {
+                    lastError = ex.Message;
+
+                    _logger.LogWarning(
+                        ex,
+                        "[GeminiChatService] Yêu cầu model {Model} bị " +
+                        "hủy hoặc hết thời gian chờ.",
+                        model);
+
+                    // Không tiếp tục thử model khi request đã timeout.
+                    break;
+                }
+                catch (HttpRequestException ex)
+                {
+                    lastError = ex.Message;
+
+                    _logger.LogError(
+                        ex,
+                        "[GeminiChatService] Lỗi kết nối model {Model}.",
+                        model);
+
+                    break;
+                }
+                catch (JsonException ex)
+                {
+                    lastError = ex.Message;
+
+                    _logger.LogWarning(
+                        ex,
+                        "[GeminiChatService] JSON trả về không hợp lệ " +
+                        "từ model {Model}.",
+                        model);
+
+                    continue;
                 }
                 catch (Exception ex)
                 {
                     lastError = ex.Message;
-                    _logger.LogError(ex, "[GeminiChatService] Lỗi kết nối khi gọi Gemini API ({Model})", model);
+
+                    _logger.LogError(
+                        ex,
+                        "[GeminiChatService] Lỗi khi gọi model {Model}.",
+                        model);
+
+                    break;
                 }
             }
 
-            _logger.LogWarning("[GeminiChatService] Fallback sang danh mục kho hàng do lỗi: {Error}", lastError);
-            return (GenerateSmartRecommendation(userMessage), "local_smart_catalog", $"Gemini Error: {lastError}");
+            // 5. Fallback nếu Gemini không hoạt động.
+            _logger.LogWarning(
+                "[GeminiChatService] Chuyển sang tư vấn nội bộ. " +
+                "Lý do: {Error}",
+                lastError);
+
+            return (
+                GenerateSmartRecommendation(userMessage),
+                "local_smart_catalog",
+                $"Gemini không khả dụng: {lastError}"
+            );
+        }
+
+        private static string ExtractResponseText(JsonElement root)
+        {
+            if (!root.TryGetProperty("candidates", out var candidates) ||
+                candidates.ValueKind != JsonValueKind.Array ||
+                candidates.GetArrayLength() == 0)
+            {
+                return string.Empty;
+            }
+
+            var candidate = candidates[0];
+
+            if (!candidate.TryGetProperty("content", out var content) ||
+                !content.TryGetProperty("parts", out var parts) ||
+                parts.ValueKind != JsonValueKind.Array)
+            {
+                return string.Empty;
+            }
+
+            var result = new StringBuilder();
+
+            foreach (var part in parts.EnumerateArray())
+            {
+                if (part.TryGetProperty("text", out var textElement) &&
+                    textElement.ValueKind == JsonValueKind.String)
+                {
+                    string? text = textElement.GetString();
+
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        if (result.Length > 0)
+                            result.AppendLine();
+
+                        result.Append(text);
+                    }
+                }
+            }
+
+            return result.ToString();
+        }
+
+        private static string GetSafeErrorMessage(string responseJson)
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(responseJson);
+
+                if (document.RootElement.TryGetProperty(
+                        "error", out var error) &&
+                    error.TryGetProperty("message", out var message))
+                {
+                    return message.GetString() ?? "Lỗi API không xác định.";
+                }
+            }
+            catch (JsonException)
+            {
+                // Không phân tích được JSON lỗi.
+            }
+
+            // Không ghi nguyên response vào log vì có thể chứa thông tin
+            // kỹ thuật không cần thiết.
+            return "Gemini API trả về lỗi.";
         }
 
         public string GenerateSmartRecommendation(string message)
         {
-            string q = message.ToLower();
+            string q = message.ToLowerInvariant();
 
             if (q.Contains("game") || q.Contains("chơi") || q.Contains("mượt") || q.Contains("fps"))
             {
-                return "Để chơi game mượt mà, cấu hình mạnh và tản nhiệt tốt, Duy Mobile đặc biệt khuyên bạn nên chọn iPhone 16 Pro Max hoặc Samsung Galaxy S24 Ultra. Cả 2 dòng máy đều trang bị chip xử lý đỉnh cao, màn hình 120Hz siêu nhạy và pin trâu cho trải nghiệm gaming trọn vẹn nhất!";
+                return "Để chiến game mượt mà không lo drop FPS, Duy Mobile khuyên bạn nên chọn POCO X6 Pro 5G (8.800.000 ₫ - cấu hình Dimensity 8300 cực đỉnh phân khúc), hoặc các siêu phẩm iPhone 16 Pro Max / Galaxy S24 Ultra với màn hình 120Hz và chip hàng đầu hiện nay!";
             }
 
             if (q.Contains("chụp ảnh") || q.Contains("camera") || q.Contains("quay phim") || q.Contains("sống ảo"))
             {
-                return "Nếu bạn ưu tiên chụp ảnh sắc nét, màu sắc chân thực và chống rung quang học đỉnh cao, hãy tham khảo iPhone 16 Pro hoặc Samsung Galaxy S24 Ultra với ống kính tele tiềm vọng zoom xa ấn tượng và cảm biến độ phân giải cực lớn!";
+                return "Nếu bạn đam mê nhiếp ảnh và quay video chất lượng cao, Xiaomi 14 Ultra (Quad 50MP cảm biến Leica 1-inch) và Galaxy S24 Ultra (200MP zoom 100x) là hai 'ông vua' camera hiện nay. Ngoài ra, iPhone 16 Pro với nút Camera Control mới cũng cho trải nghiệm chụp ảnh rất chuyên nghiệp!";
             }
 
-            if (q.Contains("dưới 20") || q.Contains("dưới 15") || q.Contains("giá rẻ") || q.Contains("tiết kiệm"))
+            if (q.Contains("dưới 20") || q.Contains("dưới 15") || q.Contains("giá rẻ") || q.Contains("tiết kiệm") || q.Contains("sinh viên"))
             {
-                return "Trong tầm giá tiết kiệm dưới 20 triệu, Duy Mobile có các lựa chọn cực kỳ đáng giá như iPhone 13, Xiaomi 14T Pro hoặc Samsung Galaxy S23 FE. Các sản phẩm đều được bảo hành chính hãng 12 tháng và hỗ trợ trả góp 0% lãi suất!";
+                return "Trong tầm giá tiết kiệm từ 4 đến 15 triệu, Duy Mobile có sẵn nhiều lựa chọn cực tốt: Redmi 13 (3.960.000 ₫), Samsung Galaxy A55 5G (9.350.000 ₫) và iPhone 13 128GB (13.200.000 ₫). Tất cả đều bảo hành chính hãng và hỗ trợ trả góp 0% lãi suất!";
             }
 
-            if (q.Contains("iphone") || q.Contains("apple"))
+            if (q.Contains("iphone") || q.Contains("apple") || q.Contains("ios"))
             {
-                return "Duy Mobile hiện là đại lý ủy quyền với đầy đủ các dòng iPhone chính hãng VNA từ iPhone 13, iPhone 15 đến iPhone 16 Series mới nhất, cam kết 1 đổi 1 trong 30 ngày và tặng kèm gói bảo hành rơi vỡ!";
+                return "Duy Mobile hiện sẵn hàng đầy đủ các dòng iPhone chính hãng VN/A: iPhone 16 Pro Max 256GB (34.980.000 ₫), iPhone 16 128GB (22.880.000 ₫) và iPhone 13 128GB (13.200.000 ₫). Máy mới 100%, bảo hành 12 tháng chính hãng và tặng kèm gói dán cường lực!";
             }
 
             if (q.Contains("samsung") || q.Contains("galaxy"))
             {
-                return "Các dòng Samsung Galaxy tại Duy Mobile đang có chương trình trợ giá thu cũ đổi mới lên tới 3.000.000₫. Nổi bật nhất là Galaxy S24 Ultra và Galaxy Z Fold6 với các tính năng Galaxy AI thông minh vượt trội!";
+                return "Về Samsung Galaxy, các dòng máy nổi bật nhất tại Duy Mobile là Galaxy S24 Ultra 256GB (26.400.000 ₫ - Galaxy AI đỉnh cao), Galaxy Z Fold6 màn hình gập (41.800.000 ₫) và Galaxy A55 5G (9.350.000 ₫). Đang có ưu đãi trợ giá thu cũ đổi mới lên đến 2.000.000 ₫!";
             }
 
-            return "Chào bạn! Duy Mobile có sẵn đầy đủ các mẫu smartphone cao cấp từ Apple, Samsung, Xiaomi với mức giá tốt nhất thị trường. Bạn có thể cho mình biết rõ hơn về ngân sách dự kiến hoặc nhu cầu chính (chơi game, chụp ảnh, làm việc) để mình tư vấn máy tối ưu nhất nhé!";
+            if (q.Contains("xiaomi") || q.Contains("redmi") || q.Contains("poco"))
+            {
+                return "Dòng Xiaomi tại Duy Mobile nổi tiếng với cấu hình cực mạnh và sạc siêu nhanh: Xiaomi 14 5G (17.600.000 ₫), Redmi Note 13 Pro (4.950.000 ₫) và POCO X6 Pro 5G (8.800.000 ₫), bảo hành chính hãng lên đến 18 tháng!";
+            }
+
+            if (q.Contains("oppo") || q.Contains("reno"))
+            {
+                return "Dòng OPPO tại Duy Mobile đang rất 'hot' với chuyên gia chân dung Reno12 Pro 5G (18.150.000 ₫) và Reno11 5G (8.800.000 ₫) cùng siêu phẩm gập Find N3 Flip (22.000.000 ₫) với camera Hasselblad cao cấp!";
+            }
+
+            return "Chào bạn! Duy Mobile là hệ thống bán lẻ smartphone chính hãng từ Apple, Samsung, Xiaomi, OPPO và Vivo. Bạn có thể cho mình biết nhu cầu chính (chơi game, chụp ảnh, văn phòng) hoặc tầm ngân sách dự kiến để mình tư vấn máy tối ưu nhất nhé!";
         }
     }
 }
