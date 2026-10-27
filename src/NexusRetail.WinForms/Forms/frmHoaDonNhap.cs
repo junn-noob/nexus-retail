@@ -49,7 +49,7 @@ namespace NexusRetail.WinForms.Forms
 
         private void ApplyCustomStyles()
         {
-            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "LẬP HÓA ĐƠN NHẬP KHO THIẾT BỊ", "Cập nhật tồn kho (BR-01), cập nhật giá nhập (BR-02) và tự động tính giá niêm yết (BR-03)");
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "LẬP HÓA ĐƠN NHẬP KHO HÀNG HÓA", "Nhập hàng từ nhà cung cấp • Tự động đồng bộ tồn kho và giá vốn niêm yết");
             UiTheme.ApplyModernGrid(dgvChiTiet);
 
             UiTheme.ApplyPrimaryButton(btnThemSp, "➕ Thêm Vào Phiếu Nhập");

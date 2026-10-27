@@ -11,7 +11,7 @@
 <div class="container pb-5">
     <div class="mb-4">
         <h3 class="fw-bold text-dark m-0"><i class="bi bi-speedometer2 text-primary me-2"></i> Bảng điều khiển Quản trị viên</h3>
-        <small class="text-secondary">Chào mừng bạn đến với hệ thống quản trị Duy Mobile. Phân quyền Admin: Toàn quyền thêm, sửa, xóa sản phẩm, duyệt đơn và xuất 4 báo cáo môn học.</small>
+        <small class="text-secondary">Chào mừng bạn đến với hệ thống quản trị Duy Mobile. Toàn quyền quản lý danh mục sản phẩm, duyệt đơn hàng và thống kê tài chính.</small>
     </div>
 
     <!-- Quick Stat Cards -->
@@ -111,7 +111,7 @@
         <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i> Thao tác nhanh quản trị</h5>
         <div class="d-flex gap-2 flex-wrap">
             <a asp-action="ThemSanPham" class="btn btn-primary rounded-3 fw-bold px-3 py-2 shadow-sm">
-                <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới (Tự tính Giá Bán BR-03)
+                <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới
             </a>
             <a asp-action="SanPham" class="btn btn-outline-secondary rounded-3 fw-bold px-3 py-2">
                 <i class="bi bi-phone me-1"></i> Quản lý kho sản phẩm
@@ -120,7 +120,7 @@
                 <i class="bi bi-box-seam me-1"></i> Kiểm tra hóa đơn khách mua
             </a>
             <a asp-action="BaoCao" asp-route-loai="sp-ban-chay" class="btn btn-success rounded-3 fw-bold px-3 py-2 shadow-sm">
-                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel Top sản phẩm bán chạy (BR-06)
+                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel Top sản phẩm bán chạy
             </a>
         </div>
     </div>

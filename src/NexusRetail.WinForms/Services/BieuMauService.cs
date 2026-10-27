@@ -589,7 +589,7 @@ namespace NexusRetail.WinForms.Services
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>BM03 - Báo Cáo Tổng Hợp Xuất Nhập Tồn Kho - Tháng {thang}/{nam}</title>
+    <title>Báo Cáo Tổng Hợp Xuất Nhập Tồn Kho - Tháng {thang}/{nam}</title>
     <script src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'></script>
     <style>
         * {{ box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }}

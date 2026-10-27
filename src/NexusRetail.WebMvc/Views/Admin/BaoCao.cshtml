@@ -60,8 +60,8 @@
     <!-- Header Page -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h3 class="fw-bold text-dark m-0"><i class="bi bi-file-earmark-spreadsheet text-primary me-2"></i> 4 Báo cáo thống kê bắt buộc (BR-06 đến BR-09)</h3>
-            <small class="text-secondary">Thực thi LINQ Aggregate & Xuất file Excel chuẩn ClosedXML (.xlsx)</small>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-file-earmark-spreadsheet text-primary me-2"></i> Báo cáo thống kê hoạt động kinh doanh</h3>
+            <small class="text-secondary">Thống kê doanh số bán lẻ, hóa đơn nhập kho và kết xuất báo cáo Excel (.xlsx)</small>
         </div>
 
         <a asp-action="XuatExcel" asp-route-loai="@loai" asp-route-thang="@thang" asp-route-nam="@nam" asp-route-quy="@quy" class="btn btn-success rounded-3 fw-bold px-3 py-2 shadow-sm text-nowrap">
@@ -75,10 +75,10 @@
             <div class="col-lg-5 col-md-12">
                 <label class="form-label small fw-bold text-secondary">Chọn loại báo cáo:</label>
                 <select name="loai" onchange="this.form.submit()" class="form-select rounded-3 py-2 fw-semibold text-dark">
-                    <option value="sp-ban-chay" selected="@(loai == "sp-ban-chay")">BR-06: Top 5 sản phẩm bán chạy nhất (Tháng/Năm)</option>
-                    <option value="nhap-lon-nhat-quy" selected="@(loai == "nhap-lon-nhat-quy")">BR-07: Hóa đơn & Tiền nhập lớn nhất theo Quý</option>
-                    <option value="doanh-so-nam" selected="@(loai == "doanh-so-nam")">BR-08: Hóa đơn & Tổng doanh số theo Năm</option>
-                    <option value="nv-ban-it-nhat" selected="@(loai == "nv-ban-it-nhat")">BR-09: 5 Nhân viên bán ít tiền nhất (Tháng/Năm)</option>
+                    <option value="sp-ban-chay" selected="@(loai == "sp-ban-chay")">Top 5 sản phẩm bán chạy nhất (Tháng/Năm)</option>
+                    <option value="nhap-lon-nhat-quy" selected="@(loai == "nhap-lon-nhat-quy")">Hóa đơn & Tiền nhập lớn nhất theo Quý</option>
+                    <option value="doanh-so-nam" selected="@(loai == "doanh-so-nam")">Hóa đơn & Tổng doanh số theo Năm</option>
+                    <option value="nv-ban-it-nhat" selected="@(loai == "nv-ban-it-nhat")">5 Nhân viên có doanh số thấp nhất (Tháng/Năm)</option>
                 </select>
             </div>
 

@@ -56,7 +56,7 @@ namespace NexusRetail.WinForms.Forms
 
         private void ApplyCustomStyles()
         {
-            UiTheme.ApplyFormHeader(pnlTop, lblTitle, lblSub, "QUẢN LÝ DANH MỤC THIẾT BỊ DI ĐỘNG", "Quản lý tồn kho, giá vốn và giá niêm yết tự động (Markup 10%)");
+            UiTheme.ApplyFormHeader(pnlTop, lblTitle, lblSub, "QUẢN LÝ DANH MỤC HÀNG HÓA", "Quản lý thông tin sản phẩm, giá vốn niêm yết và tồn kho thực tế");
             UiTheme.ApplyModernGrid(dgvSanPham);
 
             UiTheme.ApplySuccessButton(btnThem, "➕ Thêm Mới");

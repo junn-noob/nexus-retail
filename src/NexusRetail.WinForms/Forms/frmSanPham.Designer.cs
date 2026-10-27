@@ -88,7 +88,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSub.Name = "lblSub";
             this.lblSub.Size = new System.Drawing.Size(512, 17);
             this.lblSub.TabIndex = 1;
-            this.lblSub.Text = "Quản lý danh mục thiết bị, linh kiện, tồn kho và công thức tính giá bán tự động (+10%)";
+            this.lblSub.Text = "Quản lý thông tin hàng hóa, bảng giá niêm yết và số lượng tồn kho";
             // 
             // lblTitle
             // 

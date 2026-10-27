@@ -126,7 +126,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnBieuMauKho.Name = "btnBieuMauKho";
             this.btnBieuMauKho.Size = new System.Drawing.Size(170, 36);
             this.btnBieuMauKho.TabIndex = 10;
-            this.btnBieuMauKho.Text = "📋 Biểu Mẫu BM03";
+            this.btnBieuMauKho.Text = "📋 Báo Cáo Xuất Nhập Tồn";
             this.btnBieuMauKho.UseVisualStyleBackColor = false;
             this.btnBieuMauKho.Click += new System.EventHandler(this.btnBieuMauKho_Click);
             // 
@@ -274,7 +274,7 @@ namespace NexusRetail.WinForms.Forms
             "Hóa đơn nhập hàng lớn nhất trong quý",
             "Tổng kết doanh số bán theo năm",
             "Top 5 nhân viên có doanh số thấp nhất tháng",
-            "Báo cáo tổng hợp xuất - nhập - tồn kho (Biểu mẫu BM03)"});
+            "Báo cáo tổng hợp xuất - nhập - tồn kho"});
             this.cboLoaiBaoCao.Location = new System.Drawing.Point(125, 14);
             this.cboLoaiBaoCao.Name = "cboLoaiBaoCao";
             this.cboLoaiBaoCao.Size = new System.Drawing.Size(425, 24);

@@ -100,7 +100,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSubTitle.Name = "lblSubTitle";
             this.lblSubTitle.Size = new System.Drawing.Size(585, 17);
             this.lblSubTitle.TabIndex = 1;
-            this.lblSubTitle.Text = "Nhập kho thiết bị & linh kiện • Tự động cộng tồn kho (BR-01) & cập nhật giá vốn niêm yết (BR-02, BR-03)";
+            this.lblSubTitle.Text = "Nhập kho hàng hóa & thiết bị • Quản lý giá vốn và tồn kho doanh nghiệp";
             // 
             // lblTitle
             // 

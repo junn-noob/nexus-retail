@@ -35,8 +35,8 @@ namespace NexusRetail.WinForms.Forms
             UiTheme.ApplyModernGrid(dgvBaoCao);
 
             UiTheme.ApplyPrimaryButton(btnXemBaoCao, "🔍 Xem Báo Cáo (F5)");
-            UiTheme.ApplySuccessButton(btnXuatExcel, "📥 Xuất File Excel (ClosedXML)");
-            UiTheme.ApplySecondaryButton(btnBieuMauKho, "📄 Xem Biểu Mẫu BM03");
+            UiTheme.ApplySuccessButton(btnXuatExcel, "📥 Xuất File Excel (.xlsx)");
+            UiTheme.ApplySecondaryButton(btnBieuMauKho, "📄 Báo Cáo Xuất Nhập Tồn");
             UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng (Esc)");
 
             lblTongKet.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
@@ -381,12 +381,12 @@ namespace NexusRetail.WinForms.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi hiển thị biểu mẫu BM03: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi hiển thị báo cáo tồn kho: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 btnBieuMauKho.Enabled = true;
-                btnBieuMauKho.Text = "📋 Biểu Mẫu BM03";
+                btnBieuMauKho.Text = "📋 Báo Cáo Xuất Nhập Tồn";
             }
         }
 
