@@ -77,6 +77,21 @@ namespace NexusRetail.Core.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (dto.DanhSachMon == null || dto.DanhSachMon.Count == 0)
+            {
+                return BadRequest(new { message = "Hóa đơn bán hàng phải có ít nhất 1 sản phẩm!" });
+            }
+
+            if (dto.DanhSachMon.Any(x => x.SoLuong <= 0))
+            {
+                return BadRequest(new { message = "Số lượng mua của từng sản phẩm phải lớn hơn 0!" });
+            }
+
+            if (dto.DanhSachMon.Any(x => x.KhuyenMai < 0 || x.KhuyenMai > 100))
+            {
+                return BadRequest(new { message = "Mức chiết khấu / khuyến mãi phải từ 0% đến 100%!" });
+            }
+
             using var tx = await _db.Database.BeginTransactionAsync();
 
             try

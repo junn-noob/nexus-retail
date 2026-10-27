@@ -149,6 +149,26 @@ namespace NexusRetail.Core.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (dto.DanhSachMon == null || dto.DanhSachMon.Count == 0)
+            {
+                return BadRequest(new { message = "Phiếu nhập kho phải có ít nhất 1 sản phẩm!" });
+            }
+
+            if (dto.DanhSachMon.Any(x => x.SoLuong <= 0))
+            {
+                return BadRequest(new { message = "Số lượng nhập của từng sản phẩm phải lớn hơn 0!" });
+            }
+
+            if (dto.DanhSachMon.Any(x => x.DonGia <= 0))
+            {
+                return BadRequest(new { message = "Đơn giá nhập của từng sản phẩm phải lớn hơn 0đ!" });
+            }
+
+            if (dto.DanhSachMon.Any(x => x.KhuyenMai < 0 || x.KhuyenMai > 100))
+            {
+                return BadRequest(new { message = "Chiết khấu nhập hàng phải từ 0% đến 100%!" });
+            }
+
             var nv = await _db.NhanViens.FindAsync(dto.MaNv);
             if (nv == null)
                 return BadRequest(new { message = $"Không tìm thấy nhân viên mã '{dto.MaNv}'!" });
