@@ -166,7 +166,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTips.Name = "lblTips";
             this.lblTips.Size = new System.Drawing.Size(460, 45);
             this.lblTips.TabIndex = 0;
-            this.lblTips.Text = "💡 Tài khoản demo: admin / admin123 (Quản trị)  •  nhanvien / nhanvien123 (Bán hàng)";
+            this.lblTips.Text = "KiotViet POS Enterprise • Hệ Thống Quản Lý Bán Lẻ Doanh Nghiệp • Hotline: 1900 6522";
             this.lblTips.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // frmDangNhap

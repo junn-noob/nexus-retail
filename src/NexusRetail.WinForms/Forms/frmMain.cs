@@ -60,7 +60,9 @@ namespace NexusRetail.WinForms.Forms
             pnlCard2.BackColor = Color.White;
             pnlCard3.BackColor = Color.White;
             pnlCard4.BackColor = Color.White;
-            pnlBanner.BackColor = Color.White;
+            pnlRecentActivity.BackColor = Color.White;
+
+            UiTheme.ApplyModernGrid(dgvRecentSales);
 
             LoadDashboardStatsAsync();
         }
@@ -79,6 +81,20 @@ namespace NexusRetail.WinForms.Forms
                 lblCard2Val.Text = $"{invoices.Count} Hóa Đơn";
                 decimal totalRev = invoices.Sum(i => i.TongTien);
                 lblCard1Val.Text = $"{totalRev:N0} ₫";
+
+                dgvRecentSales.Rows.Clear();
+                foreach (var inv in invoices.OrderByDescending(x => x.NgayBan).Take(15))
+                {
+                    dgvRecentSales.Rows.Add(
+                        inv.MaHdb,
+                        inv.NgayBan.ToString("dd/MM/yyyy HH:mm"),
+                        inv.TenKhach,
+                        inv.DienThoai,
+                        inv.TenNv,
+                        inv.TongTien.ToString("N0") + " ₫",
+                        "Đã thanh toán"
+                    );
+                }
             }
             catch { }
         }

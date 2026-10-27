@@ -73,7 +73,7 @@ namespace NexusRetail.WinForms.Forms
             dgvSanPham.DataSource = _products;
 
             FormatGrid();
-            lblFooterInfo.Text = $"💡 Tổng cộng: {_products.Count} mặt hàng trong danh mục • [F5] Làm mới • [Enter] Tìm kiếm • [Esc] Đóng";
+            lblFooterInfo.Text = $"Tổng số mặt hàng trong danh mục: {_products.Count} | Trạng thái: Sẵn sàng";
         }
 
         private void FormatGrid()

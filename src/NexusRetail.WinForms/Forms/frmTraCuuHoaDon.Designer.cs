@@ -498,7 +498,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblThongTin.Name = "lblThongTin";
             this.lblThongTin.Size = new System.Drawing.Size(460, 17);
             this.lblThongTin.TabIndex = 0;
-            this.lblThongTin.Text = "💡 Nhấp vào dòng hóa đơn để xem chi tiết danh sách thiết bị và đơn giá tương ứng";
+            this.lblThongTin.Text = "Sổ giao dịch điện tử KiotViet POS • Dữ liệu đồng bộ trực tiếp từ máy chủ";
             // 
             // frmTraCuuHoaDon
             // 

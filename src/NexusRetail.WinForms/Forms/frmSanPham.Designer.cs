@@ -485,7 +485,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblFooterInfo.Name = "lblFooterInfo";
             this.lblFooterInfo.Size = new System.Drawing.Size(430, 15);
             this.lblFooterInfo.TabIndex = 0;
-            this.lblFooterInfo.Text = "💡 Phím tắt: [F5] Làm mới danh sách • [Enter] Tìm kiếm • [Esc] Đóng cửa sổ";
+            this.lblFooterInfo.Text = "Danh mục hàng hóa KiotViet POS • Trạng thái: Sẵn sàng";
             // 
             // frmSanPham
             // 

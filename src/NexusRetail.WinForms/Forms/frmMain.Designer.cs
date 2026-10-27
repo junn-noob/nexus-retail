@@ -41,9 +41,18 @@ namespace NexusRetail.WinForms.Forms
             this.pnlCard4 = new System.Windows.Forms.Panel();
             this.lblCard4Val = new System.Windows.Forms.Label();
             this.lblCard4Title = new System.Windows.Forms.Label();
-            this.pnlBanner = new System.Windows.Forms.Panel();
-            this.lblBannerDesc = new System.Windows.Forms.Label();
-            this.lblBannerTitle = new System.Windows.Forms.Label();
+            this.pnlRecentActivity = new System.Windows.Forms.Panel();
+            this.pnlRecentHeader = new System.Windows.Forms.Panel();
+            this.lblRecentTitle = new System.Windows.Forms.Label();
+            this.lblRecentSub = new System.Windows.Forms.Label();
+            this.dgvRecentSales = new System.Windows.Forms.DataGridView();
+            this.colHdb = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colNgay = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colKhach = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colSdt = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colThuNgan = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colTongTien = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colTrangThai = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlTop.SuspendLayout();
             this.pnlNavRibbon.SuspendLayout();
             this.pnlCenter.SuspendLayout();
@@ -52,7 +61,9 @@ namespace NexusRetail.WinForms.Forms
             this.pnlCard2.SuspendLayout();
             this.pnlCard3.SuspendLayout();
             this.pnlCard4.SuspendLayout();
-            this.pnlBanner.SuspendLayout();
+            this.pnlRecentActivity.SuspendLayout();
+            this.pnlRecentHeader.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvRecentSales)).BeginInit();
             this.SuspendLayout();
             // 
             // pnlTop
@@ -227,7 +238,7 @@ namespace NexusRetail.WinForms.Forms
             // pnlCenter
             // 
             this.pnlCenter.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
-            this.pnlCenter.Controls.Add(this.pnlBanner);
+            this.pnlCenter.Controls.Add(this.pnlRecentActivity);
             this.pnlCenter.Controls.Add(this.pnlCardsContainer);
             this.pnlCenter.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlCenter.Location = new System.Drawing.Point(0, 134);
@@ -391,38 +402,127 @@ namespace NexusRetail.WinForms.Forms
             this.lblCard4Title.TabIndex = 0;
             this.lblCard4Title.Text = "🛡️ TRẠNG THÁI KHO";
             // 
-            // pnlBanner
             // 
-            this.pnlBanner.BackColor = System.Drawing.Color.White;
-            this.pnlBanner.Controls.Add(this.lblBannerDesc);
-            this.pnlBanner.Controls.Add(this.lblBannerTitle);
-            this.pnlBanner.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlBanner.Location = new System.Drawing.Point(24, 144);
-            this.pnlBanner.Name = "pnlBanner";
-            this.pnlBanner.Padding = new System.Windows.Forms.Padding(32);
-            this.pnlBanner.Size = new System.Drawing.Size(1216, 448);
-            this.pnlBanner.TabIndex = 1;
+            // pnlRecentActivity
             // 
-            // lblBannerDesc
+            this.pnlRecentActivity.BackColor = System.Drawing.Color.White;
+            this.pnlRecentActivity.Controls.Add(this.dgvRecentSales);
+            this.pnlRecentActivity.Controls.Add(this.pnlRecentHeader);
+            this.pnlRecentActivity.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlRecentActivity.Location = new System.Drawing.Point(24, 144);
+            this.pnlRecentActivity.Name = "pnlRecentActivity";
+            this.pnlRecentActivity.Padding = new System.Windows.Forms.Padding(16, 12, 16, 12);
+            this.pnlRecentActivity.Size = new System.Drawing.Size(1216, 448);
+            this.pnlRecentActivity.TabIndex = 1;
             // 
-            this.lblBannerDesc.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblBannerDesc.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.lblBannerDesc.Location = new System.Drawing.Point(32, 85);
-            this.lblBannerDesc.Name = "lblBannerDesc";
-            this.lblBannerDesc.Size = new System.Drawing.Size(950, 150);
-            this.lblBannerDesc.TabIndex = 1;
-            this.lblBannerDesc.Text = "Hệ thống Bán Lẻ & Quản Lý Kho Điện Thoại Di Động Duy Mobile được tích hợp đầy đủ công nghệ:\r\n• Bán hàng tại quầy (POS) với phím tắt chuyên dụng F8, F9 và in hóa đơn BM02.\r\n• Chuyển khoản VietQR MBBank sinh mã offline 0ms kèm Webhook tự động khớp lệnh.\r\n• Quản lý danh mục sản phẩm, tự động tính giá niêm yết theo giá nhập (+10%).\r\n• Báo cáo thống kê kinh doanh, xuất file Excel OpenXML và biểu mẫu kho BM01, BM03.";
+            // pnlRecentHeader
             // 
-            // lblBannerTitle
+            this.pnlRecentHeader.Controls.Add(this.lblRecentSub);
+            this.pnlRecentHeader.Controls.Add(this.lblRecentTitle);
+            this.pnlRecentHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlRecentHeader.Location = new System.Drawing.Point(16, 12);
+            this.pnlRecentHeader.Name = "pnlRecentHeader";
+            this.pnlRecentHeader.Size = new System.Drawing.Size(1184, 40);
+            this.pnlRecentHeader.TabIndex = 0;
             // 
-            this.lblBannerTitle.AutoSize = true;
-            this.lblBannerTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblBannerTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(34)))), ((int)(((byte)(64)))));
-            this.lblBannerTitle.Location = new System.Drawing.Point(32, 36);
-            this.lblBannerTitle.Name = "lblBannerTitle";
-            this.lblBannerTitle.Size = new System.Drawing.Size(432, 30);
-            this.lblBannerTitle.TabIndex = 0;
-            this.lblBannerTitle.Text = "Chào mừng đến với KiotViet Duy Mobile";
+            // lblRecentTitle
+            // 
+            this.lblRecentTitle.AutoSize = true;
+            this.lblRecentTitle.Font = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Bold);
+            this.lblRecentTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(34)))), ((int)(((byte)(64)))));
+            this.lblRecentTitle.Location = new System.Drawing.Point(0, 8);
+            this.lblRecentTitle.Name = "lblRecentTitle";
+            this.lblRecentTitle.Size = new System.Drawing.Size(320, 21);
+            this.lblRecentTitle.TabIndex = 0;
+            this.lblRecentTitle.Text = "📋 HOẠT ĐỘNG GIAO DỊCH BÁN HÀNG GẦN ĐÂY";
+            // 
+            // lblRecentSub
+            // 
+            this.lblRecentSub.AutoSize = true;
+            this.lblRecentSub.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.lblRecentSub.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
+            this.lblRecentSub.Location = new System.Drawing.Point(340, 11);
+            this.lblRecentSub.Name = "lblRecentSub";
+            this.lblRecentSub.Size = new System.Drawing.Size(350, 17);
+            this.lblRecentSub.TabIndex = 1;
+            this.lblRecentSub.Text = "Theo dõi đơn hàng thu ngân phát sinh thời gian thực tại quầy";
+            // 
+            // dgvRecentSales
+            // 
+            this.dgvRecentSales.AllowUserToAddRows = false;
+            this.dgvRecentSales.AllowUserToDeleteRows = false;
+            this.dgvRecentSales.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvRecentSales.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
+            this.dgvRecentSales.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvRecentSales.ColumnHeadersHeight = 36;
+            this.dgvRecentSales.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colHdb,
+            this.colNgay,
+            this.colKhach,
+            this.colSdt,
+            this.colThuNgan,
+            this.colTongTien,
+            this.colTrangThai});
+            this.dgvRecentSales.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvRecentSales.EnableHeadersVisualStyles = false;
+            this.dgvRecentSales.Location = new System.Drawing.Point(16, 52);
+            this.dgvRecentSales.MultiSelect = false;
+            this.dgvRecentSales.Name = "dgvRecentSales";
+            this.dgvRecentSales.ReadOnly = true;
+            this.dgvRecentSales.RowHeadersVisible = false;
+            this.dgvRecentSales.RowTemplate.Height = 36;
+            this.dgvRecentSales.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvRecentSales.Size = new System.Drawing.Size(1184, 384);
+            this.dgvRecentSales.TabIndex = 1;
+            // 
+            // colHdb
+            // 
+            this.colHdb.FillWeight = 85F;
+            this.colHdb.HeaderText = "Mã Hóa Đơn";
+            this.colHdb.Name = "colHdb";
+            this.colHdb.ReadOnly = true;
+            // 
+            // colNgay
+            // 
+            this.colNgay.FillWeight = 110F;
+            this.colNgay.HeaderText = "Thời Gian Bán";
+            this.colNgay.Name = "colNgay";
+            this.colNgay.ReadOnly = true;
+            // 
+            // colKhach
+            // 
+            this.colKhach.FillWeight = 140F;
+            this.colKhach.HeaderText = "Khách Hàng";
+            this.colKhach.Name = "colKhach";
+            this.colKhach.ReadOnly = true;
+            // 
+            // colSdt
+            // 
+            this.colSdt.FillWeight = 95F;
+            this.colSdt.HeaderText = "Số Điện Thoại";
+            this.colSdt.Name = "colSdt";
+            this.colSdt.ReadOnly = true;
+            // 
+            // colThuNgan
+            // 
+            this.colThuNgan.FillWeight = 110F;
+            this.colThuNgan.HeaderText = "Thu Ngân";
+            this.colThuNgan.Name = "colThuNgan";
+            this.colThuNgan.ReadOnly = true;
+            // 
+            // colTongTien
+            // 
+            this.colTongTien.FillWeight = 120F;
+            this.colTongTien.HeaderText = "Tổng Tiền";
+            this.colTongTien.Name = "colTongTien";
+            this.colTongTien.ReadOnly = true;
+            // 
+            // colTrangThai
+            // 
+            this.colTrangThai.FillWeight = 90F;
+            this.colTrangThai.HeaderText = "Trạng Thái";
+            this.colTrangThai.Name = "colTrangThai";
+            this.colTrangThai.ReadOnly = true;
             // 
             // frmMain
             // 
@@ -451,8 +551,10 @@ namespace NexusRetail.WinForms.Forms
             this.pnlCard3.PerformLayout();
             this.pnlCard4.ResumeLayout(false);
             this.pnlCard4.PerformLayout();
-            this.pnlBanner.ResumeLayout(false);
-            this.pnlBanner.PerformLayout();
+            this.pnlRecentActivity.ResumeLayout(false);
+            this.pnlRecentHeader.ResumeLayout(false);
+            this.pnlRecentHeader.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvRecentSales)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -483,8 +585,17 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Panel pnlCard4;
         private System.Windows.Forms.Label lblCard4Title;
         private System.Windows.Forms.Label lblCard4Val;
-        private System.Windows.Forms.Panel pnlBanner;
-        private System.Windows.Forms.Label lblBannerTitle;
-        private System.Windows.Forms.Label lblBannerDesc;
+        private System.Windows.Forms.Panel pnlRecentActivity;
+        private System.Windows.Forms.Panel pnlRecentHeader;
+        private System.Windows.Forms.Label lblRecentTitle;
+        private System.Windows.Forms.Label lblRecentSub;
+        private System.Windows.Forms.DataGridView dgvRecentSales;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colHdb;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colNgay;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colKhach;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colSdt;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colThuNgan;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colTongTien;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colTrangThai;
     }
 }
