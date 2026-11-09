@@ -6,9 +6,19 @@ namespace NexusRetail.WinForms.Forms
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                try
+                {
+                    _pollingTimer?.Stop();
+                    _pollingTimer?.Dispose();
+                }
+                catch { }
+
+                if (components != null)
+                {
+                    components.Dispose();
+                }
             }
             base.Dispose(disposing);
         }

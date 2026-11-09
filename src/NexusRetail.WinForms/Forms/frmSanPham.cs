@@ -68,12 +68,17 @@ namespace NexusRetail.WinForms.Forms
 
         private async void LoadProductsAsync(string? q = null)
         {
-            _products = await WinFormsApiClient.Instance.GetProductsAsync(q);
-            dgvSanPham.DataSource = null;
-            dgvSanPham.DataSource = _products;
+            try
+            {
+                _products = await WinFormsApiClient.Instance.GetProductsAsync(q);
+                if (IsDisposed || Disposing) return;
+                dgvSanPham.DataSource = null;
+                dgvSanPham.DataSource = _products;
 
-            FormatGrid();
-            lblFooterInfo.Text = $"Tổng số mặt hàng trong danh mục: {_products.Count} | Trạng thái: Sẵn sàng";
+                FormatGrid();
+                lblFooterInfo.Text = $"Tổng số mặt hàng trong danh mục: {_products.Count} | Trạng thái: Sẵn sàng";
+            }
+            catch { }
         }
 
         private void FormatGrid()

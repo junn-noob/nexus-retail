@@ -19,7 +19,6 @@ namespace NexusRetail.WinForms
             Directory.CreateDirectory(wsImgDir);
             Directory.CreateDirectory(brainDir);
 
-            /*
             // 1. frmDangNhap
             Console.WriteLine("1. Capturing frmDangNhap...");
             var fLogin = new frmDangNhap();
@@ -44,14 +43,21 @@ namespace NexusRetail.WinForms
             Console.WriteLine("5. Capturing frmHoaDonBan...");
             var fHdb = new frmHoaDonBan("NV01");
             Capture(fHdb, "UI_WinForms_frmHoaDonBan.png", wsImgDir, brainDir);
-            */
 
             // 6. frmThanhToanQR
-            Console.WriteLine("6.1 Creating frmThanhToanQR...");
+            Console.WriteLine("6. Capturing frmThanhToanQR...");
             var fQr = new frmThanhToanQR("HDB03", 27500000m, "09999999900", "DUY MOBILE");
-            Console.WriteLine("6.2 Created frmThanhToanQR.");
             Capture(fQr, "UI_WinForms_frmThanhToanQR.png", wsImgDir, brainDir);
-            Console.WriteLine("6.3 Captured frmThanhToanQR.");
+
+            // 7. frmTraCuuHoaDon
+            Console.WriteLine("7. Capturing frmTraCuuHoaDon...");
+            var fTraCuu = new frmTraCuuHoaDon();
+            Capture(fTraCuu, "UI_WinForms_frmTraCuuHoaDon.png", wsImgDir, brainDir);
+
+            // 8. frmBaoCaoThongKe
+            Console.WriteLine("8. Capturing frmBaoCaoThongKe...");
+            var fBaoCao = new frmBaoCaoThongKe();
+            Capture(fBaoCao, "UI_WinForms_frmBaoCaoThongKe.png", wsImgDir, brainDir);
 
             Console.WriteLine("ALL_WINFORMS_CAPTURED_SUCCESSFULLY");
         }

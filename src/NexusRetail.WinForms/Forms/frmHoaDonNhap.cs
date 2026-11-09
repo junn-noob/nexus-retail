@@ -72,12 +72,14 @@ namespace NexusRetail.WinForms.Forms
             {
                 // 1. Tải danh sách nhà cung cấp
                 _supplierList = await WinFormsApiClient.Instance.GetSuppliersAsync();
+                if (IsDisposed || Disposing) return;
                 cboNhaCungCap.DataSource = _supplierList;
                 cboNhaCungCap.DisplayMember = "TenNcc";
                 cboNhaCungCap.ValueMember = "MaNcc";
 
                 // 2. Tải danh sách nhân viên
                 _employeeList = await WinFormsApiClient.Instance.GetEmployeesAsync();
+                if (IsDisposed || Disposing) return;
                 cboNhanVien.DataSource = _employeeList;
                 cboNhanVien.DisplayMember = "TenNv";
                 cboNhanVien.ValueMember = "MaNv";
@@ -91,6 +93,7 @@ namespace NexusRetail.WinForms.Forms
 
                 // 3. Tải danh mục sản phẩm
                 _productList = await WinFormsApiClient.Instance.GetProductsAsync();
+                if (IsDisposed || Disposing) return;
                 cboSanPham.DataSource = _productList;
                 cboSanPham.DisplayMember = "TenSp";
                 cboSanPham.ValueMember = "MaSp";
@@ -99,7 +102,10 @@ namespace NexusRetail.WinForms.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tải dữ liệu ban đầu: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (!IsDisposed && !Disposing)
+                {
+                    MessageBox.Show($"Lỗi tải dữ liệu ban đầu: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
 

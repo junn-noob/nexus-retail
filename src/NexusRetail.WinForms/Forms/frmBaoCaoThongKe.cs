@@ -119,6 +119,7 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colDoanhThu", "Tổng Doanh Thu");
 
                             var data = await WinFormsApiClient.Instance.GetReportSpBanChayAsync(thang, nam);
+                            if (IsDisposed || Disposing) return;
                             decimal tongDoanhThu = 0;
                             int tongSl = 0;
                             for (int i = 0; i < data.Count; i++)
@@ -255,8 +256,11 @@ namespace NexusRetail.WinForms.Forms
             }
             finally
             {
-                btnXemBaoCao.Enabled = true;
-                btnXemBaoCao.Text = "🔍 Xem Báo Cáo";
+                if (!IsDisposed && !Disposing)
+                {
+                    btnXemBaoCao.Enabled = true;
+                    btnXemBaoCao.Text = "🔍 Xem Báo Cáo";
+                }
             }
         }
 

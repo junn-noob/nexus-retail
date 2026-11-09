@@ -166,17 +166,22 @@ namespace NexusRetail.WinForms.Forms
 
         private async void LoadProductsAsync()
         {
-            _products = await WinFormsApiClient.Instance.GetProductsAsync();
-            cboSanPham.DataSource = _products;
-            cboSanPham.DisplayMember = "TenSp";
-            cboSanPham.ValueMember = "MaSp";
-            cboSanPham.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            cboSanPham.AutoCompleteSource = AutoCompleteSource.ListItems;
-
-            if (_products.Count > 0)
+            try
             {
-                cboSanPham_SelectedIndexChanged(this, EventArgs.Empty);
+                _products = await WinFormsApiClient.Instance.GetProductsAsync();
+                if (IsDisposed || Disposing) return;
+                cboSanPham.DataSource = _products;
+                cboSanPham.DisplayMember = "TenSp";
+                cboSanPham.ValueMember = "MaSp";
+                cboSanPham.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                cboSanPham.AutoCompleteSource = AutoCompleteSource.ListItems;
+
+                if (_products.Count > 0)
+                {
+                    cboSanPham_SelectedIndexChanged(this, EventArgs.Empty);
+                }
             }
+            catch { }
         }
 
         private void cboSanPham_SelectedIndexChanged(object? sender, EventArgs e)

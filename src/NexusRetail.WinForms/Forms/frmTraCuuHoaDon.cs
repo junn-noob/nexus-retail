@@ -118,6 +118,7 @@ namespace NexusRetail.WinForms.Forms
             var culture = new CultureInfo("vi-VN");
 
             _saleList = await WinFormsApiClient.Instance.SearchSaleInvoicesAsync(q);
+            if (IsDisposed || Disposing) return;
             foreach (var item in _saleList)
             {
                 dgvHoaDonBan.Rows.Add(
@@ -140,6 +141,7 @@ namespace NexusRetail.WinForms.Forms
             var culture = new CultureInfo("vi-VN");
 
             _inboundList = await WinFormsApiClient.Instance.SearchInboundInvoicesAsync();
+            if (IsDisposed || Disposing) return;
 
             var filtered = _inboundList.AsEnumerable();
             if (!string.IsNullOrWhiteSpace(q))
