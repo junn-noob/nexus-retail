@@ -142,7 +142,7 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         /// <summary>
-        /// Tạo hóa đơn nhập hàng - Thực thi BR-01 (Tăng tồn), BR-02 (Cập nhật giá vốn), BR-03 (Tính giá bán = giá vốn * 1.1)
+        /// Tạo hóa đơn nhập hàng - Tự động tăng tồn kho, cập nhật giá vốn và định giá niêm yết
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> nhapHang([FromBody] HoaDonNhapDto dto)
@@ -193,7 +193,7 @@ namespace NexusRetail.Core.Api.Controllers
                         return BadRequest(new { message = $"Không tìm thấy sản phẩm mã '{item.MaSp}' để nhập hàng!" });
                     }
 
-                    // BR-01, BR-02, BR-03: Trên SQL Server, trigger trg_ChiTietHDN_Change tự động thực thi.
+                    // Trên SQL Server, trigger trg_ChiTietHDN_Change tự động cập nhật tồn kho & giá bán.
                     // Nếu đang chạy môi trường test InMemory, thực hiện trực tiếp trong bộ nhớ.
                     if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
                     {

@@ -8,20 +8,20 @@ namespace NexusRetail.WinForms.UI
 {
     /// <summary>
     /// Modern Enterprise UI Theme Engine for NexusRetail POS
-    /// Đem lại giao diện phẳng, hiện đại, màu sắc hài hòa chuẩn KiotViet / Square POS 2026.
+    /// Đem lại giao diện phẳng, hiện đại, màu sắc hài hòa và thanh lịch cho POS Retail 2026.
     /// </summary>
     public static class UiTheme
     {
-        // 1. Color Palette Tokens - Chuẩn KiotViet Brand 2026
-        public static readonly Color Primary = Color.FromArgb(0, 161, 55);         // KiotViet Green #00A137
+        // 1. Color Palette Tokens - Nexus Retail Modern Palette
+        public static readonly Color Primary = Color.FromArgb(0, 161, 55);         // Emerald Green #00A137
         public static readonly Color PrimaryDark = Color.FromArgb(0, 136, 46);     // #00882E
         public static readonly Color PrimaryLight = Color.FromArgb(232, 248, 238); // #E8F8EE
-        public static readonly Color DarkSlate = Color.FromArgb(15, 34, 64);        // KiotViet Dark Navy #0F2240
+        public static readonly Color DarkSlate = Color.FromArgb(15, 34, 64);        // Dark Navy #0F2240
         public static readonly Color SurfaceNavy = Color.FromArgb(30, 41, 59);      // #1E293B
         public static readonly Color Background = Color.FromArgb(241, 245, 249);    // #F1F5F9
         public static readonly Color CardWhite = Color.FromArgb(255, 255, 255);
         public static readonly Color BorderLight = Color.FromArgb(226, 232, 240);   // #E2E8F0
-        public static readonly Color Success = Color.FromArgb(0, 161, 55);          // KiotViet Green
+        public static readonly Color Success = Color.FromArgb(0, 161, 55);          // Success Green
         public static readonly Color SuccessDark = Color.FromArgb(0, 136, 46);
         public static readonly Color Warning = Color.FromArgb(245, 158, 11);        // #F59E0B Amber
         public static readonly Color Danger = Color.FromArgb(220, 38, 38);          // #DC2626
@@ -29,7 +29,7 @@ namespace NexusRetail.WinForms.UI
         public static readonly Color TextMain = Color.FromArgb(15, 23, 42);
         public static readonly Color TextMuted = Color.FromArgb(100, 116, 139);     // #64748B
         public static readonly Color RowAlternate = Color.FromArgb(248, 250, 252);
-        public static readonly Color SelectionRow = Color.FromArgb(232, 248, 238);  // Kiot Soft Green
+        public static readonly Color SelectionRow = Color.FromArgb(232, 248, 238);  // Soft Emerald Selection
 
         // 2. Typography
         public static readonly Font FontSm = new Font("Segoe UI", 9f, FontStyle.Regular);

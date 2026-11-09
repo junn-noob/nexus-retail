@@ -127,7 +127,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSub.Name = "lblSub";
             this.lblSub.Size = new System.Drawing.Size(280, 15);
             this.lblSub.TabIndex = 1;
-            this.lblSub.Text = "Hệ thống Quản lý Bán lẻ & Kho Hàng Chuẩn KiotViet";
+            this.lblSub.Text = "Hệ thống Quản lý Bán lẻ & Kho Hàng Doanh Nghiệp";
             // 
             // lblBrand
             // 
@@ -138,7 +138,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblBrand.Name = "lblBrand";
             this.lblBrand.Size = new System.Drawing.Size(325, 30);
             this.lblBrand.TabIndex = 0;
-            this.lblBrand.Text = "KIOTVIET • DUY MOBILE POS";
+            this.lblBrand.Text = "NEXUS RETAIL POS";
             // 
             // pnlNavRibbon
             // 
@@ -537,7 +537,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimumSize = new System.Drawing.Size(1100, 680);
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "KiotViet • Phần Mềm Quản Lý Bán Lẻ & POS Thu Ngân - Duy Mobile";
+            this.Text = "Nexus Retail • Hệ Thống Quản Lý Bán Lẻ & POS Thu Ngân";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
             this.pnlNavRibbon.ResumeLayout(false);

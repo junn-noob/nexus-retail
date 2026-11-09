@@ -70,7 +70,7 @@ namespace NexusRetail.WebMvc.Controllers
             ViewBag.ManHinhs = filter?.ManHinh ?? new List<ScreenOption>();
         }
 
-        // 3. THÊM SẢN PHẨM (BR-03: GiaBan = GiaNhap * 1.1 + UPLOAD ẢNH)
+        // 3. THÊM SẢN PHẨM MỚI (Tự tính Giá Bán niêm yết + Upload ảnh)
         [HttpGet]
         public async Task<IActionResult> ThemSanPham()
         {

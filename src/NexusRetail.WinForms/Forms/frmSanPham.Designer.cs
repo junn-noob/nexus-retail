@@ -99,7 +99,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(435, 28);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "KIOTVIET • QUẢN LÝ DANH MỤC HÀNG HÓA";
+            this.lblTitle.Text = "QUẢN LÝ DANH MỤC HÀNG HÓA";
             // 
             // pnlToolbar
             // 
@@ -485,7 +485,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblFooterInfo.Name = "lblFooterInfo";
             this.lblFooterInfo.Size = new System.Drawing.Size(430, 15);
             this.lblFooterInfo.TabIndex = 0;
-            this.lblFooterInfo.Text = "Danh mục hàng hóa KiotViet POS • Trạng thái: Sẵn sàng";
+            this.lblFooterInfo.Text = "Danh mục hàng hóa • Trạng thái: Sẵn sàng";
             // 
             // frmSanPham
             // 
@@ -504,7 +504,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimumSize = new System.Drawing.Size(1024, 600);
             this.Name = "frmSanPham";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "KiotViet POS • Quản Lý Danh Mục Hàng Hóa";
+            this.Text = "Quản Lý Danh Mục Hàng Hóa";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
             this.pnlToolbar.ResumeLayout(false);

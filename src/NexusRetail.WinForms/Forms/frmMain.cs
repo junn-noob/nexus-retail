@@ -36,7 +36,7 @@ namespace NexusRetail.WinForms.Forms
             _clockTimer = new System.Windows.Forms.Timer { Interval = 1000 };
             _clockTimer.Tick += (s, e) =>
             {
-                lblSub.Text = $"Phần mềm Bán Lẻ & Quản Lý Kho Thiết Bị Di Động  •  🕒 {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                lblSub.Text = $"Hệ Thống Quản Lý Bán Lẻ & Kho Hàng  •  🕒 {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
             };
             _clockTimer.Start();
         }
@@ -47,7 +47,7 @@ namespace NexusRetail.WinForms.Forms
             lblBrand.ForeColor = Color.White;
             lblUserDisplay.ForeColor = UiTheme.PrimaryLight;
 
-            // KiotViet Ribbon Navigation Styles
+            // Navigation Ribbon Styles
             UiTheme.ApplyPrimaryButton(btnBanHang, "⚡ BÁN HÀNG POS (F9)");
             UiTheme.ApplySecondaryButton(btnSanPham, "📱 Quản Lý Sản Phẩm");
             UiTheme.ApplySecondaryButton(btnNhapHang, "📦 Hóa Đơn Nhập Kho");

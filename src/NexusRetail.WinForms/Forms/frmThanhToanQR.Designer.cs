@@ -71,7 +71,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(345, 25);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "KIOTVIET POS • THANH TOÁN VIETQR";
+            this.lblTitle.Text = "THANH TOÁN ĐIỆN TỬ VIETQR";
             // 
             // lblMaDon
             // 
@@ -296,7 +296,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimizeBox = false;
             this.Name = "frmThanhToanQR";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "KiotViet POS • Cổng Thanh Toán VietQR MBBank";
+            this.Text = "Cổng Thanh Toán Điện Tử VietQR";
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picQr)).EndInit();

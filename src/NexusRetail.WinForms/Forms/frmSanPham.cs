@@ -111,7 +111,7 @@ namespace NexusRetail.WinForms.Forms
             }
         }
 
-        // BR-03: TỰ ĐỘNG TÍNH GIÁ BÁN = GIÁ NHẬP * 1.1 KHI GÕ GIÁ NHẬP
+        // Tự động tính giá bán niêm yết khi nhập giá vốn
         private void txtGiaNhap_TextChanged(object? sender, EventArgs e)
         {
             string clean = txtGiaNhap.Text.Replace(",", "").Replace(".", "").Trim();

@@ -37,7 +37,7 @@ namespace NexusRetail.Core.Api.Controllers
                 query = query.Where(x => x.MaNhanHieu == brand || x.TenNhanHieu.Contains(brand));
             }
 
-            // FR-6.1 / BR-04: Tìm kiếm theo tên hoặc mã SP
+            // Tìm kiếm theo tên hoặc mã sản phẩm
             if (!string.IsNullOrWhiteSpace(q))
             {
                 q = q.Trim();
@@ -46,7 +46,7 @@ namespace NexusRetail.Core.Api.Controllers
                     x.MaSp.Contains(q));
             }
 
-            // FR-6.1: Lọc theo khoảng giá bán
+            // Lọc theo khoảng giá bán
             if (minPrice.HasValue)
                 query = query.Where(x => x.GiaBan >= minPrice.Value);
             if (maxPrice.HasValue)

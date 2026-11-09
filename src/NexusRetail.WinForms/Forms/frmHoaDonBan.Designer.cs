@@ -95,7 +95,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblSub.Name = "lblSub";
             this.lblSub.Size = new System.Drawing.Size(430, 17);
             this.lblSub.TabIndex = 1;
-            this.lblSub.Text = "Hệ thống Bán Lẻ Thu Ngân KiotViet • Lập hóa đơn và thanh toán tức thì";
+            this.lblSub.Text = "Quầy thu ngân bán lẻ • Lập hóa đơn và thanh toán tức thì";
             // 
             // lblTitle
             // 
@@ -513,7 +513,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimumSize = new System.Drawing.Size(1024, 600);
             this.Name = "frmHoaDonBan";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "KiotViet Thu Ngân • Lập Hóa Đơn Bán Hàng Tại Quầy (POS)";
+            this.Text = "Quầy Thu Ngân - Lập Hóa Đơn Bán Hàng (POS)";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
             this.pnlMain.ResumeLayout(false);

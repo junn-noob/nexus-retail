@@ -124,7 +124,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 2. XUẤT VÀ HIỂN THỊ BIỂU MẪU BM02: HÓA ĐƠN BÁN LẺ & BẢO HÀNH
+        #region 2. XUẤT VÀ HIỂN THỊ HÓA ĐƠN BÁN LẺ & PHIẾU BẢO HÀNH
         public static string TaoHtmlHoaDonBan(
             string maHdb,
             string tenKhach,
@@ -165,7 +165,7 @@ namespace NexusRetail.WinForms.Services
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>BM02 - Hóa Đơn Bán Lẻ & Phiếu Bảo Hành - {maHdb}</title>
+    <title>Hóa Đơn Bán Lẻ & Phiếu Bảo Hành - {maHdb}</title>
     <script src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'></script>
     <style>
         * {{ box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
@@ -334,7 +334,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 3. XUẤT VÀ HIỂN THỊ BIỂU MẪU BM01: HÓA ĐƠN NHẬP KIÊM PHIẾU NHẬP KHO
+        #region 3. XUẤT VÀ HIỂN THỊ PHIẾU NHẬP KHO HÀNG HÓA
         public static string TaoHtmlHoaDonNhap(
             string maHdn,
             string tenNcc,
@@ -371,7 +371,7 @@ namespace NexusRetail.WinForms.Services
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>BM01 - Hóa Đơn Nhập Kiêm Phiếu Nhập Kho - {maHdn}</title>
+    <title>Phiếu Nhập Kho Hàng Hóa - {maHdn}</title>
     <script src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'></script>
     <style>
         * {{ box-sizing: border-box; font-family: 'Times New Roman', Times, serif; }}
@@ -545,7 +545,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 4. XUẤT VÀ HIỂN THỊ BIỂU MẪU BM03: BÁO CÁO TỔNG HỢP XUẤT - NHẬP - TỒN KHO
+        #region 4. XUẤT VÀ HIỂN THỊ BÁO CÁO TỔNG HỢP XUẤT - NHẬP - TỒN KHO
         public static string TaoHtmlBaoCaoKho(
             string maBc,
             int thang,

@@ -57,11 +57,11 @@ namespace NexusRetail.WinForms.Forms
 
             UiTheme.ApplyPrimaryButton(btnTimKiemBan, "🔍 Tìm");
             UiTheme.ApplySecondaryButton(btnLamMoiBan, "🔄 Làm Mới");
-            UiTheme.ApplySuccessButton(btnInBieuMauBan, "📄 Xem Biểu Mẫu BM02");
+            UiTheme.ApplySuccessButton(btnInBieuMauBan, "📄 In Hóa Đơn");
 
             UiTheme.ApplyPrimaryButton(btnTimKiemNhap, "🔍 Tìm");
             UiTheme.ApplySecondaryButton(btnLamMoiNhap, "🔄 Làm Mới");
-            UiTheme.ApplySuccessButton(btnInBieuMauNhap, "📄 Xem Biểu Mẫu BM01");
+            UiTheme.ApplySuccessButton(btnInBieuMauNhap, "📄 In Phiếu Nhập");
 
             UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng");
         }
@@ -272,7 +272,7 @@ namespace NexusRetail.WinForms.Forms
         {
             if (dgvHoaDonBan.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Vui lòng chọn một hóa đơn bán trong danh sách để xem/in biểu mẫu BM02!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Vui lòng chọn một hóa đơn bán trong danh sách để in hóa đơn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -324,7 +324,7 @@ namespace NexusRetail.WinForms.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi hiển thị biểu mẫu BM02: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi hiển thị hóa đơn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -332,7 +332,7 @@ namespace NexusRetail.WinForms.Forms
         {
             if (dgvHoaDonNhap.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Vui lòng chọn một phiếu nhập kho trong danh sách để xem/in biểu mẫu BM01!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Vui lòng chọn một phiếu nhập kho trong danh sách để in phiếu nhập!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -379,7 +379,7 @@ namespace NexusRetail.WinForms.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi hiển thị biểu mẫu BM01: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi hiển thị phiếu nhập: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

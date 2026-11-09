@@ -200,10 +200,10 @@ namespace NexusRetail.UnitTests
             var sp = await db.SanPhams.FirstAsync(x => x.MaSp == "SP01");
             Assert.Equal(15, sp.SoLuong);
 
-            // Verify BR-02 (GiaNhap updated to 25,000,000)
+            // Verify GiaNhap updated to 25,000,000
             Assert.Equal(25000000m, sp.GiaNhap);
 
-            // Verify BR-03 (GiaBan updated to 110% of GiaNhap = 27,500,000)
+            // Verify GiaBan updated to 110% of GiaNhap = 27,500,000
             Assert.Equal(27500000m, sp.GiaBan);
         }
 

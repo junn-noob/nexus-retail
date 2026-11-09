@@ -72,7 +72,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(325, 30);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "KIOTVIET • DUY MOBILE POS";
+            this.lblTitle.Text = "NEXUS RETAIL POS";
             // 
             // lblUser
             // 
@@ -90,7 +90,7 @@ namespace NexusRetail.WinForms.Forms
             this.txtUser.Font = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtUser.Location = new System.Drawing.Point(36, 134);
             this.txtUser.Name = "txtUser";
-            this.txtUser.PlaceholderText = "Nhập tài khoản (admin / nhanvien)...";
+            this.txtUser.PlaceholderText = "Nhập tài khoản...";
             this.txtUser.Size = new System.Drawing.Size(388, 28);
             this.txtUser.TabIndex = 2;
             // 
@@ -166,7 +166,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTips.Name = "lblTips";
             this.lblTips.Size = new System.Drawing.Size(460, 45);
             this.lblTips.TabIndex = 0;
-            this.lblTips.Text = "KiotViet POS Enterprise • Hệ Thống Quản Lý Bán Lẻ Doanh Nghiệp • Hotline: 1900 6522";
+            this.lblTips.Text = "Nexus Retail • Hệ Thống Quản Lý Bán Lẻ & Kho Hàng Doanh Nghiệp";
             this.lblTips.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // frmDangNhap
@@ -189,7 +189,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimizeBox = false;
             this.Name = "frmDangNhap";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Đăng Nhập - Hệ Thống Bán Lẻ KiotViet Duy Mobile";
+            this.Text = "Đăng Nhập - Hệ Thống Nexus Retail POS";
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();
             this.pnlQuickTips.ResumeLayout(false);

@@ -59,27 +59,27 @@ namespace NexusRetail.WinForms.Forms
             // Điều chỉnh hiển thị bộ lọc tùy theo loại báo cáo
             switch (cboLoaiBaoCao.SelectedIndex)
             {
-                case 0: // BR-06: Tháng + Năm
+                case 0: // Tháng + Năm
                     numThang.Enabled = true;
                     numQuy.Enabled = false;
                     numNam.Enabled = true;
                     break;
-                case 1: // BR-07: Quý + Năm
+                case 1: // Quý + Năm
                     numThang.Enabled = false;
                     numQuy.Enabled = true;
                     numNam.Enabled = true;
                     break;
-                case 2: // BR-08: Năm
+                case 2: // Năm
                     numThang.Enabled = false;
                     numQuy.Enabled = false;
                     numNam.Enabled = true;
                     break;
-                case 3: // BR-09: Tháng + Năm
+                case 3: // Tháng + Năm
                     numThang.Enabled = true;
                     numQuy.Enabled = false;
                     numNam.Enabled = true;
                     break;
-                case 4: // BM03: Xuất Nhập Tồn Kho (Tháng + Năm)
+                case 4: // Báo cáo Xuất Nhập Tồn Kho (Tháng + Năm)
                     numThang.Enabled = true;
                     numQuy.Enabled = false;
                     numNam.Enabled = true;
@@ -108,7 +108,7 @@ namespace NexusRetail.WinForms.Forms
             {
                 switch (cboLoaiBaoCao.SelectedIndex)
                 {
-                    case 0: // BR-06: Top 5 SP bán chạy
+                    case 0: // Top 5 SP bán chạy
                         {
                             dgvBaoCao.Columns.Add("colStt", "STT");
                             dgvBaoCao.Columns.Add("colMaSp", "Mã SP");
@@ -134,7 +134,7 @@ namespace NexusRetail.WinForms.Forms
                         }
                         break;
 
-                    case 1: // BR-07: HĐ Nhập lớn nhất trong quý
+                    case 1: // HĐ Nhập lớn nhất trong quý
                         {
                             dgvBaoCao.Columns.Add("colStt", "STT");
                             dgvBaoCao.Columns.Add("colMaHdn", "Mã Hóa Đơn Nhập");
@@ -157,7 +157,7 @@ namespace NexusRetail.WinForms.Forms
                         }
                         break;
 
-                    case 2: // BR-08: Doanh số bán theo năm
+                    case 2: // Doanh số bán theo năm
                         {
                             dgvBaoCao.Columns.Add("colStt", "STT");
                             dgvBaoCao.Columns.Add("colMaHdb", "Mã Hóa Đơn Bán");
@@ -180,7 +180,7 @@ namespace NexusRetail.WinForms.Forms
                         }
                         break;
 
-                    case 3: // BR-09: Top 5 NV doanh số thấp
+                    case 3: // Top 5 NV doanh số thấp
                         {
                             dgvBaoCao.Columns.Add("colStt", "STT");
                             dgvBaoCao.Columns.Add("colMaNv", "Mã Nhân Viên");
@@ -201,7 +201,7 @@ namespace NexusRetail.WinForms.Forms
                         }
                         break;
 
-                    case 4: // BM03: Báo cáo tổng hợp xuất - nhập - tồn kho
+                    case 4: // Báo cáo tổng hợp xuất - nhập - tồn kho
                         {
                             dgvBaoCao.Columns.Add("colStt", "STT");
                             dgvBaoCao.Columns.Add("colMaSp", "Mã SP");
@@ -250,8 +250,8 @@ namespace NexusRetail.WinForms.Forms
                             lblSoDong.Text = $"Toàn bộ danh mục ({products.Count} thiết bị - Tổng tồn: {tongTon} máy)";
                             lblTongKet.Text = $"Tổng giá trị tồn kho: {tongGiaTriTon.ToString("N0", culture)} đ";
 
-                            // Đồng thời kích hoạt hiển thị Biểu mẫu BM03 trên trình duyệt
-                            await HienThiBieuMauKhoBM03Async(thang, nam);
+                            // Đồng thời kích hoạt hiển thị báo cáo tồn kho trên trình duyệt
+                            await HienThiBaoCaoTonKhoAsync(thang, nam);
                         }
                         break;
                 }
@@ -336,10 +336,10 @@ namespace NexusRetail.WinForms.Forms
         {
             int thang = (int)numThang.Value;
             int nam = (int)numNam.Value;
-            await HienThiBieuMauKhoBM03Async(thang, nam);
+            await HienThiBaoCaoTonKhoAsync(thang, nam);
         }
 
-        private async Task HienThiBieuMauKhoBM03Async(int thang, int nam)
+        private async Task HienThiBaoCaoTonKhoAsync(int thang, int nam)
         {
             try
             {

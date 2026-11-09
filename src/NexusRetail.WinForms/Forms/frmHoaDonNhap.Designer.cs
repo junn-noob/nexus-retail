@@ -111,7 +111,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(430, 28);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "KIOTVIET • LẬP PHIẾU NHẬP KHO THIẾT BỊ";
+            this.lblTitle.Text = "LẬP PHIẾU NHẬP KHO HÀNG HÓA";
             // 
             // pnlTopInfo
             // 
@@ -602,7 +602,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimumSize = new System.Drawing.Size(1024, 620);
             this.Name = "frmHoaDonNhap";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "KiotViet POS • Lập Hóa Đơn Nhập Kho Thiết Bị";
+            this.Text = "Quản Lý Nhập Kho - Lập Phiếu Nhập Hàng";
             this.Load += new System.EventHandler(this.frmHoaDonNhap_Load);
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();

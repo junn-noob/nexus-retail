@@ -106,7 +106,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(465, 28);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "KIOTVIET • SỔ GIAO DỊCH VÀ TRA CỨU HÓA ĐƠN";
+            this.lblTitle.Text = "SỔ GIAO DỊCH & TRA CỨU CHỨNG TỪ";
             // 
             // tabMain
             // 
@@ -234,7 +234,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnInBieuMauBan.Name = "btnInBieuMauBan";
             this.btnInBieuMauBan.Size = new System.Drawing.Size(185, 34);
             this.btnInBieuMauBan.TabIndex = 4;
-            this.btnInBieuMauBan.Text = "📄 Xem Biểu Mẫu BM02";
+            this.btnInBieuMauBan.Text = "📄 In Hóa Đơn";
             this.btnInBieuMauBan.UseVisualStyleBackColor = false;
             this.btnInBieuMauBan.Click += new System.EventHandler(this.btnInBieuMauBan_Click);
             // 
@@ -403,7 +403,7 @@ namespace NexusRetail.WinForms.Forms
             this.btnInBieuMauNhap.Name = "btnInBieuMauNhap";
             this.btnInBieuMauNhap.Size = new System.Drawing.Size(185, 34);
             this.btnInBieuMauNhap.TabIndex = 4;
-            this.btnInBieuMauNhap.Text = "📄 Xem Biểu Mẫu BM01";
+            this.btnInBieuMauNhap.Text = "📄 In Phiếu Nhập";
             this.btnInBieuMauNhap.UseVisualStyleBackColor = false;
             this.btnInBieuMauNhap.Click += new System.EventHandler(this.btnInBieuMauNhap_Click);
             // 
@@ -498,7 +498,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblThongTin.Name = "lblThongTin";
             this.lblThongTin.Size = new System.Drawing.Size(460, 17);
             this.lblThongTin.TabIndex = 0;
-            this.lblThongTin.Text = "Sổ giao dịch điện tử KiotViet POS • Dữ liệu đồng bộ trực tiếp từ máy chủ";
+            this.lblThongTin.Text = "Sổ giao dịch điện tử • Dữ liệu đồng bộ trực tiếp từ máy chủ";
             // 
             // frmTraCuuHoaDon
             // 
@@ -515,7 +515,7 @@ namespace NexusRetail.WinForms.Forms
             this.MinimumSize = new System.Drawing.Size(1024, 600);
             this.Name = "frmTraCuuHoaDon";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "KiotViet POS • Sổ Giao Dịch & Tra Cứu Hóa Đơn";
+            this.Text = "Sổ Giao Dịch & Tra Cứu Hóa Đơn";
             this.Load += new System.EventHandler(this.frmTraCuuHoaDon_Load);
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();

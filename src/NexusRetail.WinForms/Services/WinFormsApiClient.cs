@@ -400,7 +400,7 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
-        // 7. BÁO CÁO THỐNG KÊ (BR-06, BR-07, BR-08, BR-09)
+        // 7. BÁO CÁO THỐNG KÊ DOANH THU & KHO
         public async Task<List<ReportSpBanChayItem>> GetReportSpBanChayAsync(int month, int year)
         {
             try

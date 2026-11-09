@@ -5,9 +5,9 @@ namespace NexusRetail.UnitTests
 {
     public class BusinessRuleTests
     {
-        // 1. BR-03: Tự động tính giá bán: GiaBan = GiaNhap * 1.10
+        // 1. Tự động tính giá bán: GiaBan = GiaNhap * 1.10
         [Fact]
-        public void TestBR03_SellingPriceMarkup10Percent()
+        public void Test_SellingPriceMarkup10Percent()
         {
             decimal giaNhap = 10000000m; // 10 triệu
             var sp = new SanPham
@@ -22,9 +22,9 @@ namespace NexusRetail.UnitTests
             Assert.Equal(11000000m, sp.GiaBan);
         }
 
-        // 2. BR-01: Trừ tồn kho khi xuất bán: Tồn 10, bán 3 -> Tồn 7
+        // 2. Trừ tồn kho khi xuất bán: Tồn 10, bán 3 -> Tồn 7
         [Fact]
-        public void TestBR01_InventoryDeductionOnSale()
+        public void Test_InventoryDeductionOnSale()
         {
             var sp = new SanPham
             {
@@ -42,9 +42,9 @@ namespace NexusRetail.UnitTests
             Assert.Equal(7, sp.SoLuong);
         }
 
-        // 3. BR-01: Chặn giao dịch khi tồn kho không đủ (Tồn 2, mua 5)
+        // 3. Chặn giao dịch khi tồn kho không đủ (Tồn 2, mua 5)
         [Fact]
-        public void TestBR01_ThrowExceptionWhenOutOfStock()
+        public void Test_ThrowExceptionWhenOutOfStock()
         {
             var sp = new SanPham
             {
@@ -65,9 +65,9 @@ namespace NexusRetail.UnitTests
             });
         }
 
-        // 4. BR-02 & BR-03: Nhập hàng tự động cập nhật giá nhập và tính lại giá bán = giá nhập * 1.10
+        // 4. Nhập hàng tự động cập nhật giá nhập và tính lại giá bán = giá nhập * 1.10
         [Fact]
-        public void TestBR02_CostPriceAndSellingPriceUpdatedOnStockIn()
+        public void Test_CostPriceAndSellingPriceUpdatedOnStockIn()
         {
             var sp = new SanPham
             {
@@ -91,9 +91,9 @@ namespace NexusRetail.UnitTests
             Assert.Equal(22000000m, sp.GiaBan);
         }
 
-        // 5. BR-04: Lọc sản phẩm theo khoảng giá và tìm kiếm từ khóa
+        // 5. Lọc sản phẩm theo khoảng giá và tìm kiếm từ khóa
         [Fact]
-        public void TestBR04_ProductFilteringByPriceAndKeyword()
+        public void Test_ProductFilteringByPriceAndKeyword()
         {
             var list = new List<SanPham>
             {
@@ -114,7 +114,7 @@ namespace NexusRetail.UnitTests
 
         // 6. Tra cứu & tính thời hạn bảo hành thiết bị theo số tháng
         [Fact]
-        public void TestBR05_WarrantyPeriodCalculation()
+        public void Test_WarrantyPeriodCalculation()
         {
             var ngayMua = new DateTime(2026, 9, 1, 10, 0, 0);
             int thoiGianBaoHanhThang = 12;

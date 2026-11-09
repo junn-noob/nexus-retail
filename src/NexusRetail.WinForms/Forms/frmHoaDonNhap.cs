@@ -263,7 +263,7 @@ namespace NexusRetail.WinForms.Forms
                 {
                     string effectiveMaHdn = !string.IsNullOrWhiteSpace(maHdn) ? maHdn : string.Empty;
 
-                    // Trích xuất danh sách sản phẩm sang dữ liệu biểu mẫu BM01
+                    // Trích xuất danh sách sản phẩm sang dữ liệu in phiếu nhập
                     var bieuMauItems = _cart.Select((x, idx) => new ItemBieuMauNhap
                     {
                         Stt = idx + 1,
@@ -289,7 +289,7 @@ namespace NexusRetail.WinForms.Forms
                         tongTien: tongGiaTri
                     );
 
-                    // Mở biểu mẫu BM01 trên trình duyệt để in / xuất ảnh
+                    // Mở phiếu nhập kho trên trình duyệt để in / xuất ảnh
                     BieuMauService.MoBieuMauTrenTrinhDuyet(html, $"HoaDonNhap_{effectiveMaHdn}");
 
                     string info = $"🎉 NHẬP KHO THÀNH CÔNG!\n\n" +
@@ -297,7 +297,7 @@ namespace NexusRetail.WinForms.Forms
                                   $"• Nhà cung cấp: {ncc.TenNcc}\n" +
                                   $"• Nhân viên tiếp nhận: {nv.TenNv}\n" +
                                   $"• Tổng tiền phiếu nhập: {tongGiaTri.ToString("N0", new CultureInfo("vi-VN"))} đ\n\n" +
-                                  $"✓ Đã xuất và mở biểu mẫu BM01 (Phiếu Nhập Kho) để in ấn hoặc xuất ảnh PNG.";
+                                  $"✓ Đã lưu phiếu nhập kho và khởi tạo chứng từ thành công.";
 
                     MessageBox.Show(info, "Nhập kho hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

@@ -263,7 +263,7 @@ namespace NexusRetail.WinForms.Forms
             {
                 string effectiveMaHdb = !string.IsNullOrWhiteSpace(maHdb) ? maHdb : (maHdbGiaoDich ?? string.Empty);
 
-                // Trích xuất danh sách sản phẩm sang dữ liệu biểu mẫu BM02
+                // Trích xuất danh sách sản phẩm sang dữ liệu in hóa đơn
                 var bieuMauItems = _cartTable.AsEnumerable().Select((r, idx) =>
                 {
                     string msp = r.Field<string>("MaSp") ?? "";
@@ -306,12 +306,12 @@ namespace NexusRetail.WinForms.Forms
                     giamGia: tongGiamGia
                 );
 
-                // Hiển thị ngay biểu mẫu BM02 trên trình duyệt để in / xuất ảnh
+                // Hiển thị ngay hóa đơn bán lẻ trên trình duyệt để in / xuất ảnh
                 BieuMauService.MoBieuMauTrenTrinhDuyet(html, $"HoaDonBan_{effectiveMaHdb}");
 
                 string phuongThuc = isBankTransfer ? "Chuyển khoản VietQR MBBank (Webhook Tự Động)" : "Tiền mặt tại quầy";
-                MessageBox.Show($"✅ THANH TOÁN THÀNH CÔNG!\n\n• Mã HĐ: {effectiveMaHdb}\n• Tổng tiền: {total:N0} ₫\n• Phương thức: {phuongThuc}\n• Biểu mẫu BM02 (Hóa đơn bán lẻ & Phiếu bảo hành) đã được hiển thị để in ấn hoặc xuất ảnh PNG.",
-                    "Hóa Đơn Bán Lẻ Duy Mobile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"✅ THANH TOÁN THÀNH CÔNG!\n\n• Mã HĐ: {effectiveMaHdb}\n• Tổng tiền: {total:N0} ₫\n• Phương thức: {phuongThuc}\n• Hóa đơn bán lẻ & Phiếu bảo hành đã được khởi tạo thành công.",
+                    "Thông Báo Thanh Toán", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 _cartTable.Clear();
                 UpdateTotalAmount();
