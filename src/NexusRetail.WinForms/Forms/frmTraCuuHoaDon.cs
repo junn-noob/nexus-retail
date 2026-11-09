@@ -313,7 +313,7 @@ namespace NexusRetail.WinForms.Forms
                     maHdb: maHdb,
                     tenKhach: tenKhach,
                     dienThoai: dienThoai,
-                    diaChi: "Số 45 Đống Đa, TP. Hà Nội",
+                    diaChi: "TP. Hồ Chí Minh",
                     tenNv: tenNv,
                     danhSachSp: bieuMauItems,
                     tongTien: tongGoc,
@@ -367,7 +367,7 @@ namespace NexusRetail.WinForms.Forms
                 string html = BieuMauService.TaoHtmlHoaDonNhap(
                     maHdn: maHdn,
                     tenNcc: tenNcc,
-                    diaChiNcc: "Tòa nhà FPT Cầu Giấy, Hà Nội",
+                    diaChiNcc: "Tòa nhà FPT Tân Thuận, Quận 7, TP. Hồ Chí Minh",
                     sdtNcc: "(028) 7300 1234",
                     tenNv: tenNv,
                     maNv: "NV01",

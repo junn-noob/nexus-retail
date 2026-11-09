@@ -150,5 +150,33 @@ namespace NexusRetail.UnitTests
 
             Assert.Equal(300000000m, giaTriTonKho);
         }
+
+        // 9. Cho phép thiết lập giá bán cao hơn tỷ lệ markup 10% (Markup linh hoạt)
+        [Fact]
+        public void Test_CustomMarkupHigherThanMinimum()
+        {
+            decimal giaNhap = 10000000m;
+            decimal customGiaBan = 12500000m; // Markup 25%
+            decimal minGiaBan = Math.Round(giaNhap * 1.10m, 0);
+
+            decimal finalGiaBan = customGiaBan >= minGiaBan ? customGiaBan : minGiaBan;
+
+            Assert.True(finalGiaBan >= minGiaBan);
+            Assert.Equal(12500000m, finalGiaBan);
+        }
+
+        // 10. Phương trình kế toán Xuất - Nhập - Tồn kho: Tồn Đầu = Tồn Cuối + Xuất - Nhập
+        [Fact]
+        public void Test_InventoryBalanceEquation()
+        {
+            int tonCuoi = 20;
+            int nhapTrongKy = 15;
+            int xuatTrongKy = 8;
+
+            int tonDau = tonCuoi + xuatTrongKy - nhapTrongKy;
+
+            Assert.Equal(13, tonDau);
+            Assert.Equal(tonCuoi, tonDau + nhapTrongKy - xuatTrongKy);
+        }
     }
 }

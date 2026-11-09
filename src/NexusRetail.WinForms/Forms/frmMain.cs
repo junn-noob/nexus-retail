@@ -39,6 +39,41 @@ namespace NexusRetail.WinForms.Forms
                 lblSub.Text = $"Hệ Thống Quản Lý Bán Lẻ & Kho Hàng  •  🕒 {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
             };
             _clockTimer.Start();
+
+            KeyPreview = true;
+            KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.F1 || e.KeyCode == Keys.F9)
+                {
+                    e.Handled = true;
+                    btnBanHang_Click(this, EventArgs.Empty);
+                }
+                else if (e.KeyCode == Keys.F2)
+                {
+                    e.Handled = true;
+                    btnSanPham_Click(this, EventArgs.Empty);
+                }
+                else if (e.KeyCode == Keys.F3)
+                {
+                    e.Handled = true;
+                    btnNhapHang_Click(this, EventArgs.Empty);
+                }
+                else if (e.KeyCode == Keys.F4)
+                {
+                    e.Handled = true;
+                    btnTraCuu_Click(this, EventArgs.Empty);
+                }
+                else if (e.KeyCode == Keys.F5)
+                {
+                    e.Handled = true;
+                    LoadDashboardStatsAsync();
+                }
+                else if (e.KeyCode == Keys.F6 && _role == "Admin")
+                {
+                    e.Handled = true;
+                    btnBaoCao_Click(this, EventArgs.Empty);
+                }
+            };
         }
 
         private void ApplyCustomStyles()

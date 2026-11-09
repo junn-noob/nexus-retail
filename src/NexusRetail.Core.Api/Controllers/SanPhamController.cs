@@ -254,6 +254,9 @@ namespace NexusRetail.Core.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            decimal minGiaBan = Math.Round(dto.GiaNhap * 1.10m, 0);
+            decimal giaBan = (dto.GiaBan.HasValue && dto.GiaBan.Value >= minGiaBan) ? dto.GiaBan.Value : minGiaBan;
+
             var sp = new SanPham
             {
                 MaSp = await sinhMaSanPham(),
@@ -262,7 +265,7 @@ namespace NexusRetail.Core.Api.Controllers
                 MaNhanHieu = dto.MaNhanHieu,
                 MaManHinh = dto.MaManHinh,
                 GiaNhap = dto.GiaNhap,
-                GiaBan = Math.Round(dto.GiaNhap * 1.1m, 0),
+                GiaBan = giaBan,
                 SoLuong = dto.SoLuong,
                 ThoiGianBaoHanh = dto.ThoiGianBaoHanh,
                 AmThanh = dto.AmThanh,
@@ -287,12 +290,15 @@ namespace NexusRetail.Core.Api.Controllers
 
             if (sp == null) return NotFound();
 
+            decimal minGiaBan = Math.Round(dto.GiaNhap * 1.10m, 0);
+            decimal giaBan = (dto.GiaBan.HasValue && dto.GiaBan.Value >= minGiaBan) ? dto.GiaBan.Value : minGiaBan;
+
             sp.TenSp = dto.TenSp;
             sp.MaLoai = dto.MaLoai;
             sp.MaNhanHieu = dto.MaNhanHieu;
             sp.MaManHinh = dto.MaManHinh;
             sp.GiaNhap = dto.GiaNhap;
-            sp.GiaBan = Math.Round(dto.GiaNhap * 1.1m, 0);
+            sp.GiaBan = giaBan;
             sp.SoLuong = dto.SoLuong;
             sp.ThoiGianBaoHanh = dto.ThoiGianBaoHanh;
             sp.AmThanh = dto.AmThanh;

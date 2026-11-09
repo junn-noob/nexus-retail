@@ -26,11 +26,61 @@ namespace NexusRetail.WinForms.Forms
             txtNhanVien.Text = _nhanVien;
             InitCartTable();
             LoadProductsAsync();
+
+            txtDienThoai.Leave += async (s, e) => await TraCuuKhachHangNhanhAsync();
+            txtDienThoai.KeyDown += async (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    await TraCuuKhachHangNhanhAsync();
+                }
+            };
+        }
+
+        private async Task TraCuuKhachHangNhanhAsync()
+        {
+            string sdt = txtDienThoai.Text.Trim();
+            if (string.IsNullOrWhiteSpace(sdt) || sdt.Length < 9) return;
+
+            try
+            {
+                var orders = await WinFormsApiClient.Instance.SearchSaleInvoicesAsync(sdt);
+                var existing = orders.FirstOrDefault(x => x.DienThoai == sdt && !string.IsNullOrWhiteSpace(x.TenKhach));
+                if (existing != null && (string.IsNullOrWhiteSpace(txtTenKhach.Text) || txtTenKhach.Text == "Khách mua tại quầy"))
+                {
+                    txtTenKhach.Text = existing.TenKhach;
+                }
+            }
+            catch { }
         }
 
         private void FrmHoaDonBan_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.F8)
+            if (e.KeyCode == Keys.F2)
+            {
+                e.Handled = true;
+                cboSanPham.Focus();
+            }
+            else if (e.KeyCode == Keys.F3)
+            {
+                e.Handled = true;
+                txtDienThoai.Focus();
+                txtDienThoai.SelectAll();
+            }
+            else if (e.KeyCode == Keys.F4)
+            {
+                e.Handled = true;
+                numSoLuong.Focus();
+                numSoLuong.Select(0, numSoLuong.Text.Length);
+            }
+            else if (e.KeyCode == Keys.F5)
+            {
+                e.Handled = true;
+                LoadProductsAsync();
+            }
+            else if (e.KeyCode == Keys.F8)
             {
                 e.Handled = true;
                 btnThanhToanTienMat_Click(this, EventArgs.Empty);
@@ -39,6 +89,19 @@ namespace NexusRetail.WinForms.Forms
             {
                 e.Handled = true;
                 btnThanhToanQR_Click(this, EventArgs.Empty);
+            }
+            else if (e.KeyCode == Keys.F12)
+            {
+                e.Handled = true;
+                if (_cartTable.Rows.Count > 0)
+                {
+                    var res = MessageBox.Show("Xóa toàn bộ giỏ hàng hiện tại để lập đơn mới?", "Làm mới đơn", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (res == DialogResult.Yes)
+                    {
+                        _cartTable.Clear();
+                        UpdateTotalAmount();
+                    }
+                }
             }
             else if (e.KeyCode == Keys.Escape)
             {
@@ -107,6 +170,8 @@ namespace NexusRetail.WinForms.Forms
             cboSanPham.DataSource = _products;
             cboSanPham.DisplayMember = "TenSp";
             cboSanPham.ValueMember = "MaSp";
+            cboSanPham.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cboSanPham.AutoCompleteSource = AutoCompleteSource.ListItems;
 
             if (_products.Count > 0)
             {
@@ -315,7 +380,7 @@ namespace NexusRetail.WinForms.Forms
                     maHdb: effectiveMaHdb,
                     tenKhach: dto.TenKhachVangLai,
                     dienThoai: dto.DienThoai,
-                    diaChi: "Số 45 Đống Đa, TP. Hà Nội",
+                    diaChi: "TP. Hồ Chí Minh",
                     tenNv: _nhanVien,
                     danhSachSp: bieuMauItems,
                     tongTien: tongTienHang,

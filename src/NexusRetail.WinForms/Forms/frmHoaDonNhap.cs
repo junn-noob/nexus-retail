@@ -281,7 +281,7 @@ namespace NexusRetail.WinForms.Forms
                     string html = BieuMauService.TaoHtmlHoaDonNhap(
                         maHdn: effectiveMaHdn,
                         tenNcc: ncc.TenNcc,
-                        diaChiNcc: !string.IsNullOrWhiteSpace(ncc.DiaChi) ? ncc.DiaChi : "Tòa nhà FPT Cầu Giấy, Hà Nội",
+                        diaChiNcc: !string.IsNullOrWhiteSpace(ncc.DiaChi) ? ncc.DiaChi : "Tòa nhà FPT Tân Thuận, Quận 7, TP. Hồ Chí Minh",
                         sdtNcc: !string.IsNullOrWhiteSpace(ncc.DienThoai) ? ncc.DienThoai : "(028) 7300 1234",
                         tenNv: nv.TenNv,
                         maNv: nv.MaNv,

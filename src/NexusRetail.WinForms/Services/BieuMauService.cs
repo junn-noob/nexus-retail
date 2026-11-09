@@ -213,7 +213,7 @@ namespace NexusRetail.WinForms.Services
             <h1 class='brand-name'>DUY MOBILE - STORE</h1>
             <div class='slogan'>Hệ Thống Bán Lẻ & Tư Vấn Thiết Bị Di Động Uy Tín</div>
             <div class='contact-info'>
-                Đ/c: 123 Cầu Giấy, Quan Hoa, Cầu Giấy, Hà Nội<br>
+                Đ/c: 450 Lê Văn Việt, Tăng Nhơn Phú A, TP. Thủ Đức, TP. Hồ Chí Minh<br>
                 Hotline: 0981.234.567 | Website: www.duymobile.vn
             </div>
         </div>
@@ -436,7 +436,7 @@ namespace NexusRetail.WinForms.Services
         <div class='info-grid'>
             - <strong>Đơn vị nhận hàng:</strong> Cửa hàng Bán lẻ Thiết bị Di động Duy Mobile<br>
             - <strong>Đại diện tiếp nhận:</strong> {tenNv} - Quản lý Kho (Mã NV: {maNv})<br>
-            - <strong>Địa chỉ giao nhận:</strong> Số 123 Cầu Giấy, Phường Quan Hoa, Quận Cầu Giấy, Hà Nội<br>
+            - <strong>Địa chỉ giao nhận:</strong> 450 Lê Văn Việt, Phường Tăng Nhơn Phú A, TP. Thủ Đức, TP. Hồ Chí Minh<br>
             - <strong>Nhà cung ứng:</strong> {tenNcc}
         </div>
 
@@ -636,7 +636,7 @@ namespace NexusRetail.WinForms.Services
                 <td class='org-info'>
                     <strong>ĐƠN VỊ: CỬA HÀNG THIẾT BỊ DI ĐỘNG DUY MOBILE</strong><br>
                     Bộ phận: Quản lý Kho & Bán lẻ Công nghệ<br>
-                    Địa chỉ: 123 Cầu Giấy, Quan Hoa, Cầu Giấy, TP. Hà Nội
+                    Địa chỉ: 450 Lê Văn Việt, Tăng Nhơn Phú A, TP. Thủ Đức, TP. Hồ Chí Minh
                 </td>
                 <td class='meta-info'>
                     <strong>MẪU BÁO CÁO QUẢN TRỊ NỘI BỘ</strong><br>

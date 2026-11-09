@@ -30,6 +30,8 @@ namespace NexusRetail.Shared.DTOs.SanPham
         [Range(0.01, double.MaxValue, ErrorMessage = "Giá nhập phải lớn hơn 0!")]
         public decimal GiaNhap { get; set; }
 
+        public decimal? GiaBan { get; set; }
+
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn 0!")]
         public int SoLuong { get; set; }
 

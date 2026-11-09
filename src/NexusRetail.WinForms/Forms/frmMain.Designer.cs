@@ -138,7 +138,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblBrand.Name = "lblBrand";
             this.lblBrand.Size = new System.Drawing.Size(325, 30);
             this.lblBrand.TabIndex = 0;
-            this.lblBrand.Text = "NEXUS RETAIL POS";
+            this.lblBrand.Text = "DUY MOBILE POS";
             // 
             // pnlNavRibbon
             // 

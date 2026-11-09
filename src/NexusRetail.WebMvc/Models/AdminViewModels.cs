@@ -27,8 +27,13 @@ namespace NexusRetail.WebMvc.Models
         [Display(Name = "Giá nhập (VNĐ)")]
         public decimal GiaNhap { get; set; }
 
-        [Display(Name = "Giá bán (Tự động = Giá nhập × 1.1)")]
-        public decimal GiaBan => Math.Round(GiaNhap * 1.1m, 0);
+        private decimal? _giaBan;
+        [Display(Name = "Giá bán niêm yết (Tối thiểu = Giá nhập × 1.10)")]
+        public decimal GiaBan
+        {
+            get => (_giaBan.HasValue && _giaBan.Value >= Math.Round(GiaNhap * 1.1m, 0)) ? _giaBan.Value : Math.Round(GiaNhap * 1.1m, 0);
+            set => _giaBan = value;
+        }
 
         [Required(ErrorMessage = "Vui lòng nhập số lượng")]
         [Range(0, 10000, ErrorMessage = "Số lượng phải từ 0 trở lên")]

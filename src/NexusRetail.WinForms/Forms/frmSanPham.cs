@@ -198,6 +198,9 @@ namespace NexusRetail.WinForms.Forms
                 maLoai = "L01";
             }
 
+            string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
+            decimal? giaBanInput = decimal.TryParse(cleanGiaBan, out decimal parsedGb) && parsedGb >= giaNhap * 1.10m ? parsedGb : null;
+
             // 3. Chuẩn bị DTO thêm mới
             var dto = new ThemSanPhamDto
             {
@@ -206,6 +209,7 @@ namespace NexusRetail.WinForms.Forms
                 MaNhanHieu = maNhanHieu,
                 MaManHinh = maManHinh,
                 GiaNhap = giaNhap,
+                GiaBan = giaBanInput,
                 SoLuong = (int)numSoLuong.Value,
                 ThoiGianBaoHanh = (int)numBaoHanh.Value,
                 AmThanh = "Loa kép Stereo, Hi-Res Audio",
@@ -266,6 +270,9 @@ namespace NexusRetail.WinForms.Forms
             string maNhanHieu = current?.MaNhanHieu ?? "NH01";
             string maManHinh = current?.MaManHinh ?? "MH01";
 
+            string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
+            decimal? giaBanInput = decimal.TryParse(cleanGiaBan, out decimal parsedGb) && parsedGb >= giaNhap * 1.10m ? parsedGb : null;
+
             var dto = new SuaSanPhamDto
             {
                 TenSp = tenSp,
@@ -273,6 +280,7 @@ namespace NexusRetail.WinForms.Forms
                 MaNhanHieu = maNhanHieu,
                 MaManHinh = maManHinh,
                 GiaNhap = giaNhap,
+                GiaBan = giaBanInput,
                 SoLuong = (int)numSoLuong.Value,
                 ThoiGianBaoHanh = (int)numBaoHanh.Value,
                 AmThanh = current?.AmThanh ?? "Loa kép Stereo",

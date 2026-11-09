@@ -477,6 +477,25 @@ namespace NexusRetail.WinForms.Services
             return new List<ReportNvDoanhSoThapItem>();
         }
 
+        public async Task<List<ReportTonKhoItem>> GetReportTonKhoAsync(int month, int year)
+        {
+            try
+            {
+                using var res = await _client.GetAsync($"api/bao-cao/ton-kho?month={month}&year={year}");
+                if (res.IsSuccessStatusCode)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("danhSach", out var arr))
+                    {
+                        return JsonSerializer.Deserialize<List<ReportTonKhoItem>>(arr.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                    }
+                }
+            }
+            catch { }
+            return new List<ReportTonKhoItem>();
+        }
+
         public async Task<(bool Success, string Message)> DownloadExcelAsync(string relativeUrl, string saveFilePath)
         {
             try
@@ -572,7 +591,7 @@ namespace NexusRetail.WinForms.Services
 
         private static List<NhaCungCapItem> GetDefaultSuppliers() => new()
         {
-            new() { MaNcc = "NCC01", TenNcc = "Apple Việt Nam - Synnex FPT", DiaChi = "Tòa nhà FPT Cầu Giấy, Hà Nội", DienThoai = "19006600" },
+            new() { MaNcc = "NCC01", TenNcc = "Apple Việt Nam - Synnex FPT", DiaChi = "Tòa nhà FPT Tân Thuận, Quận 7, TP. Hồ Chí Minh", DienThoai = "19006600" },
             new() { MaNcc = "NCC02", TenNcc = "Samsung Electronics Việt Nam", DiaChi = "KCN Yên Phong, Bắc Ninh", DienThoai = "1800588889" },
             new() { MaNcc = "NCC03", TenNcc = "Xiaomi Mi Home Distribution", DiaChi = "Quận 1, TP Hồ Chí Minh", DienThoai = "19001900" }
         };
@@ -637,6 +656,22 @@ namespace NexusRetail.WinForms.Services
         public string GioiTinh { get; set; } = "";
         public string DienThoai { get; set; } = "";
         public decimal TongTienBan { get; set; }
+    }
+
+    public class ReportTonKhoItem
+    {
+        public int Stt { get; set; }
+        public string MaSp { get; set; } = "";
+        public string TenSp { get; set; } = "";
+        public string TenNhanHieu { get; set; } = "";
+        public string TenLoai { get; set; } = "";
+        public int NhapSl { get; set; }
+        public decimal NhapTien { get; set; }
+        public int XuatSl { get; set; }
+        public decimal XuatTien { get; set; }
+        public int TonCuoiSl { get; set; }
+        public decimal TonCuoiTien { get; set; }
+        public string TrangThai { get; set; } = "Còn hàng";
     }
 
     public class InvoiceSearchItem

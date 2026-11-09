@@ -383,11 +383,29 @@ namespace NexusRetail.Core.Api.Controllers
                 .OrderBy(x => x.MaSp)
                 .ToListAsync();
 
+            // Tổng hợp số lượng và doanh số nhập kho thực tế trong kỳ
+            var nhapDict = await _db.ChiTietHdns
+                .AsNoTracking()
+                .Where(x => x.MaHdnNavigation.NgayNhap.Month == m && x.MaHdnNavigation.NgayNhap.Year == y)
+                .GroupBy(x => x.MaSp)
+                .Select(g => new { MaSp = g.Key, SoLuong = g.Sum(x => x.SoLuong), TongTien = g.Sum(x => x.ThanhTien) })
+                .ToDictionaryAsync(x => x.MaSp, x => x);
+
+            // Tổng hợp số lượng và doanh thu xuất bán thực tế trong kỳ
+            var xuatDict = await _db.ChiTietHdbs
+                .AsNoTracking()
+                .Where(x => x.MaHdbNavigation.NgayBan.Month == m && x.MaHdbNavigation.NgayBan.Year == y)
+                .GroupBy(x => x.MaSp)
+                .Select(g => new { MaSp = g.Key, SoLuong = g.Sum(x => x.SoLuong), TongTien = g.Sum(x => x.ThanhTien) })
+                .ToDictionaryAsync(x => x.MaSp, x => x);
+
             var list = products.Select((p, idx) =>
             {
                 int tonCuoi = p.SoLuong;
-                int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
-                int xuat = Math.Max(0, nhap - tonCuoi);
+                int nhap = nhapDict.TryGetValue(p.MaSp, out var nVal) ? nVal.SoLuong : 0;
+                decimal nhapTien = nVal != null ? nVal.TongTien : 0m;
+                int xuat = xuatDict.TryGetValue(p.MaSp, out var xVal) ? xVal.SoLuong : 0;
+                decimal xuatTien = xVal != null ? xVal.TongTien : 0m;
                 decimal giaTriTon = tonCuoi * p.GiaNhap;
                 string trangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng");
 
@@ -399,9 +417,9 @@ namespace NexusRetail.Core.Api.Controllers
                     TenNhanHieu = p.MaNhanHieuNavigation != null ? p.MaNhanHieuNavigation.TenNhanHieu : "Chính hãng",
                     TenLoai = p.MaLoaiNavigation != null ? p.MaLoaiNavigation.TenLoai : "Điện thoại",
                     NhapSl = nhap,
-                    NhapTien = nhap * p.GiaNhap,
+                    NhapTien = nhapTien,
                     XuatSl = xuat,
-                    XuatTien = xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m),
+                    XuatTien = xuatTien,
                     TonCuoiSl = tonCuoi,
                     TonCuoiTien = giaTriTon,
                     TrangThai = trangThai
@@ -433,6 +451,20 @@ namespace NexusRetail.Core.Api.Controllers
                 .OrderBy(x => x.MaSp)
                 .ToListAsync();
 
+            var nhapDict = await _db.ChiTietHdns
+                .AsNoTracking()
+                .Where(x => x.MaHdnNavigation.NgayNhap.Month == m && x.MaHdnNavigation.NgayNhap.Year == y)
+                .GroupBy(x => x.MaSp)
+                .Select(g => new { MaSp = g.Key, SoLuong = g.Sum(x => x.SoLuong), TongTien = g.Sum(x => x.ThanhTien) })
+                .ToDictionaryAsync(x => x.MaSp, x => x);
+
+            var xuatDict = await _db.ChiTietHdbs
+                .AsNoTracking()
+                .Where(x => x.MaHdbNavigation.NgayBan.Month == m && x.MaHdbNavigation.NgayBan.Year == y)
+                .GroupBy(x => x.MaSp)
+                .Select(g => new { MaSp = g.Key, SoLuong = g.Sum(x => x.SoLuong), TongTien = g.Sum(x => x.ThanhTien) })
+                .ToDictionaryAsync(x => x.MaSp, x => x);
+
             var headers = new[] { "STT", "Mã Sản Phẩm", "Tên Thiết Bị", "Thương Hiệu", "Nhập Trong Kỳ", "Tiền Nhập (₫)", "Xuất Trong Kỳ", "Doanh Thu Xuất (₫)", "Tồn Cuối Kỳ", "Giá Trị Tồn (₫)", "Trạng Thái" };
             var rows = new List<object[]>();
 
@@ -440,8 +472,10 @@ namespace NexusRetail.Core.Api.Controllers
             {
                 var p = products[i];
                 int tonCuoi = p.SoLuong;
-                int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
-                int xuat = Math.Max(0, nhap - tonCuoi);
+                int nhap = nhapDict.TryGetValue(p.MaSp, out var nVal) ? nVal.SoLuong : 0;
+                decimal nhapTien = nVal != null ? nVal.TongTien : 0m;
+                int xuat = xuatDict.TryGetValue(p.MaSp, out var xVal) ? xVal.SoLuong : 0;
+                decimal xuatTien = xVal != null ? xVal.TongTien : 0m;
                 decimal giaTriTon = tonCuoi * p.GiaNhap;
                 string trangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng");
 
@@ -452,9 +486,9 @@ namespace NexusRetail.Core.Api.Controllers
                     p.TenSp,
                     p.MaNhanHieuNavigation?.TenNhanHieu ?? "Chính hãng",
                     nhap,
-                    nhap * p.GiaNhap,
+                    nhapTien,
                     xuat,
-                    xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m),
+                    xuatTien,
                     tonCuoi,
                     giaTriTon,
                     trangThai

@@ -1,11 +1,13 @@
 @{
     ViewData["Title"] = "Đặt hàng thành công";
     var maHdb = ViewBag.MaHdb ?? "HDB01";
-    var tongTien = ViewBag.TongTien != null ? ((decimal)ViewBag.TongTien).ToString("N0") : "0";
+    decimal rawTongTien = ViewBag.TongTien != null ? (decimal)ViewBag.TongTien : 0m;
+    var tongTien = rawTongTien.ToString("N0");
     var tenKhach = ViewBag.TenKhach ?? "Quý khách";
+    string qrUrl = $"https://img.vietqr.io/image/970422-09999999900-compact2.png?amount={(long)rawTongTien}&addInfo=DUYMOBILE%20{maHdb}&accountName=NGUYEN%20VAN%20HUNG";
 }
 
-<div class="container py-5" style="max-width: 650px;">
+<div class="container py-5" style="max-width: 680px;">
     <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 text-center bg-white">
         <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 40px;">
             <i class="bi bi-check-lg"></i>
@@ -27,7 +29,7 @@
             </div>
             <div class="d-flex justify-content-between mb-2 small">
                 <span class="text-secondary">Phương thức thanh toán:</span>
-                <span class="fw-semibold text-dark">Tiền mặt khi nhận hàng (COD)</span>
+                <span class="fw-semibold text-dark">Tiền mặt (COD) hoặc Chuyển khoản VietQR</span>
             </div>
             <hr class="my-2">
             <div class="d-flex justify-content-between align-items-baseline">
@@ -36,8 +38,23 @@
             </div>
         </div>
 
+        @if (rawTongTien > 0)
+        {
+            <div class="card border border-primary-subtle rounded-4 p-3 mb-4 bg-primary-subtle bg-opacity-10 text-center">
+                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-qr-code-scan me-1"></i> Quét mã VietQR chuyển khoản (MBBank 24/7)</h6>
+                <p class="small text-muted mb-3">Mở ứng dụng ngân hàng bất kỳ để quét mã thanh toán chính xác 100%:</p>
+                <div class="mx-auto bg-white p-2 rounded-3 shadow-sm d-inline-block mb-2">
+                    <img src="@qrUrl" alt="Mã VietQR Thanh Toán" class="img-fluid" style="max-width: 240px; border-radius: 8px;" />
+                </div>
+                <div class="small text-secondary mt-1">
+                    Chủ tài khoản: <strong>NGUYEN VAN HUNG</strong> • STK: <strong>09999999900</strong> (MB Bank)<br>
+                    Nội dung chuyển khoản: <span class="badge bg-primary fs-7">DUYMOBILE @maHdb</span>
+                </div>
+            </div>
+        }
+
         <p class="small text-secondary mb-4">
-            <i class="bi bi-telephone-inbound text-primary me-1"></i> Nhân viên bán hàng sẽ liên hệ qua điện thoại để xác nhận địa chỉ và thời gian giao hàng trong vòng 15-30 phút.
+            <i class="bi bi-telephone-inbound text-primary me-1"></i> Nhân viên Duy Mobile sẽ liên hệ qua điện thoại để xác nhận địa chỉ và bàn giao hàng trong vòng 15-30 phút.
         </p>
 
         <div class="d-flex flex-wrap gap-2 justify-content-center">

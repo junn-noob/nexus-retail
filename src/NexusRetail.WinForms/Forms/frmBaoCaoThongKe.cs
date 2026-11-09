@@ -215,39 +215,32 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colTonCuoiTien", "Giá Trị Tồn Kho");
                             dgvBaoCao.Columns.Add("colTrangThai", "Trạng Thái");
 
-                            var products = await WinFormsApiClient.Instance.GetProductsAsync();
+                            var data = await WinFormsApiClient.Instance.GetReportTonKhoAsync(thang, nam);
                             int tongTon = 0;
                             decimal tongGiaTriTon = 0;
 
-                            for (int i = 0; i < products.Count; i++)
+                            for (int i = 0; i < data.Count; i++)
                             {
-                                var p = products[i];
-                                int tonCuoi = p.SoLuong;
-                                int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
-                                int xuat = nhap - tonCuoi;
-                                if (xuat < 0) xuat = 0;
-                                decimal giaTriTon = tonCuoi * p.GiaNhap;
-                                tongTon += tonCuoi;
-                                tongGiaTriTon += giaTriTon;
-
-                                string trangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng");
+                                var item = data[i];
+                                tongTon += item.TonCuoiSl;
+                                tongGiaTriTon += item.TonCuoiTien;
 
                                 dgvBaoCao.Rows.Add(
                                     i + 1,
-                                    p.MaSp,
-                                    p.TenSp,
-                                    string.IsNullOrWhiteSpace(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu,
-                                    nhap,
-                                    (nhap * p.GiaNhap).ToString("N0", culture) + " đ",
-                                    xuat,
-                                    (xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m)).ToString("N0", culture) + " đ",
-                                    tonCuoi,
-                                    giaTriTon.ToString("N0", culture) + " đ",
-                                    trangThai
+                                    item.MaSp,
+                                    item.TenSp,
+                                    string.IsNullOrWhiteSpace(item.TenNhanHieu) ? "Chính hãng" : item.TenNhanHieu,
+                                    item.NhapSl,
+                                    item.NhapTien.ToString("N0", culture) + " đ",
+                                    item.XuatSl,
+                                    item.XuatTien.ToString("N0", culture) + " đ",
+                                    item.TonCuoiSl,
+                                    item.TonCuoiTien.ToString("N0", culture) + " đ",
+                                    item.TrangThai
                                 );
                             }
 
-                            lblSoDong.Text = $"Toàn bộ danh mục ({products.Count} thiết bị - Tổng tồn: {tongTon} máy)";
+                            lblSoDong.Text = $"Toàn bộ danh mục ({data.Count} thiết bị - Tổng tồn: {tongTon} máy)";
                             lblTongKet.Text = $"Tổng giá trị tồn kho: {tongGiaTriTon.ToString("N0", culture)} đ";
 
                             // Đồng thời kích hoạt hiển thị báo cáo tồn kho trên trình duyệt
@@ -350,16 +343,14 @@ namespace NexusRetail.WinForms.Forms
                 btnBieuMauKho.Enabled = false;
                 btnBieuMauKho.Text = "⏳ Đang kết xuất...";
 
-                var products = await WinFormsApiClient.Instance.GetProductsAsync();
+                var data = await WinFormsApiClient.Instance.GetReportTonKhoAsync(thang, nam);
                 var list = new List<ItemBieuMauKho>();
 
-                for (int i = 0; i < products.Count; i++)
+                for (int i = 0; i < data.Count; i++)
                 {
-                    var p = products[i];
-                    int tonCuoi = p.SoLuong;
-                    int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
-                    int xuat = nhap - tonCuoi;
-                    if (xuat < 0) xuat = 0;
+                    var p = data[i];
+                    int tonDauSl = Math.Max(0, p.TonCuoiSl + p.XuatSl - p.NhapSl);
+                    decimal donGiaVon = p.TonCuoiSl > 0 ? (p.TonCuoiTien / p.TonCuoiSl) : (p.NhapSl > 0 ? (p.NhapTien / p.NhapSl) : 0);
 
                     list.Add(new ItemBieuMauKho
                     {
@@ -367,15 +358,15 @@ namespace NexusRetail.WinForms.Forms
                         MaSp = p.MaSp,
                         TenSp = p.TenSp,
                         ThuongHieu = string.IsNullOrWhiteSpace(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu,
-                        TonDauSl = 0,
-                        TonDauTien = 0,
-                        NhapSl = nhap,
-                        NhapTien = nhap * p.GiaNhap,
-                        XuatSl = xuat,
-                        XuatTien = xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m),
-                        TonCuoiSl = tonCuoi,
-                        TonCuoiTien = tonCuoi * p.GiaNhap,
-                        TrangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng")
+                        TonDauSl = tonDauSl,
+                        TonDauTien = tonDauSl * donGiaVon,
+                        NhapSl = p.NhapSl,
+                        NhapTien = p.NhapTien,
+                        XuatSl = p.XuatSl,
+                        XuatTien = p.XuatTien,
+                        TonCuoiSl = p.TonCuoiSl,
+                        TonCuoiTien = p.TonCuoiTien,
+                        TrangThai = p.TrangThai
                     });
                 }
 
