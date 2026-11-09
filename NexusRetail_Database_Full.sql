@@ -5,11 +5,14 @@
 --   1. NexusRetailDb        : 12 bảng nghiệp vụ chuẩn + Chatbot log + Triggers + Views + SPs + Seed Data
 --   2. NexusRetailIdentityDb: Quản lý người dùng, phân quyền RBAC (Admin, Staff, Customer) & JWT Tokens
 -- TƯƠNG THÍCH HOÀN TOÀN:
---   - SQL Server 2017 / 2019 / 2022 / SQL Server LocalDB / Azure SQL
+--   - SQL Server 2008 / 2012 / 2014 / 2016 / 2017 / 2019 / 2022 / 2025 / LocalDB / Azure SQL
+--   - Chuẩn cú pháp T-SQL tương thích ngược 100% (Không lỗi cú pháp CREATE OR ALTER)
+--   - Đã xử lý triệt để cảnh báo Clustered Index Key Length (< 900 bytes)
 --   - .NET 10.0 (Core API, Identity API, WinForms POS & WebMvc)
 -- ====================================================================================
 
 SET NOCOUNT ON;
+SET DATEFORMAT ymd;
 GO
 
 -- ####################################################################################
@@ -26,7 +29,7 @@ BEGIN
 END
 ELSE
 BEGIN
-    PRINT N'✔ Cơ sở dữ liệu NexusRetailDb đã tồn tại.';
+    PRINT N'✔ Cơ sở dữ liệu NexusRetailDb đã sẵn sàng.';
 END
 GO
 
@@ -34,21 +37,34 @@ USE NexusRetailDb;
 GO
 
 -- ------------------------------------------------------------------------------------
--- XÓA BẢNG CŨ NẾU CẦN KHỞI TẠO LẠI (THEO THỨ TỰ KHÓA NGOẠI)
+-- XÓA CÁC ĐỐI TƯỢNG CŨ NẾU CẦN KHỞI TẠO LẠI (THỨ TỰ PHỤ THUỘC CHUẨN)
 -- ------------------------------------------------------------------------------------
-IF OBJECT_ID('Chatbot_TuVanLog', 'U') IS NOT NULL DROP TABLE Chatbot_TuVanLog;
-IF OBJECT_ID('ChiTietHDB', 'U') IS NOT NULL DROP TABLE ChiTietHDB;
-IF OBJECT_ID('HoaDonBan', 'U') IS NOT NULL DROP TABLE HoaDonBan;
-IF OBJECT_ID('ChiTietHDN', 'U') IS NOT NULL DROP TABLE ChiTietHDN;
-IF OBJECT_ID('HoaDonNhap', 'U') IS NOT NULL DROP TABLE HoaDonNhap;
-IF OBJECT_ID('SanPham', 'U') IS NOT NULL DROP TABLE SanPham;
-IF OBJECT_ID('NhaCungCap', 'U') IS NOT NULL DROP TABLE NhaCungCap;
-IF OBJECT_ID('KhachHang', 'U') IS NOT NULL DROP TABLE KhachHang;
-IF OBJECT_ID('NhanVien', 'U') IS NOT NULL DROP TABLE NhanVien;
-IF OBJECT_ID('Que', 'U') IS NOT NULL DROP TABLE Que;
-IF OBJECT_ID('ManHinh', 'U') IS NOT NULL DROP TABLE ManHinh;
-IF OBJECT_ID('NhanHieu', 'U') IS NOT NULL DROP TABLE NhanHieu;
-IF OBJECT_ID('Loai', 'U') IS NOT NULL DROP TABLE Loai;
+-- 1. Xóa Views trước
+IF OBJECT_ID('dbo.vw_ChiTietHoaDonBan', 'V') IS NOT NULL DROP VIEW dbo.vw_ChiTietHoaDonBan;
+IF OBJECT_ID('dbo.vw_DanhSachSanPham', 'V') IS NOT NULL DROP VIEW dbo.vw_DanhSachSanPham;
+GO
+
+-- 2. Xóa Stored Procedures trước
+IF OBJECT_ID('dbo.sp_BaoCao_5NV_BanItNhat_Thang', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_BaoCao_5NV_BanItNhat_Thang;
+IF OBJECT_ID('dbo.sp_BaoCao_DoanhSo_Nam', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_BaoCao_DoanhSo_Nam;
+IF OBJECT_ID('dbo.sp_BaoCao_HDNhap_LonNhat_Quy', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_BaoCao_HDNhap_LonNhat_Quy;
+IF OBJECT_ID('dbo.sp_BaoCao_SP_BanChayNhat_Thang', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_BaoCao_SP_BanChayNhat_Thang;
+GO
+
+-- 3. Xóa Bảng theo thứ tự khóa ngoại ngược (Tránh xung đột Foreign Key)
+IF OBJECT_ID('dbo.Chatbot_TuVanLog', 'U') IS NOT NULL DROP TABLE dbo.Chatbot_TuVanLog;
+IF OBJECT_ID('dbo.ChiTietHDB', 'U') IS NOT NULL DROP TABLE dbo.ChiTietHDB;
+IF OBJECT_ID('dbo.HoaDonBan', 'U') IS NOT NULL DROP TABLE dbo.HoaDonBan;
+IF OBJECT_ID('dbo.ChiTietHDN', 'U') IS NOT NULL DROP TABLE dbo.ChiTietHDN;
+IF OBJECT_ID('dbo.HoaDonNhap', 'U') IS NOT NULL DROP TABLE dbo.HoaDonNhap;
+IF OBJECT_ID('dbo.SanPham', 'U') IS NOT NULL DROP TABLE dbo.SanPham;
+IF OBJECT_ID('dbo.NhaCungCap', 'U') IS NOT NULL DROP TABLE dbo.NhaCungCap;
+IF OBJECT_ID('dbo.KhachHang', 'U') IS NOT NULL DROP TABLE dbo.KhachHang;
+IF OBJECT_ID('dbo.NhanVien', 'U') IS NOT NULL DROP TABLE dbo.NhanVien;
+IF OBJECT_ID('dbo.Que', 'U') IS NOT NULL DROP TABLE dbo.Que;
+IF OBJECT_ID('dbo.ManHinh', 'U') IS NOT NULL DROP TABLE dbo.ManHinh;
+IF OBJECT_ID('dbo.NhanHieu', 'U') IS NOT NULL DROP TABLE dbo.NhanHieu;
+IF OBJECT_ID('dbo.Loai', 'U') IS NOT NULL DROP TABLE dbo.Loai;
 GO
 
 -- ------------------------------------------------------------------------------------
@@ -239,35 +255,47 @@ GO
 -- ------------------------------------------------------------------------------------
 -- Trigger 1: Tự động cộng tồn kho, cập nhật giá nhập mới, định giá bán = GiaNhap * 1.10
 -- ------------------------------------------------------------------------------------
-CREATE OR ALTER TRIGGER trg_ChiTietHDN_Change
+IF OBJECT_ID('dbo.trg_ChiTietHDN_Change', 'TR') IS NOT NULL
+    DROP TRIGGER dbo.trg_ChiTietHDN_Change;
+GO
+
+CREATE TRIGGER trg_ChiTietHDN_Change
 ON ChiTietHDN
 AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Cộng số lượng mới nhập (từ inserted)
+    -- Cộng tồn kho khi nhập mới
     IF EXISTS (SELECT 1 FROM inserted)
     BEGIN
         UPDATE sp
         SET 
-            sp.SoLuong = sp.SoLuong + ins.SoLuong,
+            sp.SoLuong = sp.SoLuong + ins.TongNhap,
             sp.GiaNhap = ins.DonGia,
             sp.GiaBan = ROUND(ins.DonGia * 1.10, 0)
         FROM SanPham sp
-        INNER JOIN inserted ins ON sp.MaSP = ins.MaSP;
-    END
+        INNER JOIN (
+            SELECT MaSP, SUM(SoLuong) AS TongNhap, MAX(DonGia) AS DonGia
+            FROM inserted
+            GROUP BY MaSP
+        ) ins ON sp.MaSP = ins.MaSP;
+    END;
 
-    -- Trừ số lượng nếu xóa hoặc giảm chi tiết nhập cũ
+    -- Trừ tồn kho nếu xóa hoặc sửa chi tiết nhập cũ
     IF EXISTS (SELECT 1 FROM deleted)
     BEGIN
         UPDATE sp
-        SET sp.SoLuong = sp.SoLuong - del.SoLuong
+        SET sp.SoLuong = sp.SoLuong - del.TongXoa
         FROM SanPham sp
-        INNER JOIN deleted del ON sp.MaSP = del.MaSP;
-    END
+        INNER JOIN (
+            SELECT MaSP, SUM(SoLuong) AS TongXoa
+            FROM deleted
+            GROUP BY MaSP
+        ) del ON sp.MaSP = del.MaSP;
+    END;
 
-    -- Cập nhật lại Tổng tiền cho Hóa đơn nhập tương ứng
+    -- Cập nhật tổng tiền hóa đơn nhập
     UPDATE hdn
     SET hdn.TongTien = ISNULL((
         SELECT SUM(ct.ThanhTien)
@@ -286,46 +314,66 @@ GO
 -- ------------------------------------------------------------------------------------
 -- Trigger 2: Kiểm tra tồn kho trước khi xuất bán, tự động trừ tồn kho, tính tổng tiền bán
 -- ------------------------------------------------------------------------------------
-CREATE OR ALTER TRIGGER trg_ChiTietHDB_Change
+IF OBJECT_ID('dbo.trg_ChiTietHDB_Change', 'TR') IS NOT NULL
+    DROP TRIGGER dbo.trg_ChiTietHDB_Change;
+GO
+
+CREATE TRIGGER trg_ChiTietHDB_Change
 ON ChiTietHDB
 AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Kiểm tra ràng buộc tồn kho trước khi bán
+    -- Kiểm tra ràng buộc tồn kho khả dụng trước khi xuất bán
     IF EXISTS (
         SELECT 1
-        FROM inserted ins
+        FROM (
+            SELECT ins.MaSP, SUM(ins.SoLuong) AS TongBanMoi
+            FROM inserted ins
+            GROUP BY ins.MaSP
+        ) ins
         INNER JOIN SanPham sp ON ins.MaSP = sp.MaSP
-        LEFT JOIN deleted del ON ins.MaHDB = del.MaHDB AND ins.MaSP = del.MaSP
-        WHERE (sp.SoLuong + ISNULL(del.SoLuong, 0) - ins.SoLuong) < 0
+        LEFT JOIN (
+            SELECT del.MaSP, SUM(del.SoLuong) AS TongBanCu
+            FROM deleted del
+            GROUP BY del.MaSP
+        ) del ON ins.MaSP = del.MaSP
+        WHERE (sp.SoLuong + ISNULL(del.TongBanCu, 0) - ins.TongBanMoi) < 0
     )
     BEGIN
         RAISERROR (N'Lỗi giao dịch: Số lượng sản phẩm trong kho không đủ để xuất bán!', 16, 1);
         ROLLBACK TRANSACTION;
         RETURN;
-    END
+    END;
 
-    -- Trừ tồn kho khi xuất bán
+    -- Trừ tồn kho khi xuất bán mới
     IF EXISTS (SELECT 1 FROM inserted)
     BEGIN
         UPDATE sp
-        SET sp.SoLuong = sp.SoLuong - ins.SoLuong
+        SET sp.SoLuong = sp.SoLuong - ins.TongBan
         FROM SanPham sp
-        INNER JOIN inserted ins ON sp.MaSP = ins.MaSP;
-    END
+        INNER JOIN (
+            SELECT MaSP, SUM(SoLuong) AS TongBan
+            FROM inserted
+            GROUP BY MaSP
+        ) ins ON sp.MaSP = ins.MaSP;
+    END;
 
     -- Hoàn lại tồn kho nếu xóa hoặc giảm số lượng bán
     IF EXISTS (SELECT 1 FROM deleted)
     BEGIN
         UPDATE sp
-        SET sp.SoLuong = sp.SoLuong + del.SoLuong
+        SET sp.SoLuong = sp.SoLuong + del.TongHoan
         FROM SanPham sp
-        INNER JOIN deleted del ON sp.MaSP = del.MaSP;
-    END
+        INNER JOIN (
+            SELECT MaSP, SUM(SoLuong) AS TongHoan
+            FROM deleted
+            GROUP BY MaSP
+        ) del ON sp.MaSP = del.MaSP;
+    END;
 
-    -- Cập nhật lại Tổng tiền cho Hóa đơn bán tương ứng
+    -- Cập nhật tổng tiền hóa đơn bán
     UPDATE hdb
     SET hdb.TongTien = ISNULL((
         SELECT SUM(ct.ThanhTien)
@@ -342,10 +390,14 @@ END;
 GO
 
 -- ====================================================================================
--- VIEWS BỔ TRỢ TRUY VẤN
+-- VIEWS BỔ TRỢ TRUY VẤN DỮ LIỆU
 -- ====================================================================================
 
-CREATE OR ALTER VIEW vw_DanhSachSanPham
+IF OBJECT_ID('dbo.vw_DanhSachSanPham', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_DanhSachSanPham;
+GO
+
+CREATE VIEW vw_DanhSachSanPham
 AS
 SELECT 
     sp.MaSP,
@@ -370,7 +422,11 @@ INNER JOIN NhanHieu nh ON sp.MaNhanHieu = nh.MaNhanHieu
 INNER JOIN ManHinh mh ON sp.MaManHinh = mh.MaManHinh;
 GO
 
-CREATE OR ALTER VIEW vw_ChiTietHoaDonBan
+IF OBJECT_ID('dbo.vw_ChiTietHoaDonBan', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_ChiTietHoaDonBan;
+GO
+
+CREATE VIEW vw_ChiTietHoaDonBan
 AS
 SELECT 
     hdb.MaHDB,
@@ -395,11 +451,15 @@ INNER JOIN KhachHang kh ON hdb.MaKhach = kh.MaKhach;
 GO
 
 -- ====================================================================================
--- STORED PROCEDURES CHO BÁO CÁO THỐNG KÊ
+-- STORED PROCEDURES CHO BÁO CÁO THỐNG KÊ DOANH THU & NHÂN SỰ
 -- ====================================================================================
 
 -- 1. Báo cáo top sản phẩm bán chạy nhất trong tháng
-CREATE OR ALTER PROCEDURE sp_BaoCao_SP_BanChayNhat_Thang
+IF OBJECT_ID('dbo.sp_BaoCao_SP_BanChayNhat_Thang', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_BaoCao_SP_BanChayNhat_Thang;
+GO
+
+CREATE PROCEDURE sp_BaoCao_SP_BanChayNhat_Thang
     @Thang INT,
     @Nam INT
 AS
@@ -427,7 +487,11 @@ END;
 GO
 
 -- 2. Báo cáo hóa đơn nhập lớn nhất trong quý
-CREATE OR ALTER PROCEDURE sp_BaoCao_HDNhap_LonNhat_Quy
+IF OBJECT_ID('dbo.sp_BaoCao_HDNhap_LonNhat_Quy', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_BaoCao_HDNhap_LonNhat_Quy;
+GO
+
+CREATE PROCEDURE sp_BaoCao_HDNhap_LonNhat_Quy
     @Quy INT,
     @Nam INT
 AS
@@ -452,7 +516,11 @@ END;
 GO
 
 -- 3. Báo cáo tổng kết doanh số bán theo năm
-CREATE OR ALTER PROCEDURE sp_BaoCao_DoanhSo_Nam
+IF OBJECT_ID('dbo.sp_BaoCao_DoanhSo_Nam', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_BaoCao_DoanhSo_Nam;
+GO
+
+CREATE PROCEDURE sp_BaoCao_DoanhSo_Nam
     @Nam INT
 AS
 BEGIN
@@ -477,7 +545,11 @@ END;
 GO
 
 -- 4. Báo cáo 5 nhân viên doanh số thấp nhất trong tháng
-CREATE OR ALTER PROCEDURE sp_BaoCao_5NV_BanItNhat_Thang
+IF OBJECT_ID('dbo.sp_BaoCao_5NV_BanItNhat_Thang', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_BaoCao_5NV_BanItNhat_Thang;
+GO
+
+CREATE PROCEDURE sp_BaoCao_5NV_BanItNhat_Thang
     @Thang INT,
     @Nam INT
 AS
@@ -651,32 +723,35 @@ BEGIN
 END
 ELSE
 BEGIN
-    PRINT N'✔ Cơ sở dữ liệu NexusRetailIdentityDb đã tồn tại.';
+    PRINT N'✔ Cơ sở dữ liệu NexusRetailIdentityDb đã sẵn sàng.';
 END
 GO
 
 USE NexusRetailIdentityDb;
 GO
 
-IF OBJECT_ID('AspNetUserRoles', 'U') IS NOT NULL DROP TABLE AspNetUserRoles;
-IF OBJECT_ID('AspNetUserClaims', 'U') IS NOT NULL DROP TABLE AspNetUserClaims;
-IF OBJECT_ID('AspNetRoleClaims', 'U') IS NOT NULL DROP TABLE AspNetRoleClaims;
-IF OBJECT_ID('AspNetUserLogins', 'U') IS NOT NULL DROP TABLE AspNetUserLogins;
-IF OBJECT_ID('AspNetUserTokens', 'U') IS NOT NULL DROP TABLE AspNetUserTokens;
-IF OBJECT_ID('AspNetRoles', 'U') IS NOT NULL DROP TABLE AspNetRoles;
-IF OBJECT_ID('AspNetUsers', 'U') IS NOT NULL DROP TABLE AspNetUsers;
+IF OBJECT_ID('dbo.AspNetUserRoles', 'U') IS NOT NULL DROP TABLE dbo.AspNetUserRoles;
+IF OBJECT_ID('dbo.AspNetUserClaims', 'U') IS NOT NULL DROP TABLE dbo.AspNetUserClaims;
+IF OBJECT_ID('dbo.AspNetRoleClaims', 'U') IS NOT NULL DROP TABLE dbo.AspNetRoleClaims;
+IF OBJECT_ID('dbo.AspNetUserLogins', 'U') IS NOT NULL DROP TABLE dbo.AspNetUserLogins;
+IF OBJECT_ID('dbo.AspNetUserTokens', 'U') IS NOT NULL DROP TABLE dbo.AspNetUserTokens;
+IF OBJECT_ID('dbo.AspNetRoles', 'U') IS NOT NULL DROP TABLE dbo.AspNetRoles;
+IF OBJECT_ID('dbo.AspNetUsers', 'U') IS NOT NULL DROP TABLE dbo.AspNetUsers;
 GO
 
+-- 1. BẢNG ASPNETROLES
 CREATE TABLE AspNetRoles (
-    Id NVARCHAR(450) NOT NULL PRIMARY KEY,
+    Id NVARCHAR(128) NOT NULL,
     Name NVARCHAR(256) NULL,
     NormalizedName NVARCHAR(256) NULL,
-    ConcurrencyStamp NVARCHAR(MAX) NULL
+    ConcurrencyStamp NVARCHAR(MAX) NULL,
+    CONSTRAINT PK_AspNetRoles PRIMARY KEY (Id)
 );
 GO
 
+-- 2. BẢNG ASPNETUSERS
 CREATE TABLE AspNetUsers (
-    Id NVARCHAR(450) NOT NULL PRIMARY KEY,
+    Id NVARCHAR(128) NOT NULL,
     UserName NVARCHAR(256) NULL,
     NormalizedUserName NVARCHAR(256) NULL,
     Email NVARCHAR(256) NULL,
@@ -690,54 +765,62 @@ CREATE TABLE AspNetUsers (
     TwoFactorEnabled BIT NOT NULL DEFAULT 0,
     LockoutEnd DATETIMEOFFSET NULL,
     LockoutEnabled BIT NOT NULL DEFAULT 1,
-    AccessFailedCount INT NOT NULL DEFAULT 0
+    AccessFailedCount INT NOT NULL DEFAULT 0,
+    CONSTRAINT PK_AspNetUsers PRIMARY KEY (Id)
 );
 GO
 
+-- 3. BẢNG ASPNETUSERROLES (Khóa chính kép 128 + 128 = 256 ký tự = 512 bytes <= 900 bytes Clustered Index Limit)
 CREATE TABLE AspNetUserRoles (
-    UserId NVARCHAR(450) NOT NULL,
-    RoleId NVARCHAR(450) NOT NULL,
-    PRIMARY KEY (UserId, RoleId),
-    FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE,
-    FOREIGN KEY (RoleId) REFERENCES AspNetRoles(Id) ON DELETE CASCADE
+    UserId NVARCHAR(128) NOT NULL,
+    RoleId NVARCHAR(128) NOT NULL,
+    CONSTRAINT PK_AspNetUserRoles PRIMARY KEY (UserId, RoleId),
+    CONSTRAINT FK_AspNetUserRoles_User FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_AspNetUserRoles_Role FOREIGN KEY (RoleId) REFERENCES AspNetRoles(Id) ON DELETE CASCADE
 );
 GO
 
+-- 4. BẢNG ASPNETUSERCLAIMS
 CREATE TABLE AspNetUserClaims (
-    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    UserId NVARCHAR(450) NOT NULL,
+    Id INT IDENTITY(1,1) NOT NULL,
+    UserId NVARCHAR(128) NOT NULL,
     ClaimType NVARCHAR(MAX) NULL,
     ClaimValue NVARCHAR(MAX) NULL,
-    FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
+    CONSTRAINT PK_AspNetUserClaims PRIMARY KEY (Id),
+    CONSTRAINT FK_AspNetUserClaims_User FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
 );
 GO
 
+-- 5. BẢNG ASPNETROLECLAIMS
 CREATE TABLE AspNetRoleClaims (
-    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    RoleId NVARCHAR(450) NOT NULL,
+    Id INT IDENTITY(1,1) NOT NULL,
+    RoleId NVARCHAR(128) NOT NULL,
     ClaimType NVARCHAR(MAX) NULL,
     ClaimValue NVARCHAR(MAX) NULL,
-    FOREIGN KEY (RoleId) REFERENCES AspNetRoles(Id) ON DELETE CASCADE
+    CONSTRAINT PK_AspNetRoleClaims PRIMARY KEY (Id),
+    CONSTRAINT FK_AspNetRoleClaims_Role FOREIGN KEY (RoleId) REFERENCES AspNetRoles(Id) ON DELETE CASCADE
 );
 GO
 
+-- 6. BẢNG ASPNETUSERLOGINS
 CREATE TABLE AspNetUserLogins (
     LoginProvider NVARCHAR(128) NOT NULL,
     ProviderKey NVARCHAR(128) NOT NULL,
     ProviderDisplayName NVARCHAR(MAX) NULL,
-    UserId NVARCHAR(450) NOT NULL,
-    PRIMARY KEY (LoginProvider, ProviderKey),
-    FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
+    UserId NVARCHAR(128) NOT NULL,
+    CONSTRAINT PK_AspNetUserLogins PRIMARY KEY (LoginProvider, ProviderKey),
+    CONSTRAINT FK_AspNetUserLogins_User FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
 );
 GO
 
+-- 7. BẢNG ASPNETUSERTOKENS (128 + 128 + 128 = 384 ký tự = 768 bytes <= 900 bytes Clustered Index Limit)
 CREATE TABLE AspNetUserTokens (
-    UserId NVARCHAR(450) NOT NULL,
+    UserId NVARCHAR(128) NOT NULL,
     LoginProvider NVARCHAR(128) NOT NULL,
     Name NVARCHAR(128) NOT NULL,
     Value NVARCHAR(MAX) NULL,
-    PRIMARY KEY (UserId, LoginProvider, Name),
-    FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
+    CONSTRAINT PK_AspNetUserTokens PRIMARY KEY (UserId, LoginProvider, Name),
+    CONSTRAINT FK_AspNetUserTokens_User FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
 );
 GO
 
@@ -752,9 +835,9 @@ INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES
 -- 2. nhanvien  / 123456
 -- 3. customer  / 123456
 INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, PhoneNumber) VALUES 
-('87facb0c-1847-4bb6-8dfa-8398caafe5d2', 'admin', 'ADMIN', 'admin@duymobile.vn', 'ADMIN@DUYMOBILE.VN', 1, 'AQAAAAIAAYagAAAAEJG6RITiFscu0Qi0lq/+78FkvT3BcsXPm25GywVgQ36VD3DCWvrFIYRVcBupLr6IUg==', 'TOJ2RVTPOTJWRUKAUZMEJXAD6QYXGZ7U', NEWID(), '0981234567'),
-('919f4f75-00d1-4e34-8bb3-a44486f8c535', 'nhanvien', 'NHANVIEN', 'nhanvien@duymobile.vn', 'NHANVIEN@DUYMOBILE.VN', 1, 'AQAAAAIAAYagAAAAEDNYdagvmxStQMb8l4AcWB46sB/TCz4hgSonvuD+f+WlXIGXeC+y5cZUg98jGTFYbw==', 'KGLMM72OTARKYEDQOSBQHNSCJCQNDKCS', NEWID(), '0978999888'),
-('e8098fcc-f98b-4799-897f-40b899c5a923', 'customer', 'CUSTOMER', 'customer@duymobile.vn', 'CUSTOMER@DUYMOBILE.VN', 1, 'AQAAAAIAAYagAAAAEMwfMaA0yh7q2plIS77wnczQDtxWukz+EnMmbfLsF1BuypwIUrH7SfE4Rt24WHn/BA==', 'A4X3JUFPRUCDE2EVXEXZZVRX4HV2JYQB', NEWID(), '0966554433');
+('87facb0c-1847-4bb6-8dfa-8398caafe5d2', 'admin', 'ADMIN', 'admin@nexusretail.vn', 'ADMIN@NEXUSRETAIL.VN', 1, 'AQAAAAIAAYagAAAAEJG6RITiFscu0Qi0lq/+78FkvT3BcsXPm25GywVgQ36VD3DCWvrFIYRVcBupLr6IUg==', 'TOJ2RVTPOTJWRUKAUZMEJXAD6QYXGZ7U', NEWID(), '0981234567'),
+('919f4f75-00d1-4e34-8bb3-a44486f8c535', 'nhanvien', 'NHANVIEN', 'nhanvien@nexusretail.vn', 'NHANVIEN@NEXUSRETAIL.VN', 1, 'AQAAAAIAAYagAAAAEDNYdagvmxStQMb8l4AcWB46sB/TCz4hgSonvuD+f+WlXIGXeC+y5cZUg98jGTFYbw==', 'KGLMM72OTARKYEDQOSBQHNSCJCQNDKCS', NEWID(), '0978999888'),
+('e8098fcc-f98b-4799-897f-40b899c5a923', 'customer', 'CUSTOMER', 'customer@nexusretail.vn', 'CUSTOMER@NEXUSRETAIL.VN', 1, 'AQAAAAIAAYagAAAAEMwfMaA0yh7q2plIS77wnczQDtxWukz+EnMmbfLsF1BuypwIUrH7SfE4Rt24WHn/BA==', 'A4X3JUFPRUCDE2EVXEXZZVRX4HV2JYQB', NEWID(), '0966554433');
 
 -- GÁN ROLE CHO TÀI KHOẢN
 INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES 
