@@ -90,7 +90,7 @@ namespace NexusRetail.WinForms.Forms
             }
             if (dgvSanPham.Columns["GiaBan"] is { } colGb)
             {
-                colGb.HeaderText = "Giá Bán (+10%)";
+                colGb.HeaderText = "Giá Bán";
                 colGb.DefaultCellStyle.Format = "#,##0 ₫";
             }
 
