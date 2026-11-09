@@ -36,13 +36,13 @@
             @if (isAdmin)
             {
                 <a asp-action="BaoCao" class="nav-link rounded-3 fw-bold small @(action == "BaoCao" ? "active" : "text-dark bg-light")">
-                    4 Báo cáo BR
+                    Báo cáo & Thống kê
                 </a>
             }
             else
             {
-                <span class="nav-link rounded-3 fw-bold small text-muted bg-light opacity-50" title="Chức năng Báo cáo tài chính BR chỉ dành riêng cho Admin" style="cursor: not-allowed;">
-                    <i class="bi bi-lock me-1"></i> Báo cáo BR
+                <span class="nav-link rounded-3 fw-bold small text-muted bg-light opacity-50" title="Chức năng Báo cáo thống kê dành riêng cho Quản trị viên" style="cursor: not-allowed;">
+                    <i class="bi bi-lock me-1"></i> Báo cáo
                 </span>
             }
             <a asp-controller="Home" asp-action="Index" class="nav-link rounded-3 fw-bold small text-primary bg-light border border-dashed border-primary ms-1">

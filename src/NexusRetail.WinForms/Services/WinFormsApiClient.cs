@@ -591,9 +591,9 @@ namespace NexusRetail.WinForms.Services
 
         private static List<NhaCungCapItem> GetDefaultSuppliers() => new()
         {
-            new() { MaNcc = "NCC01", TenNcc = "Apple Việt Nam - Synnex FPT", DiaChi = "Tòa nhà FPT Tân Thuận, Quận 7, TP. Hồ Chí Minh", DienThoai = "19006600" },
+            new() { MaNcc = "NCC01", TenNcc = "Apple Việt Nam - Synnex FPT", DiaChi = "Tòa nhà FPT Cầu Giấy, Quận Cầu Giấy, Hà Nội", DienThoai = "19006600" },
             new() { MaNcc = "NCC02", TenNcc = "Samsung Electronics Việt Nam", DiaChi = "KCN Yên Phong, Bắc Ninh", DienThoai = "1800588889" },
-            new() { MaNcc = "NCC03", TenNcc = "Xiaomi Mi Home Distribution", DiaChi = "Quận 1, TP Hồ Chí Minh", DienThoai = "19001900" }
+            new() { MaNcc = "NCC03", TenNcc = "Xiaomi Mi Home Distribution", DiaChi = "Quận Cầu Giấy, Hà Nội", DienThoai = "19001900" }
         };
 
         private static List<NhanVienItem> GetDefaultEmployees() => new()

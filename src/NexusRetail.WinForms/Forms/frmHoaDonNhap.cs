@@ -49,7 +49,7 @@ namespace NexusRetail.WinForms.Forms
 
         private void ApplyCustomStyles()
         {
-            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "LẬP HÓA ĐƠN NHẬP KHO HÀNG HÓA", "Nhập hàng từ nhà cung cấp • Tự động đồng bộ tồn kho và giá vốn niêm yết");
+            UiTheme.ApplyFormHeader(pnlHeader, lblTitle, lblSubTitle, "LẬP HÓA ĐƠN NHẬP KHO HÀNG HÓA", "Nhập hàng từ nhà cung cấp • Quản lý chứng từ và tồn kho");
             UiTheme.ApplyModernGrid(dgvChiTiet);
 
             UiTheme.ApplyPrimaryButton(btnThemSp, "➕ Thêm Vào Phiếu Nhập");
@@ -232,7 +232,7 @@ namespace NexusRetail.WinForms.Forms
             }
 
             var confirm = MessageBox.Show(
-                $"Xác nhận lập hóa đơn nhập {_cart.Count} mặt hàng từ '{ncc.TenNcc}'?\n\nTổng giá trị nhập: {lblTongTien.Text}\n\nTồn kho và đơn giá bán của sản phẩm sẽ được tự động cập nhật.",
+                $"Xác nhận lập hóa đơn nhập {_cart.Count} mặt hàng từ '{ncc.TenNcc}'?\n\nTổng giá trị nhập: {lblTongTien.Text}",
                 "Xác nhận nhập kho thiết bị",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -281,8 +281,8 @@ namespace NexusRetail.WinForms.Forms
                     string html = BieuMauService.TaoHtmlHoaDonNhap(
                         maHdn: effectiveMaHdn,
                         tenNcc: ncc.TenNcc,
-                        diaChiNcc: !string.IsNullOrWhiteSpace(ncc.DiaChi) ? ncc.DiaChi : "Tòa nhà FPT Tân Thuận, Quận 7, TP. Hồ Chí Minh",
-                        sdtNcc: !string.IsNullOrWhiteSpace(ncc.DienThoai) ? ncc.DienThoai : "(028) 7300 1234",
+                        diaChiNcc: !string.IsNullOrWhiteSpace(ncc.DiaChi) ? ncc.DiaChi : "Tòa nhà FPT Cầu Giấy, Phường Dịch Vọng Hậu, Quận Cầu Giấy, TP. Hà Nội",
+                        sdtNcc: !string.IsNullOrWhiteSpace(ncc.DienThoai) ? ncc.DienThoai : "(024) 7300 1234",
                         tenNv: nv.TenNv,
                         maNv: nv.MaNv,
                         danhSachSp: bieuMauItems,

@@ -243,7 +243,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(478, 46);
             this.lblStatus.TabIndex = 0;
-            this.lblStatus.Text = "⏳ Đang lắng nghe Webhook ngân hàng xác nhận...";
+            this.lblStatus.Text = "⏳ Đang chờ xác nhận thanh toán từ ngân hàng...";
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btnKiemTra

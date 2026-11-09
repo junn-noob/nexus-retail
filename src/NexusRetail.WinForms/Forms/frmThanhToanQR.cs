@@ -34,7 +34,7 @@ namespace NexusRetail.WinForms.Forms
             KeyPreview = true;
             KeyDown += FrmThanhToanQR_KeyDown;
 
-            lblMaDon.Text = $"Mã đơn hàng: {_maHdb}  •  Tự động khớp lệnh Webhook";
+            lblMaDon.Text = $"Mã đơn hàng: {_maHdb}  •  Thanh toán quét mã VietQR";
             lblSoTien.Text = $"{_soTien:N0} ₫";
             lblNoiDung.Text = $"DUYMOBILE {_maHdb}";
             lblStk.Text = _accountNumber;

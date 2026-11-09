@@ -318,7 +318,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblGiaBan.Name = "lblGiaBan";
             this.lblGiaBan.Size = new System.Drawing.Size(95, 15);
             this.lblGiaBan.TabIndex = 6;
-            this.lblGiaBan.Text = "Giá bán (+10%):";
+            this.lblGiaBan.Text = "Giá bán:";
             // 
             // txtGiaBan
             // 
