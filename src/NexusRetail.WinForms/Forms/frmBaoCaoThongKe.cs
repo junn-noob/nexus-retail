@@ -294,6 +294,10 @@ namespace NexusRetail.WinForms.Forms
                     endpoint = $"api/bao-cao/nv-doanh-so-thap/excel?month={thang}&year={nam}";
                     defaultFileName = $"BaoCao_5NV_DoanhSoThap_Thang_{thang}_{nam}.xlsx";
                     break;
+                case 4:
+                    endpoint = $"api/bao-cao/ton-kho/excel?month={thang}&year={nam}";
+                    defaultFileName = $"BaoCao_XuatNhapTon_Thang_{thang}_{nam}.xlsx";
+                    break;
             }
 
             using var sfd = new SaveFileDialog

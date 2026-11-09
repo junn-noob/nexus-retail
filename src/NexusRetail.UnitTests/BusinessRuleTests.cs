@@ -124,5 +124,31 @@ namespace NexusRetail.UnitTests
             Assert.Equal(new DateTime(2027, 9, 1, 10, 0, 0), hanBaoHanh);
             Assert.True(hanBaoHanh > ngayMua);
         }
+
+        // 7. Tính chiết khấu phần trăm bán hàng: Đơn giá * Số lượng * (1 - KhuyenMai/100)
+        [Fact]
+        public void Test_DiscountPercentageCalculation()
+        {
+            decimal giaBan = 28600000m;
+            int soLuong = 2;
+            decimal khuyenMai = 5m; // 5%
+
+            decimal thanhTien = Math.Round(soLuong * giaBan * (1m - (khuyenMai / 100m)), 0);
+
+            // 2 * 28,600,000 * 0.95 = 54,340,000
+            Assert.Equal(54340000m, thanhTien);
+        }
+
+        // 8. Định giá tài sản tồn kho: SoLuong * GiaNhap
+        [Fact]
+        public void Test_InventoryValuation()
+        {
+            int tonKho = 15;
+            decimal giaNhap = 20000000m;
+
+            decimal giaTriTonKho = tonKho * giaNhap;
+
+            Assert.Equal(300000000m, giaTriTonKho);
+        }
     }
 }

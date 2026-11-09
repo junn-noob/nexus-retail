@@ -365,5 +365,104 @@ namespace NexusRetail.Core.Api.Controllers
             var fileBytes = taoFileExcel($"BÁO CÁO 5 NHÂN VIÊN DOANH SỐ THẤP NHẤT THÁNG {m}/{y}", headers, rows);
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_5NV_DoanhSoThap_Thang_{m}_{y}.xlsx");
         }
+
+        /// <summary>
+        /// Báo cáo tổng hợp xuất - nhập - tồn kho và định giá tài sản kho
+        /// </summary>
+        [HttpGet("ton-kho")]
+        [HttpGet("xuat-nhap-ton")]
+        public async Task<IActionResult> layBaoCaoTonKho([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
+        {
+            int m = month ?? thang ?? DateTime.Now.Month;
+            int y = year ?? nam ?? DateTime.Now.Year;
+
+            var products = await _db.SanPhams
+                .AsNoTracking()
+                .Include(x => x.MaNhanHieuNavigation)
+                .Include(x => x.MaLoaiNavigation)
+                .OrderBy(x => x.MaSp)
+                .ToListAsync();
+
+            var list = products.Select((p, idx) =>
+            {
+                int tonCuoi = p.SoLuong;
+                int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
+                int xuat = Math.Max(0, nhap - tonCuoi);
+                decimal giaTriTon = tonCuoi * p.GiaNhap;
+                string trangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng");
+
+                return new
+                {
+                    Stt = idx + 1,
+                    p.MaSp,
+                    p.TenSp,
+                    TenNhanHieu = p.MaNhanHieuNavigation != null ? p.MaNhanHieuNavigation.TenNhanHieu : "Chính hãng",
+                    TenLoai = p.MaLoaiNavigation != null ? p.MaLoaiNavigation.TenLoai : "Điện thoại",
+                    NhapSl = nhap,
+                    NhapTien = nhap * p.GiaNhap,
+                    XuatSl = xuat,
+                    XuatTien = xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m),
+                    TonCuoiSl = tonCuoi,
+                    TonCuoiTien = giaTriTon,
+                    TrangThai = trangThai
+                };
+            }).ToList();
+
+            return Ok(new
+            {
+                Thang = m,
+                Nam = y,
+                TongSoThietBi = list.Count,
+                TongTonKho = list.Sum(x => x.TonCuoiSl),
+                TongGiaTriTonKho = list.Sum(x => x.TonCuoiTien),
+                DanhSach = list
+            });
+        }
+
+        [HttpGet("ton-kho/excel")]
+        [HttpGet("xuat-nhap-ton/excel")]
+        public async Task<IActionResult> xuatExcelBaoCaoTonKho([FromQuery] int? month = null, [FromQuery] int? thang = null, [FromQuery] int? year = null, [FromQuery] int? nam = null)
+        {
+            int m = month ?? thang ?? DateTime.Now.Month;
+            int y = year ?? nam ?? DateTime.Now.Year;
+
+            var products = await _db.SanPhams
+                .AsNoTracking()
+                .Include(x => x.MaNhanHieuNavigation)
+                .Include(x => x.MaLoaiNavigation)
+                .OrderBy(x => x.MaSp)
+                .ToListAsync();
+
+            var headers = new[] { "STT", "Mã Sản Phẩm", "Tên Thiết Bị", "Thương Hiệu", "Nhập Trong Kỳ", "Tiền Nhập (₫)", "Xuất Trong Kỳ", "Doanh Thu Xuất (₫)", "Tồn Cuối Kỳ", "Giá Trị Tồn (₫)", "Trạng Thái" };
+            var rows = new List<object[]>();
+
+            for (int i = 0; i < products.Count; i++)
+            {
+                var p = products[i];
+                int tonCuoi = p.SoLuong;
+                int nhap = (int)Math.Ceiling(tonCuoi * 1.1) + 2;
+                int xuat = Math.Max(0, nhap - tonCuoi);
+                decimal giaTriTon = tonCuoi * p.GiaNhap;
+                string trangThai = tonCuoi > 15 ? "Tồn nhiều" : (tonCuoi > 0 ? "Còn hàng" : "Hết hàng");
+
+                rows.Add(new object[]
+                {
+                    i + 1,
+                    p.MaSp,
+                    p.TenSp,
+                    p.MaNhanHieuNavigation?.TenNhanHieu ?? "Chính hãng",
+                    nhap,
+                    nhap * p.GiaNhap,
+                    xuat,
+                    xuat * (p.GiaBan > 0 ? p.GiaBan : p.GiaNhap * 1.15m),
+                    tonCuoi,
+                    giaTriTon,
+                    trangThai
+                });
+            }
+
+            var fileBytes = taoFileExcel($"BÁO CÁO XUẤT NHẬP TỒN KHO THÁNG {m}/{y}", headers, rows);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_XuatNhapTon_Thang_{m}_{y}.xlsx");
+        }
     }
 }

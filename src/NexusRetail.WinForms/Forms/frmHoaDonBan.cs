@@ -89,8 +89,8 @@ namespace NexusRetail.WinForms.Forms
             }
             if (dgvChiTiet.Columns["KhuyenMai"] is { } colKm)
             {
-                colKm.HeaderText = "Khuyến Mãi";
-                colKm.DefaultCellStyle.Format = "#,##0 ₫";
+                colKm.HeaderText = "Chiết Khấu";
+                colKm.DefaultCellStyle.Format = "0'%'";
             }
             if (dgvChiTiet.Columns["ThanhTien"] is { } colTt)
             {
@@ -137,6 +137,12 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
+            if (km < 0 || km > 100)
+            {
+                MessageBox.Show("Mức chiết khấu phải từ 0% đến 100%!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (sp.SoLuong < sl)
             {
                 MessageBox.Show($"Sản phẩm '{sp.TenSp}' chỉ còn {sp.SoLuong} máy trong kho!", "Không đủ tồn kho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -154,26 +160,36 @@ namespace NexusRetail.WinForms.Forms
                     MessageBox.Show($"Tổng số lượng đặt ({newSl}) vượt quá tồn kho ({sp.SoLuong})!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                decimal currentKm = existing.Field<decimal>("KhuyenMai");
-                decimal newKm = currentKm + km;
+                decimal newKm = km > 0 ? km : existing.Field<decimal>("KhuyenMai");
                 existing["SoLuong"] = newSl;
                 existing["KhuyenMai"] = newKm;
-                existing["ThanhTien"] = Math.Max(0, (newSl * sp.GiaBan) - newKm);
+                existing["ThanhTien"] = Math.Round(newSl * sp.GiaBan * (1m - (newKm / 100m)), 0);
             }
             else
             {
-                decimal thanhTien = (sl * sp.GiaBan) - km;
+                decimal thanhTien = Math.Round(sl * sp.GiaBan * (1m - (km / 100m)), 0);
                 _cartTable.Rows.Add(sp.MaSp, sp.TenSp, sl, sp.GiaBan, km, Math.Max(0, thanhTien));
             }
 
             UpdateTotalAmount();
+
+            // Đặt lại số lượng và chiết khấu về mặc định sau khi thêm
+            numSoLuong.Value = 1;
+            numKhuyenMai.Value = 0;
         }
 
         private void btnXoaMon_Click(object sender, EventArgs e)
         {
-            if (dgvChiTiet.CurrentRow != null)
+            if (dgvChiTiet.CurrentRow?.DataBoundItem is DataRowView drv)
             {
-                dgvChiTiet.Rows.Remove(dgvChiTiet.CurrentRow);
+                drv.Row.Delete();
+                _cartTable.AcceptChanges();
+                UpdateTotalAmount();
+            }
+            else if (dgvChiTiet.CurrentRow != null && dgvChiTiet.CurrentRow.Index >= 0 && dgvChiTiet.CurrentRow.Index < _cartTable.Rows.Count)
+            {
+                _cartTable.Rows.RemoveAt(dgvChiTiet.CurrentRow.Index);
+                _cartTable.AcceptChanges();
                 UpdateTotalAmount();
             }
         }

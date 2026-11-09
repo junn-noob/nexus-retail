@@ -222,7 +222,7 @@ namespace NexusRetail.WinForms.Forms
             // 
             this.numKhuyenMai.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.numKhuyenMai.Location = new System.Drawing.Point(680, 12);
-            this.numKhuyenMai.Maximum = new decimal(new int[] { 100000000, 0, 0, 0 });
+            this.numKhuyenMai.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numKhuyenMai.Name = "numKhuyenMai";
             this.numKhuyenMai.Size = new System.Drawing.Size(130, 26);
             this.numKhuyenMai.TabIndex = 7;
@@ -232,11 +232,11 @@ namespace NexusRetail.WinForms.Forms
             this.lblKhuyenMai.AutoSize = true;
             this.lblKhuyenMai.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblKhuyenMai.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.lblKhuyenMai.Location = new System.Drawing.Point(600, 16);
+            this.lblKhuyenMai.Location = new System.Drawing.Point(590, 16);
             this.lblKhuyenMai.Name = "lblKhuyenMai";
-            this.lblKhuyenMai.Size = new System.Drawing.Size(76, 17);
+            this.lblKhuyenMai.Size = new System.Drawing.Size(86, 17);
             this.lblKhuyenMai.TabIndex = 6;
-            this.lblKhuyenMai.Text = "Giảm giá ₫:";
+            this.lblKhuyenMai.Text = "Chiết khấu %:";
             // 
             // numSoLuong
             // 

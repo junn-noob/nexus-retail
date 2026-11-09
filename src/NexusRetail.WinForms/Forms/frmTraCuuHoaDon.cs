@@ -89,7 +89,7 @@ namespace NexusRetail.WinForms.Forms
             dgvChiTietBan.Columns.Add("colCtTenSp", "Tên Điện Thoại / Linh Kiện");
             dgvChiTietBan.Columns.Add("colCtDonGia", "Đơn Giá");
             dgvChiTietBan.Columns.Add("colCtSoLuong", "Số Lượng");
-            dgvChiTietBan.Columns.Add("colCtKhuyenMai", "Khuyến Mãi");
+            dgvChiTietBan.Columns.Add("colCtKhuyenMai", "Chiết Khấu (%)");
             dgvChiTietBan.Columns.Add("colCtThanhTien", "Thành Tiền");
 
             // Cấu hình bảng Hóa đơn nhập
@@ -184,7 +184,7 @@ namespace NexusRetail.WinForms.Forms
                     ct.TenSp,
                     ct.DonGia.ToString("N0", culture) + " đ",
                     ct.SoLuong,
-                    ct.KhuyenMai > 0 ? ct.KhuyenMai.ToString("N0", culture) + " đ" : "-",
+                    ct.KhuyenMai > 0 ? $"{ct.KhuyenMai}%" : "-",
                     ct.ThanhTien.ToString("N0", culture) + " đ"
                 );
             }
