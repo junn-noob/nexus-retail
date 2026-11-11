@@ -74,5 +74,5 @@ dotnet test NexusRetail.slnx
 | :--- | :--- | :--- |
 | Quản trị (`Admin`) | `admin` | `admin123` |
 | Nhân viên (`Staff`) | `nhanvien` | `123456` |
-| Khách hàng (`Customer`) | `customer` | `123456` |
+| Khách hàng (`Customer`) | `khachhang` | `123456` |
 
