@@ -28,7 +28,7 @@ namespace NexusRetail.WinForms.Services
         public string MaHdn { get; set; } = "";
     }
 
-    public class WinFormsApiClient
+    public class WinFormsApiClient : IPosAuthClient, IPosCatalogClient, IPosSalesClient, IPosInboundClient, IPosReportClient
     {
         private static readonly Lazy<WinFormsApiClient> _instance = new(() => new WinFormsApiClient());
         public static WinFormsApiClient Instance => _instance.Value;
@@ -210,6 +210,42 @@ namespace NexusRetail.WinForms.Services
             }
         }
 
+        public async Task<CategoryFilterResult?> GetCategoryFilterAsync()
+        {
+            try
+            {
+                return await _client.GetFromJsonAsync<CategoryFilterResult>("api/san-pham/bo-loc-danh-muc");
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static async Task<string> FormatApiErrorAsync(HttpResponseMessage response, string prefix)
+        {
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return "Phiên đăng nhập chưa hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại!";
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                return "Tài khoản hiện tại không có quyền thực hiện thao tác này!";
+
+            var raw = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(raw);
+                    if (doc.RootElement.TryGetProperty("message", out var msg))
+                        return $"{prefix}: {msg.GetString()}";
+                    if (doc.RootElement.TryGetProperty("title", out var title))
+                        return $"{prefix}: {title.GetString()}";
+                }
+                catch { }
+            }
+
+            return string.IsNullOrWhiteSpace(raw) ? $"{prefix} (HTTP {(int)response.StatusCode})" : $"{prefix}: {raw}";
+        }
+
         public async Task<(bool Success, string Message, string? MaSp)> CreateProductAsync(ThemSanPhamDto dto)
         {
             try
@@ -222,8 +258,7 @@ namespace NexusRetail.WinForms.Services
                     return (true, "Thêm mới sản phẩm thành công!", maSp);
                 }
 
-                var err = await response.Content.ReadAsStringAsync();
-                return (false, $"Lỗi từ máy chủ: {err}", null);
+                return (false, await FormatApiErrorAsync(response, "Lỗi từ máy chủ"), null);
             }
             catch (Exception ex)
             {
@@ -241,8 +276,7 @@ namespace NexusRetail.WinForms.Services
                     return (true, "Cập nhật sản phẩm thành công!");
                 }
 
-                var err = await response.Content.ReadAsStringAsync();
-                return (false, $"Lỗi cập nhật: {err}");
+                return (false, await FormatApiErrorAsync(response, "Lỗi cập nhật"));
             }
             catch (Exception ex)
             {
@@ -260,8 +294,7 @@ namespace NexusRetail.WinForms.Services
                     return (true, "Xóa sản phẩm thành công!");
                 }
 
-                var err = await response.Content.ReadAsStringAsync();
-                return (false, $"Không thể xóa: {err}");
+                return (false, await FormatApiErrorAsync(response, "Không thể xóa"));
             }
             catch (Exception ex)
             {
@@ -281,8 +314,7 @@ namespace NexusRetail.WinForms.Services
                     return (true, "Lập hóa đơn thành công!", res?.MaHdb, res?.TongTien ?? 0m);
                 }
 
-                var err = await response.Content.ReadAsStringAsync();
-                return (false, $"Lỗi: {err}", null, 0m);
+                return (false, await FormatApiErrorAsync(response, "Lỗi"), null, 0m);
             }
             catch (Exception ex)
             {

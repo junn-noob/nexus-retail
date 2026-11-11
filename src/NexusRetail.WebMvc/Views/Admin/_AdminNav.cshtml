@@ -30,6 +30,12 @@
             <a asp-action="SanPham" class="nav-link rounded-3 fw-bold small @(action == "SanPham" || action == "ThemSanPham" || action == "SuaSanPham" ? "active" : "text-dark bg-light")">
                 Sản phẩm
             </a>
+            <a asp-action="NhanHieu" class="nav-link rounded-3 fw-bold small @(action == "NhanHieu" ? "active" : "text-dark bg-light")">
+                Nhãn hiệu
+            </a>
+            <a asp-action="NhapHang" class="nav-link rounded-3 fw-bold small @(action == "NhapHang" || action == "TaoHoaDonNhap" || action == "ChiTietHoaDonNhap" ? "active" : "text-dark bg-light")">
+                Nhập kho
+            </a>
             <a asp-action="DonHang" class="nav-link rounded-3 fw-bold small @(action == "DonHang" || action == "ChiTietDonHang" ? "active" : "text-dark bg-light")">
                 Đơn hàng
             </a>

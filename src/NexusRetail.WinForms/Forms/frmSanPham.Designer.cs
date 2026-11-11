@@ -44,6 +44,12 @@ namespace NexusRetail.WinForms.Forms
             this.numBaoHanh = new System.Windows.Forms.NumericUpDown();
             this.lblGhiChu = new System.Windows.Forms.Label();
             this.txtGhiChu = new System.Windows.Forms.TextBox();
+            this.lblLoai = new System.Windows.Forms.Label();
+            this.cboLoai = new System.Windows.Forms.ComboBox();
+            this.lblNhanHieu = new System.Windows.Forms.Label();
+            this.cboNhanHieu = new System.Windows.Forms.ComboBox();
+            this.lblManHinh = new System.Windows.Forms.Label();
+            this.cboManHinh = new System.Windows.Forms.ComboBox();
             this.pnlGrid = new System.Windows.Forms.Panel();
             this.dgvSanPham = new System.Windows.Forms.DataGridView();
             this.pnlFooter = new System.Windows.Forms.Panel();
@@ -226,6 +232,12 @@ namespace NexusRetail.WinForms.Forms
             // grpThongTin
             // 
             this.grpThongTin.BackColor = System.Drawing.Color.White;
+            this.grpThongTin.Controls.Add(this.cboManHinh);
+            this.grpThongTin.Controls.Add(this.lblManHinh);
+            this.grpThongTin.Controls.Add(this.cboNhanHieu);
+            this.grpThongTin.Controls.Add(this.lblNhanHieu);
+            this.grpThongTin.Controls.Add(this.cboLoai);
+            this.grpThongTin.Controls.Add(this.lblLoai);
             this.grpThongTin.Controls.Add(this.txtGhiChu);
             this.grpThongTin.Controls.Add(this.lblGhiChu);
             this.grpThongTin.Controls.Add(this.numBaoHanh);
@@ -246,7 +258,7 @@ namespace NexusRetail.WinForms.Forms
             this.grpThongTin.Location = new System.Drawing.Point(0, 128);
             this.grpThongTin.Name = "grpThongTin";
             this.grpThongTin.Padding = new System.Windows.Forms.Padding(12);
-            this.grpThongTin.Size = new System.Drawing.Size(1200, 125);
+            this.grpThongTin.Size = new System.Drawing.Size(1200, 158);
             this.grpThongTin.TabIndex = 2;
             this.grpThongTin.TabStop = false;
             this.grpThongTin.Text = "Thông Tin Chi Tiết Sản Phẩm";
@@ -416,15 +428,78 @@ namespace NexusRetail.WinForms.Forms
             this.txtGhiChu.Size = new System.Drawing.Size(595, 24);
             this.txtGhiChu.TabIndex = 13;
             // 
+            // lblLoai
+            // 
+            this.lblLoai.AutoSize = true;
+            this.lblLoai.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblLoai.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
+            this.lblLoai.Location = new System.Drawing.Point(16, 115);
+            this.lblLoai.Name = "lblLoai";
+            this.lblLoai.Size = new System.Drawing.Size(60, 15);
+            this.lblLoai.TabIndex = 14;
+            this.lblLoai.Text = "Phân loại:";
+            // 
+            // cboLoai
+            // 
+            this.cboLoai.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboLoai.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.cboLoai.FormattingEnabled = true;
+            this.cboLoai.Location = new System.Drawing.Point(82, 111);
+            this.cboLoai.Name = "cboLoai";
+            this.cboLoai.Size = new System.Drawing.Size(195, 24);
+            this.cboLoai.TabIndex = 15;
+            // 
+            // lblNhanHieu
+            // 
+            this.lblNhanHieu.AutoSize = true;
+            this.lblNhanHieu.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblNhanHieu.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
+            this.lblNhanHieu.Location = new System.Drawing.Point(295, 115);
+            this.lblNhanHieu.Name = "lblNhanHieu";
+            this.lblNhanHieu.Size = new System.Drawing.Size(64, 15);
+            this.lblNhanHieu.TabIndex = 16;
+            this.lblNhanHieu.Text = "Nhãn hiệu:";
+            // 
+            // cboNhanHieu
+            // 
+            this.cboNhanHieu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboNhanHieu.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.cboNhanHieu.FormattingEnabled = true;
+            this.cboNhanHieu.Location = new System.Drawing.Point(366, 111);
+            this.cboNhanHieu.Name = "cboNhanHieu";
+            this.cboNhanHieu.Size = new System.Drawing.Size(210, 24);
+            this.cboNhanHieu.TabIndex = 17;
+            // 
+            // lblManHinh
+            // 
+            this.lblManHinh.AutoSize = true;
+            this.lblManHinh.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblManHinh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
+            this.lblManHinh.Location = new System.Drawing.Point(595, 115);
+            this.lblManHinh.Name = "lblManHinh";
+            this.lblManHinh.Size = new System.Drawing.Size(62, 15);
+            this.lblManHinh.TabIndex = 18;
+            this.lblManHinh.Text = "Màn hình:";
+            // 
+            // cboManHinh
+            // 
+            this.cboManHinh.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboManHinh.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.cboManHinh.FormattingEnabled = true;
+            this.cboManHinh.Location = new System.Drawing.Point(665, 111);
+            this.cboManHinh.Name = "cboManHinh";
+            this.cboManHinh.Size = new System.Drawing.Size(230, 24);
+            this.cboManHinh.TabIndex = 19;
+            // 
             // pnlGrid
             // 
             this.pnlGrid.BackColor = System.Drawing.Color.White;
             this.pnlGrid.Controls.Add(this.dgvSanPham);
             this.pnlGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlGrid.Location = new System.Drawing.Point(0, 253);
+            this.pnlGrid.Location = new System.Drawing.Point(0, 286);
             this.pnlGrid.Name = "pnlGrid";
             this.pnlGrid.Padding = new System.Windows.Forms.Padding(16, 8, 16, 8);
-            this.pnlGrid.Size = new System.Drawing.Size(1200, 425);
+            this.pnlGrid.Size = new System.Drawing.Size(1200, 392);
             this.pnlGrid.TabIndex = 3;
             // 
             // dgvSanPham
@@ -548,6 +623,12 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Label lblBaoHanh;
         private System.Windows.Forms.TextBox txtGhiChu;
         private System.Windows.Forms.Label lblGhiChu;
+        private System.Windows.Forms.Label lblLoai;
+        private System.Windows.Forms.ComboBox cboLoai;
+        private System.Windows.Forms.Label lblNhanHieu;
+        private System.Windows.Forms.ComboBox cboNhanHieu;
+        private System.Windows.Forms.Label lblManHinh;
+        private System.Windows.Forms.ComboBox cboManHinh;
         private System.Windows.Forms.Panel pnlGrid;
         private System.Windows.Forms.DataGridView dgvSanPham;
         private System.Windows.Forms.Panel pnlFooter;

@@ -1,0 +1,84 @@
+@model List<NexusRetail.WebMvc.Models.BrandOption>
+
+@{
+    ViewData["Title"] = "Quản lý nhãn hiệu (Admin)";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<partial name="_AdminNav" />
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tag-fill text-primary me-2"></i> Thêm nhãn hiệu mới</h5>
+                <form asp-action="ThemNhanHieu" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tên nhãn hiệu</label>
+                        <input name="tenNhanHieu" type="text" class="form-control rounded-3" placeholder="VD: Google Pixel, Nothing..." maxlength="100" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-3 fw-bold">
+                        <i class="bi bi-plus-circle me-1"></i> Thêm nhãn hiệu
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead class="table-light small text-secondary">
+                            <tr>
+                                <th class="ps-4" style="width: 140px;">Mã nhãn hiệu</th>
+                                <th>Tên nhãn hiệu</th>
+                                <th class="text-center pe-4" style="width: 140px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Count > 0)
+                            {
+                                foreach (var b in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-dark">@b.MaNhanHieu</td>
+                                        <td>
+                                            <form asp-action="SuaNhanHieu" method="post" class="d-flex gap-2 align-items-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="maNhanHieu" value="@b.MaNhanHieu" />
+                                                <input type="text" name="tenNhanHieu" value="@b.TenNhanHieu" class="form-control form-control-sm rounded-3" maxlength="100" required />
+                                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-3 text-nowrap">Lưu</button>
+                                            </form>
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            @if (isAdmin)
+                                            {
+                                                <form asp-action="XoaNhanHieu" method="post" onsubmit="return confirm('Xóa nhãn hiệu @b.TenNhanHieu?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@b.MaNhanHieu" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">Xóa</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">Chỉ Admin</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-secondary">Chưa có nhãn hiệu nào.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

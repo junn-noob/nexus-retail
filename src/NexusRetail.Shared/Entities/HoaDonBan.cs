@@ -1,19 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace NexusRetail.Shared.Entities;
 
-public partial class HoaDonBan
+public partial class HoaDonBan : ChungTuBase
 {
     public string MaHdb { get; set; } = null!;
 
-    public string MaNv { get; set; } = null!;
+    public override string MaNv { get; set; } = null!;
 
     public DateTime NgayBan { get; set; }
 
     public string MaKhach { get; set; } = null!;
 
-    public decimal TongTien { get; set; }
+    public override decimal TongTien { get; set; }
+
+    public override string LoaiChungTu => "Hóa đơn bán lẻ";
 
     public virtual ICollection<ChiTietHdb> ChiTietHdbs { get; set; } = new List<ChiTietHdb>();
 

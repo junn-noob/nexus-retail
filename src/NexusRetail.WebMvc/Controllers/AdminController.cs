@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NexusRetail.Shared.DTOs.Common;
+using NexusRetail.Shared.DTOs.NhapHang;
 using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WebMvc.Models;
 using NexusRetail.WebMvc.Services.Admin;
@@ -15,6 +16,8 @@ namespace NexusRetail.WebMvc.Controllers
     {
         private readonly ICatalogApiClient _catalogClient;
         private readonly IAdminProductApiClient _adminProductClient;
+        private readonly IAdminInboundApiClient _inboundClient;
+        private readonly IAdminBrandApiClient _brandClient;
         private readonly IOrderApiClient _orderClient;
         private readonly IReportApiClient _reportClient;
         private readonly IWebHostEnvironment _env;
@@ -23,6 +26,8 @@ namespace NexusRetail.WebMvc.Controllers
         public AdminController(
             ICatalogApiClient catalogClient,
             IAdminProductApiClient adminProductClient,
+            IAdminInboundApiClient inboundClient,
+            IAdminBrandApiClient brandClient,
             IOrderApiClient orderClient,
             IReportApiClient reportClient,
             IWebHostEnvironment env,
@@ -30,6 +35,8 @@ namespace NexusRetail.WebMvc.Controllers
         {
             _catalogClient = catalogClient;
             _adminProductClient = adminProductClient;
+            _inboundClient = inboundClient;
+            _brandClient = brandClient;
             _orderClient = orderClient;
             _reportClient = reportClient;
             _env = env;
@@ -324,6 +331,136 @@ namespace NexusRetail.WebMvc.Controllers
 
             TempData["ErrorMessage"] = "Không thể xuất file Excel cho báo cáo này!";
             return RedirectToAction(nameof(BaoCao), new { loai, thang, nam, quy });
+        }
+
+        // 8. QUẢN LÝ NHẬP HÀNG KHO
+        [HttpGet]
+        public async Task<IActionResult> NhapHang()
+        {
+            var list = await _inboundClient.GetInboundInvoicesAsync();
+            return View(list);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChiTietHoaDonNhap(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return NotFound();
+            var detail = await _inboundClient.GetInboundInvoiceDetailAsync(id);
+            if (detail == null) return NotFound();
+            return View(detail);
+        }
+
+        private async Task LoadInboundFormViewBagAsync()
+        {
+            var suppliersTask = _inboundClient.GetSuppliersAsync();
+            var employeesTask = _inboundClient.GetEmployeesAsync();
+            var productsTask = _catalogClient.GetProductsAsync(1, 100);
+            var nextCodeTask = _inboundClient.GetNextInboundCodeAsync();
+
+            await Task.WhenAll(suppliersTask, employeesTask, productsTask, nextCodeTask);
+
+            ViewBag.Suppliers = await suppliersTask;
+            ViewBag.Employees = await employeesTask;
+            ViewBag.Products = (await productsTask).Items;
+            ViewBag.NextMaHdn = await nextCodeTask ?? "HDN001";
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TaoHoaDonNhap()
+        {
+            await LoadInboundFormViewBagAsync();
+            return View(new HoaDonNhapDto
+            {
+                DanhSachMon = new List<ChiTietHdnDto> { new() { SoLuong = 1, DonGia = 10000000m, KhuyenMai = 0 } }
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TaoHoaDonNhap(HoaDonNhapDto dto)
+        {
+            dto.DanhSachMon = dto.DanhSachMon?
+                .Where(x => !string.IsNullOrWhiteSpace(x.MaSp) && x.SoLuong > 0)
+                .ToList() ?? new();
+
+            if (!dto.DanhSachMon.Any())
+            {
+                ModelState.AddModelError("", "Vui lòng chọn ít nhất 1 sản phẩm hợp lệ để nhập kho!");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await LoadInboundFormViewBagAsync();
+                return View(dto);
+            }
+
+            var (success, maHdn, error) = await _inboundClient.CreateInboundInvoiceAsync(dto);
+            if (success)
+            {
+                TempData["SuccessMessage"] = $"Đã lập phiếu nhập kho {maHdn} thành công và cập nhật tồn kho!";
+                return RedirectToAction(nameof(NhapHang));
+            }
+
+            TempData["ErrorMessage"] = error ?? "Không thể lập hóa đơn nhập.";
+            await LoadInboundFormViewBagAsync();
+            return View(dto);
+        }
+
+        // 9. QUẢN LÝ NHÃN HIỆU
+        [HttpGet]
+        public async Task<IActionResult> NhanHieu()
+        {
+            var brands = await _brandClient.GetBrandsAsync();
+            return View(brands);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ThemNhanHieu(string tenNhanHieu)
+        {
+            if (string.IsNullOrWhiteSpace(tenNhanHieu))
+            {
+                TempData["ErrorMessage"] = "Tên nhãn hiệu không được để trống!";
+                return RedirectToAction(nameof(NhanHieu));
+            }
+
+            var (success, error) = await _brandClient.CreateBrandAsync(tenNhanHieu.Trim());
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? $"Đã thêm nhãn hiệu '{tenNhanHieu.Trim()}' thành công!"
+                : (error ?? "Không thể thêm nhãn hiệu!");
+
+            return RedirectToAction(nameof(NhanHieu));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuaNhanHieu(string maNhanHieu, string tenNhanHieu)
+        {
+            if (string.IsNullOrWhiteSpace(maNhanHieu) || string.IsNullOrWhiteSpace(tenNhanHieu))
+            {
+                TempData["ErrorMessage"] = "Mã và tên nhãn hiệu không hợp lệ!";
+                return RedirectToAction(nameof(NhanHieu));
+            }
+
+            var (success, error) = await _brandClient.UpdateBrandAsync(maNhanHieu.Trim(), tenNhanHieu.Trim());
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? $"Đã cập nhật nhãn hiệu {maNhanHieu} thành công!"
+                : (error ?? "Không thể cập nhật nhãn hiệu!");
+
+            return RedirectToAction(nameof(NhanHieu));
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> XoaNhanHieu(string id)
+        {
+            var (success, error) = await _brandClient.DeleteBrandAsync(id);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? $"Đã xóa nhãn hiệu {id}!"
+                : (error ?? "Không thể xóa nhãn hiệu!");
+
+            return RedirectToAction(nameof(NhanHieu));
         }
     }
 }

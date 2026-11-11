@@ -1,340 +1,114 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using NexusRetail.Core.Api.BUS;
 using NexusRetail.Core.Api.Data;
 using NexusRetail.Shared.DTOs.SanPham;
-using NexusRetail.Shared.DTOs.Common;
-using NexusRetail.Shared.Entities;
 
+namespace NexusRetail.Core.Api.Controllers;
 
-namespace NexusRetail.Core.Api.Controllers
+[Route("api/san-pham")]
+[ApiController]
+public class SanPhamController : ControllerBase
 {
-    [Route("api/san-pham")]
-    [ApiController]
-    public class SanPhamController : ControllerBase
+    private readonly ISanPhamBUS _bus;
+
+    [ActivatorUtilitiesConstructor]
+    public SanPhamController(ISanPhamBUS bus)
     {
-        private readonly RetailDbContext _db;
+        _bus = bus;
+    }
 
-        public SanPhamController(RetailDbContext db) { this._db = db; }
+    public SanPhamController(RetailDbContext db, IAdoNetDataProvider? adoNet = null)
+        : this(new SanPhamBUS(db, adoNet))
+    {
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> layDanhSach(
-            [FromQuery] int page,
-            [FromQuery] int pageSize = 9,
-            [FromQuery] string? q = null,
-            [FromQuery] decimal? minPrice = null,
-            [FromQuery] decimal? maxPrice = null,
-            [FromQuery] string? brand = null)
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> layDanhSach(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 9,
+        [FromQuery] string? q = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] string? brand = null)
+    {
+        var result = await _bus.LayDanhSachAsync(page, pageSize, q, minPrice, maxPrice, brand);
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{maSP}")]
+    public async Task<IActionResult> chiTietSanPham(string maSP)
+    {
+        var sanPham = await _bus.ChiTietSanPhamAsync(maSP);
+        return sanPham == null ? NotFound() : Ok(sanPham);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("nhan-hieu/{maNhanHieu}")]
+    public async Task<IActionResult> laySanPhamTheoNhanHieu(
+        string maNhanHieu,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 9)
+    {
+        var result = await _bus.LayTheoNhanHieuAsync(maNhanHieu, page, pageSize);
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("bo-loc-danh-muc")]
+    public async Task<IActionResult> layBoLocDanhMuc()
+    {
+        var filters = await _bus.LayBoLocDanhMucAsync();
+        return Ok(filters);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("tim-kiem")]
+    public async Task<IActionResult> timKiem(
+        [FromQuery] string? keyword,
+        [FromQuery] string? tenLoai,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice)
+    {
+        var danhSach = await _bus.TimKiemAsync(keyword, tenLoai, minPrice, maxPrice);
+        return Ok(danhSach);
+    }
+
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpPost]
+    public async Task<IActionResult> themSanPham([FromBody] ThemSanPhamDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var result = await _bus.ThemSanPhamAsync(dto);
+        if (!result.IsSuccess || result.Data == null)
         {
-            page = Math.Max(page, 1);
-            pageSize = Math.Clamp(pageSize, 1, 100);
-
-            var query = _db.VwDanhSachSanPhams.AsNoTracking();
-
-            // Lọc theo nhãn hiệu (brand / maNhanHieu / tenNhanHieu)
-            if (!string.IsNullOrWhiteSpace(brand))
-            {
-                brand = brand.Trim();
-                query = query.Where(x => x.MaNhanHieu == brand || x.TenNhanHieu.Contains(brand));
-            }
-
-            // Tìm kiếm theo tên hoặc mã sản phẩm
-            if (!string.IsNullOrWhiteSpace(q))
-            {
-                q = q.Trim();
-                query = query.Where(x =>
-                    x.TenSp.Contains(q) ||
-                    x.MaSp.Contains(q));
-            }
-
-            // Lọc theo khoảng giá bán
-            if (minPrice.HasValue)
-                query = query.Where(x => x.GiaBan >= minPrice.Value);
-            if (maxPrice.HasValue)
-                query = query.Where(x => x.GiaBan <= maxPrice.Value);
-
-            var totalItems = await query.CountAsync();
-
-            var items = await query
-                .OrderBy(x => x.MaSp)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(sp => new SanPhamDto
-                {
-                    MaSp = sp.MaSp,
-                    TenSp = sp.TenSp,
-                    TenLoai = sp.TenLoai,
-                    MaNhanHieu = sp.MaNhanHieu,
-                    TenNhanHieu = sp.TenNhanHieu,
-                    TenManHinh = sp.TenManHinh,
-                    GiaBan = sp.GiaBan,
-                    SoLuong = sp.SoLuong,
-                    ThoiGianBaoHanh = sp.ThoiGianBaoHanh,
-                    AmThanh = sp.AmThanh,
-                    ChupAnh = sp.ChupAnh,
-                    Anh = sp.Anh,
-                    GhiChu = sp.GhiChu
-                })
-                .ToListAsync();
-
-            var result = new PagedResultDto<SanPhamDto>
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
-                Items = items,
-            };
-
-            return Ok(result);
+            return result.ToActionResult();
         }
 
+        return CreatedAtAction(
+            nameof(chiTietSanPham),
+            new { maSP = result.Data.MaSp },
+            new { result.Data.MaSp, result.Data.TenSp, result.Data.GiaBan });
+    }
 
-        [HttpGet("{maSP}")]
-        public async Task<IActionResult> chiTietSanPham(string maSP)
-        {
-            var raw = await _db.SanPhams
-                .Include(s => s.MaLoaiNavigation)
-                .Include(s => s.MaNhanHieuNavigation)
-                .Include(s => s.MaManHinhNavigation)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.MaSp == maSP);
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpPut("{maSP}")]
+    public async Task<IActionResult> suaSanPham(string maSP, [FromBody] SuaSanPhamDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (raw == null) return NotFound();
+        var result = await _bus.SuaSanPhamAsync(maSP, dto);
+        return result.ToActionResult();
+    }
 
-            var sanPham = new SanPhamDto
-            {
-                MaSp = raw.MaSp,
-                TenSp = raw.TenSp,
-                MaLoai = raw.MaLoai,
-                TenLoai = raw.MaLoaiNavigation != null ? raw.MaLoaiNavigation.TenLoai : "",
-                MaNhanHieu = raw.MaNhanHieu,
-                TenNhanHieu = raw.MaNhanHieuNavigation != null ? raw.MaNhanHieuNavigation.TenNhanHieu : "",
-                MaManHinh = raw.MaManHinh,
-                TenManHinh = raw.MaManHinhNavigation != null ? raw.MaManHinhNavigation.TenManHinh : "",
-                GiaNhap = raw.GiaNhap,
-                GiaBan = raw.GiaBan,
-                SoLuong = raw.SoLuong,
-                ThoiGianBaoHanh = raw.ThoiGianBaoHanh,
-                AmThanh = raw.AmThanh,
-                ChupAnh = raw.ChupAnh,
-                Anh = raw.Anh,
-                GhiChu = raw.GhiChu
-            };
-
-            return Ok(sanPham);
-        }
-
-        [HttpGet("nhan-hieu/{maNhanHieu}")]
-        public async Task<IActionResult> laySanPhamTheoNhanHieu(string maNhanHieu, [FromQuery] int page, [FromQuery] int pageSize = 9)
-        {
-            page = Math.Max(page, 1);
-            pageSize = Math.Clamp(pageSize, 1, 100);
-
-            var query = _db.VwDanhSachSanPhams
-                .AsNoTracking()
-                .Where(x => x.MaNhanHieu == maNhanHieu);
-
-            var totalItems = await query.CountAsync();
-
-            var items = await query
-                .OrderBy(x => x.MaSp)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(sp => new SanPhamDto
-                {
-                    MaSp = sp.MaSp,
-                    TenSp = sp.TenSp,
-                    TenLoai = sp.TenLoai,
-                    MaNhanHieu = sp.MaNhanHieu,
-                    TenNhanHieu = sp.TenNhanHieu,
-                    TenManHinh = sp.TenManHinh,
-                    GiaBan = sp.GiaBan,
-                    SoLuong = sp.SoLuong,
-                    ThoiGianBaoHanh = sp.ThoiGianBaoHanh,
-                    AmThanh = sp.AmThanh,
-                    ChupAnh = sp.ChupAnh,
-                    Anh = sp.Anh,
-                    GhiChu = sp.GhiChu
-                })
-                .ToListAsync();
-
-            var result = new PagedResultDto<SanPhamDto>
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
-                Items = items,
-            };
-
-            return Ok(result);
-        }
-
-        [HttpGet("bo-loc-danh-muc")]
-        public async Task<IActionResult> layBoLocDanhMuc()
-        {
-            var loais = await _db.Loais.AsNoTracking().Select(x => new { x.MaLoai, x.TenLoai }).ToListAsync();
-            var nhanHieus = await _db.NhanHieus.AsNoTracking().Select(x => new { x.MaNhanHieu, x.TenNhanHieu }).ToListAsync();
-            var manHinhs = await _db.ManHinhs.AsNoTracking().Select(x => new { x.MaManHinh, x.TenManHinh }).ToListAsync();
-
-            return Ok(new
-            {
-                Loai = loais,
-                NhanHieu = nhanHieus,
-                ManHinh = manHinhs
-            });
-        }
-
-
-        [HttpGet("tim-kiem")]
-        public async Task<IActionResult> timKiem([FromQuery] string? keyword, [FromQuery] string? tenLoai, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
-        {
-            var query = _db.VwDanhSachSanPhams
-                .AsNoTracking()
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(keyword))
-                query = query.Where(x => x.TenSp.Contains(keyword) || (x.GhiChu != null && x.GhiChu.Contains(keyword)));
-            if (!string.IsNullOrEmpty(tenLoai))
-                query = query.Where(x => x.TenLoai.Contains(tenLoai));
-            if (minPrice.HasValue)
-                query = query.Where(x => x.GiaBan >= minPrice.Value);
-            if (maxPrice.HasValue)
-                query = query.Where(x => x.GiaBan <= maxPrice.Value);
-
-            var danhSach = await query
-                .Select(sp => new SanPhamDto
-                {
-                    MaSp = sp.MaSp,
-                    TenSp = sp.TenSp,
-                    TenLoai = sp.TenLoai,
-                    MaNhanHieu = sp.MaNhanHieu,
-                    TenNhanHieu = sp.TenNhanHieu,
-                    TenManHinh = sp.TenManHinh,
-                    GiaBan = sp.GiaBan,
-                    SoLuong = sp.SoLuong,
-                    ThoiGianBaoHanh = sp.ThoiGianBaoHanh,
-                    AmThanh = sp.AmThanh,
-                    ChupAnh = sp.ChupAnh,
-                    Anh = sp.Anh,
-                    GhiChu = sp.GhiChu
-                })
-                .ToListAsync();
-
-            return Ok(danhSach);
-        }
-
-        private async Task<string> sinhMaSanPham()
-        {
-            var allCodes = await _db.SanPhams
-                .Where(x => x.MaSp.StartsWith("SP"))
-                .Select(x => x.MaSp)
-                .ToListAsync();
-
-            int maxNumber = 0;
-            foreach (var code in allCodes)
-            {
-                var match = System.Text.RegularExpressions.Regex.Match(code, @"^SP(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                if (match.Success && int.TryParse(match.Groups[1].Value, out int num))
-                {
-                    if (num < 10000 && num > maxNumber)
-                    {
-                        maxNumber = num;
-                    }
-                }
-            }
-
-            int nextNumber = maxNumber + 1;
-            return $"SP{nextNumber:D2}";
-        }
-
-
-        [HttpPost]
-        public async Task<IActionResult> themSanPham([FromBody] ThemSanPhamDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            decimal minGiaBan = Math.Round(dto.GiaNhap * 1.10m, 0);
-            decimal giaBan = (dto.GiaBan.HasValue && dto.GiaBan.Value >= minGiaBan) ? dto.GiaBan.Value : minGiaBan;
-
-            var sp = new SanPham
-            {
-                MaSp = await sinhMaSanPham(),
-                TenSp = dto.TenSp,
-                MaLoai = dto.MaLoai,
-                MaNhanHieu = dto.MaNhanHieu,
-                MaManHinh = dto.MaManHinh,
-                GiaNhap = dto.GiaNhap,
-                GiaBan = giaBan,
-                SoLuong = dto.SoLuong,
-                ThoiGianBaoHanh = dto.ThoiGianBaoHanh,
-                AmThanh = dto.AmThanh,
-                ChupAnh = dto.ChupAnh,
-                Anh = dto.Anh,
-                GhiChu = dto.GhiChu
-            };
-
-            _db.SanPhams.Add(sp);
-            await _db.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(chiTietSanPham), new { maSP = sp.MaSp }, new {sp.MaSp, sp.TenSp, sp.GiaBan});
-        }
-
-        [HttpPut("{maSP}")]
-        public async Task<IActionResult> suaSanPham(string maSP, [FromBody] SuaSanPhamDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var sp = await _db.SanPhams
-                .FirstOrDefaultAsync(x => x.MaSp == maSP);
-
-            if (sp == null) return NotFound();
-
-            decimal minGiaBan = Math.Round(dto.GiaNhap * 1.10m, 0);
-            decimal giaBan = (dto.GiaBan.HasValue && dto.GiaBan.Value >= minGiaBan) ? dto.GiaBan.Value : minGiaBan;
-
-            sp.TenSp = dto.TenSp;
-            sp.MaLoai = dto.MaLoai;
-            sp.MaNhanHieu = dto.MaNhanHieu;
-            sp.MaManHinh = dto.MaManHinh;
-            sp.GiaNhap = dto.GiaNhap;
-            sp.GiaBan = giaBan;
-            sp.SoLuong = dto.SoLuong;
-            sp.ThoiGianBaoHanh = dto.ThoiGianBaoHanh;
-            sp.AmThanh = dto.AmThanh;
-            sp.ChupAnh = dto.ChupAnh;
-            sp.Anh = dto.Anh;
-            sp.GhiChu = dto.GhiChu;
-
-            await _db.SaveChangesAsync();
-
-            return NoContent(); // 204
-        }
-
-        [HttpDelete("{maSP}")]
-        public async Task<IActionResult> xoaSanPham(string maSP)
-        {
-            var sp = await _db.SanPhams.FindAsync(maSP);
-            if (sp == null) return NotFound();
-
-            var daPhatSinhGiaoDich = await _db.ChiTietHdbs.AnyAsync(x => x.MaSp == maSP) 
-                                  || await _db.ChiTietHdns.AnyAsync(x => x.MaSp == maSP);
-            if (daPhatSinhGiaoDich)
-            {
-                return BadRequest(new { message = "Không thể xóa sản phẩm đã phát sinh hóa đơn bán hoặc nhập!" });
-            }
-
-            try
-            {
-                _db.SanPhams.Remove(sp);
-                await _db.SaveChangesAsync();
-                return NoContent();
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest(new { message = "Không thể xóa sản phẩm đã phát sinh hóa đơn bán hoặc nhập!" });
-            }
-        }
-
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{maSP}")]
+    public async Task<IActionResult> xoaSanPham(string maSP)
+    {
+        var result = await _bus.XoaSanPhamAsync(maSP);
+        return result.ToActionResult();
     }
 }

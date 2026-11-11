@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -49,15 +50,53 @@ namespace NexusRetail.Identity.Api.Controllers
                 return BadRequest(new { message = errors });
             }
 
-            // Gán quyền (Role)
-            string roleName = string.IsNullOrWhiteSpace(dto.Role) ? "Customer" : dto.Role;
+            // Server-side RBAC enforcement: public registration always assigns "Customer".
+            const string defaultRole = "Customer";
+            if (!await _roleManager.RoleExistsAsync(defaultRole))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(defaultRole));
+            }
+            await _userManager.AddToRoleAsync(user, defaultRole);
+
+            return Ok(new { message = "Đăng ký tài khoản thành công!", username = user.UserName, role = defaultRole });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("register-staff")]
+        public async Task<IActionResult> RegisterStaff([FromBody] RegisterDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            string[] allowedRoles = ["Customer", "Staff", "Admin"];
+            string roleName = allowedRoles.FirstOrDefault(r => string.Equals(r, dto.Role, StringComparison.OrdinalIgnoreCase))
+                              ?? "Staff";
+
+            var existingUser = await _userManager.FindByNameAsync(dto.Username);
+            if (existingUser != null)
+                return BadRequest(new { message = "Tên đăng nhập đã tồn tại trên hệ thống!" });
+
+            var user = new IdentityUser
+            {
+                UserName = dto.Username,
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return BadRequest(new { message = errors });
+            }
+
             if (!await _roleManager.RoleExistsAsync(roleName))
             {
                 await _roleManager.CreateAsync(new IdentityRole(roleName));
             }
             await _userManager.AddToRoleAsync(user, roleName);
 
-            return Ok(new { message = "Đăng ký tài khoản thành công!", username = user.UserName });
+            return Ok(new { message = "Tạo tài khoản nội bộ thành công!", username = user.UserName, role = roleName });
         }
 
         [HttpPost("login")]
@@ -74,8 +113,12 @@ namespace NexusRetail.Identity.Api.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             string primaryRole = roles.FirstOrDefault() ?? "Customer";
 
-            // Tạo JWT Token
-            var jwtKey = _config["Jwt:Key"] ?? "DuyMobileNexusRetailSecretKey2026SuperSecure!";
+            var jwtKey = Environment.GetEnvironmentVariable("NEXUS_JWT_SECRET")
+                         ?? _config["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+            {
+                throw new InvalidOperationException("JWT signing key chưa được cấu hình hợp lệ.");
+            }
             var jwtIssuer = _config["Jwt:Issuer"] ?? "DuyMobile.Identity.Api";
             var jwtAudience = _config["Jwt:Audience"] ?? "DuyMobile.Clients";
 

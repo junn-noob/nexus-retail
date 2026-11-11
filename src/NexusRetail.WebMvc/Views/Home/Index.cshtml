@@ -113,7 +113,7 @@
                     <h5 class="fw-bold m-0 text-dark"><i class="bi bi-funnel-fill text-primary me-2"></i> Bộ lọc</h5>
                     @if (hasActiveFilters)
                     {
-                        <a asp-action="Index" asp-fragment="productCatalog" class="badge bg-danger-subtle text-danger text-decoration-none py-2 px-2 fw-bold">
+                        <a asp-action="Index" asp-fragment="productCatalog" class="badge bg-danger-subtle text-danger text-decoration-none py-2 px-2 fw-bold" data-reset-filter="true">
                             Xóa lọc ✕
                         </a>
                     }
@@ -140,7 +140,8 @@
                         @foreach (var (k, t) in prices)
                         {
                             var isSelected = (k == null && string.IsNullOrEmpty(currentPrice)) || (k != null && k == currentPrice);
-                            <a class="dm-filter-opt @(isSelected ? "active" : "")" 
+                            <a class="dm-filter-opt @(isSelected ? "active" : "")"
+                               data-price="@(k ?? "")"
                                asp-action="Index" 
                                asp-route-page="1"
                                asp-route-price="@k"
@@ -171,142 +172,8 @@
         </aside>
 
         <!-- Product Grid Area -->
-        <div class="col-lg-9">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="fw-bold m-0 text-dark" id="productCountHeader">
-                    Danh sách sản phẩm (@Model.TotalItems)
-                </h4>
-                <span class="text-secondary small fw-semibold" id="pageIndicator">
-                    Trang @Model.Page / @Math.Max(1, Model.TotalPages)
-                </span>
-            </div>
-
-            <!-- Product Card Grid -->
-            <div class="row g-3" id="productGrid">
-                @foreach (var p in Model.Items)
-                {
-                    var fallbackImg = Url.Content("~/images/products/" + (string.IsNullOrEmpty(p.Anh) ? "iphone_16_plus_black_37a9bceca0.png" : p.Anh));
-                    <div class="col-lg-4 col-md-6">
-                        <div class="dm-product-card">
-                            <div class="dm-product-badge-wrap">
-                                @if (p.GiaBan > 25000000)
-                                {
-                                    <span class="dm-badge dm-badge-flagship">Flagship</span>
-                                }
-                                else
-                                {
-                                    <span class="dm-badge dm-badge-hot">Bán chạy</span>
-                                }
-                            </div>
-
-                            <div class="dm-product-img-box" onclick="openProduct('@p.MaSp')">
-                                <img src="@fallbackImg" alt="@p.TenSp" onerror="this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
-                            </div>
-
-                            <div class="dm-product-body">
-                                <div class="dm-product-brand">@(string.IsNullOrEmpty(p.TenNhanHieu) ? "Chính hãng" : p.TenNhanHieu)</div>
-                                <h3 class="dm-product-title" onclick="openProduct('@p.MaSp')" title="@p.TenSp">@p.TenSp</h3>
-                                
-                                <div class="d-flex align-items-center justify-content-between my-1">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2" style="font-size: 11px;">
-                                        <i class="bi bi-shield-check me-1"></i>Chính hãng VNA
-                                    </span>
-                                    <span class="text-secondary small">
-                                        <i class="bi bi-star-fill text-warning"></i> 5.0 (50+)
-                                    </span>
-                                </div>
-
-                                <div class="d-flex align-items-baseline gap-2 mb-2">
-                                    <div class="dm-product-price">@p.GiaBan.ToString("N0") ₫</div>
-                                    <span class="text-secondary text-decoration-line-through small">@((p.GiaBan * 1.12m).ToString("N0")) ₫</span>
-                                </div>
-
-                                <div class="dm-card-actions">
-                                    <button type="button" class="dm-btn-quickview" onclick="openProduct('@p.MaSp')">
-                                        Chi tiết
-                                    </button>
-                                    <button type="button" class="dm-btn-addcart" onclick="quickAddToCart(event, '@p.MaSp')" title="Thêm vào giỏ">
-                                        <i class="bi bi-cart-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                @if (!Model.Items.Any())
-                {
-                    <div class="col-12 py-5 text-center">
-                        <div class="p-5 bg-white rounded-4 border shadow-sm">
-                            <i class="bi bi-search text-secondary fs-1 d-block mb-3"></i>
-                            <h4 class="fw-bold text-dark">Không tìm thấy sản phẩm nào phù hợp!</h4>
-                            <p class="text-secondary small mb-3">Hãy thử tìm với từ khóa khác hoặc xóa bớt các bộ lọc đang chọn.</p>
-                            <a asp-action="Index" class="btn btn-primary rounded-3 fw-bold px-4">
-                                Xem tất cả sản phẩm
-                            </a>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <!-- Pagination -->
-            <div id="paginationArea" class="mt-4">
-                @if (Model.TotalPages > 1)
-                {
-                    <ul class="pagination pagination-md justify-content-center m-0 gap-1">
-                        @if (Model.Page > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link rounded-3 fw-bold" 
-                                   asp-action="Index" 
-                                   asp-route-page="@(Model.Page - 1)"
-                                   asp-route-q="@currentQuery"
-                                   asp-route-price="@currentPrice"
-                                   asp-route-brand="@currentBrand"
-                                   asp-fragment="productCatalog">← Trước</a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="page-item disabled">
-                                <span class="page-link rounded-3 opacity-50">← Trước</span>
-                            </li>
-                        }
-
-                        @for (var i = 1; i <= Model.TotalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.Page ? "active" : "")">
-                                <a class="page-link rounded-3 fw-bold" 
-                                   asp-action="Index" 
-                                   asp-route-page="@i"
-                                   asp-route-q="@currentQuery"
-                                   asp-route-price="@currentPrice"
-                                   asp-route-brand="@currentBrand"
-                                   asp-fragment="productCatalog">@i</a>
-                            </li>
-                        }
-
-                        @if (Model.Page < Model.TotalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link rounded-3 fw-bold" 
-                                   asp-action="Index" 
-                                   asp-route-page="@(Model.Page + 1)"
-                                   asp-route-q="@currentQuery"
-                                   asp-route-price="@currentPrice"
-                                   asp-route-brand="@currentBrand"
-                                   asp-fragment="productCatalog">Sau →</a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="page-item disabled">
-                                <span class="page-link rounded-3 opacity-50">Sau →</span>
-                            </li>
-                        }
-                    </ul>
-                }
-            </div>
+        <div class="col-lg-9" id="productCatalogResults">
+            <partial name="_ProductCatalogPartial" model="Model" />
         </div>
     </div>
 </div>

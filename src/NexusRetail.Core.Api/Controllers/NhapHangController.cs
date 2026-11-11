@@ -1,266 +1,78 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using NexusRetail.Core.Api.BUS;
 using NexusRetail.Core.Api.Data;
 using NexusRetail.Shared.DTOs.NhapHang;
-using NexusRetail.Shared.Entities;
 
-namespace NexusRetail.Core.Api.Controllers
+namespace NexusRetail.Core.Api.Controllers;
+
+[Authorize(Roles = "Admin,Staff")]
+[Route("api/nhap-hang")]
+[ApiController]
+public class NhapHangController : ControllerBase
 {
-    [Route("api/nhap-hang")]
-    [ApiController]
-    public class NhapHangController : ControllerBase
+    private readonly INhapHangBUS _bus;
+
+    [ActivatorUtilitiesConstructor]
+    public NhapHangController(INhapHangBUS bus)
     {
-        private readonly RetailDbContext _db;
+        _bus = bus;
+    }
 
-        public NhapHangController(RetailDbContext db)
+    public NhapHangController(RetailDbContext db)
+        : this(new NhapHangBUS(db))
+    {
+    }
+
+    [HttpGet("next-ma-hdn")]
+    public async Task<IActionResult> GetNextMaHdn()
+    {
+        var nextCode = await _bus.GetNextMaHdnAsync();
+        return Ok(new { maHdn = nextCode });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> layDanhSachHoaDonNhap()
+    {
+        var list = await _bus.LayDanhSachHoaDonNhapAsync();
+        return Ok(list);
+    }
+
+    [HttpGet("nha-cung-cap")]
+    public async Task<IActionResult> layDanhSachNhaCungCap()
+    {
+        var list = await _bus.LayDanhSachNhaCungCapAsync();
+        return Ok(list);
+    }
+
+    [HttpGet("nhan-vien")]
+    public async Task<IActionResult> layDanhSachNhanVien()
+    {
+        var list = await _bus.LayDanhSachNhanVienAsync();
+        return Ok(list);
+    }
+
+    [HttpGet("{maHdn}")]
+    public async Task<IActionResult> layChiTietHoaDonNhap(string maHdn)
+    {
+        var result = await _bus.LayChiTietHoaDonNhapAsync(maHdn);
+        return result.ToActionResult();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> nhapHang([FromBody] HoaDonNhapDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var result = await _bus.TaoHoaDonNhapAsync(dto);
+        if (!result.IsSuccess || result.Data == null)
         {
-            _db = db;
+            return result.ToActionResult();
         }
 
-        private async Task<string> sinhMaHdn()
-        {
-            var allCodes = await _db.HoaDonNhaps
-                .Where(x => x.MaHdn.StartsWith("HDN"))
-                .Select(x => x.MaHdn)
-                .ToListAsync();
-
-            int maxNumber = 0;
-            foreach (var code in allCodes)
-            {
-                var match = System.Text.RegularExpressions.Regex.Match(code, @"^HDN(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                if (match.Success && int.TryParse(match.Groups[1].Value, out int num))
-                {
-                    if (num < 10000 && num > maxNumber)
-                    {
-                        maxNumber = num;
-                    }
-                }
-            }
-
-            int nextNumber = maxNumber + 1;
-            return $"HDN{nextNumber:D2}";
-        }
-
-        /// <summary>
-        /// Lấy mã hóa đơn nhập tiếp theo (Ví dụ: HDN04)
-        /// </summary>
-        [HttpGet("next-ma-hdn")]
-        public async Task<IActionResult> GetNextMaHdn()
-        {
-            var nextCode = await sinhMaHdn();
-            return Ok(new { maHdn = nextCode });
-        }
-
-        /// <summary>
-        /// Lấy danh sách toàn bộ hóa đơn nhập hàng
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> layDanhSachHoaDonNhap()
-        {
-            var list = await _db.HoaDonNhaps
-                .AsNoTracking()
-                .OrderByDescending(x => x.NgayNhap)
-                .Select(x => new
-                {
-                    x.MaHdn,
-                    x.MaNv,
-                    TenNv = x.MaNvNavigation.TenNv,
-                    x.MaNcc,
-                    TenNcc = x.MaNccNavigation.TenNcc,
-                    x.NgayNhap,
-                    x.TongTien,
-                    SoMatHang = x.ChiTietHdns.Count
-                })
-                .ToListAsync();
-
-            return Ok(list);
-        }
-
-        /// <summary>
-        /// Danh sách nhà cung cấp cho ComboBox
-        /// </summary>
-        [HttpGet("nha-cung-cap")]
-        public async Task<IActionResult> layDanhSachNhaCungCap()
-        {
-            var list = await _db.NhaCungCaps
-                .AsNoTracking()
-                .Select(x => new { x.MaNcc, x.TenNcc, x.DiaChi, x.DienThoai })
-                .ToListAsync();
-            return Ok(list);
-        }
-
-        /// <summary>
-        /// Danh sách nhân viên cho ComboBox
-        /// </summary>
-        [HttpGet("nhan-vien")]
-        public async Task<IActionResult> layDanhSachNhanVien()
-        {
-            var list = await _db.NhanViens
-                .AsNoTracking()
-                .Select(x => new { x.MaNv, x.TenNv, x.DienThoai })
-                .ToListAsync();
-            return Ok(list);
-        }
-
-        /// <summary>
-        /// Xem chi tiết một hóa đơn nhập hàng
-        /// </summary>
-        [HttpGet("{maHdn}")]
-        public async Task<IActionResult> layChiTietHoaDonNhap(string maHdn)
-        {
-            var hdn = await _db.HoaDonNhaps
-                .AsNoTracking()
-                .Include(x => x.MaNvNavigation)
-                .Include(x => x.MaNccNavigation)
-                .Include(x => x.ChiTietHdns)
-                    .ThenInclude(ct => ct.MaSpNavigation)
-                .FirstOrDefaultAsync(x => x.MaHdn == maHdn);
-
-            if (hdn == null) return NotFound(new { message = $"Không tìm thấy hóa đơn nhập mã {maHdn}" });
-
-            var result = new HoaDonNhapResponseDto
-            {
-                MaHdn = hdn.MaHdn,
-                MaNv = hdn.MaNv,
-                TenNv = hdn.MaNvNavigation?.TenNv ?? "",
-                MaNcc = hdn.MaNcc,
-                TenNcc = hdn.MaNccNavigation?.TenNcc ?? "",
-                NgayNhap = hdn.NgayNhap,
-                TongTien = hdn.TongTien,
-                SanPham = hdn.ChiTietHdns.Select(ct => new ChiTietHdnDto
-                {
-                    MaSp = ct.MaSp,
-                    TenSp = ct.MaSpNavigation?.TenSp ?? "",
-                    SoLuong = ct.SoLuong,
-                    DonGia = ct.DonGia,
-                    KhuyenMai = ct.KhuyenMai,
-                    ThanhTien = ct.ThanhTien
-                }).ToList()
-            };
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Tạo hóa đơn nhập hàng - Tự động tăng tồn kho, cập nhật giá vốn và định giá niêm yết
-        /// </summary>
-        [HttpPost]
-        public async Task<IActionResult> nhapHang([FromBody] HoaDonNhapDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            if (dto.DanhSachMon == null || dto.DanhSachMon.Count == 0)
-            {
-                return BadRequest(new { message = "Phiếu nhập kho phải có ít nhất 1 sản phẩm!" });
-            }
-
-            if (dto.DanhSachMon.Any(x => x.SoLuong <= 0))
-            {
-                return BadRequest(new { message = "Số lượng nhập của từng sản phẩm phải lớn hơn 0!" });
-            }
-
-            if (dto.DanhSachMon.Any(x => x.DonGia <= 0))
-            {
-                return BadRequest(new { message = "Đơn giá nhập của từng sản phẩm phải lớn hơn 0đ!" });
-            }
-
-            if (dto.DanhSachMon.Any(x => x.KhuyenMai < 0 || x.KhuyenMai > 100))
-            {
-                return BadRequest(new { message = "Chiết khấu nhập hàng phải từ 0% đến 100%!" });
-            }
-
-            var nv = await _db.NhanViens.FindAsync(dto.MaNv);
-            if (nv == null)
-                return BadRequest(new { message = $"Không tìm thấy nhân viên mã '{dto.MaNv}'!" });
-
-            var ncc = await _db.NhaCungCaps.FindAsync(dto.MaNcc);
-            if (ncc == null)
-                return BadRequest(new { message = $"Không tìm thấy nhà cung cấp mã '{dto.MaNcc}'!" });
-
-            using var tx = await _db.Database.BeginTransactionAsync();
-            try
-            {
-                var maHdn = await sinhMaHdn();
-                decimal tongTienHoaDon = 0m;
-                var chiTietList = new List<ChiTietHdnDto>();
-
-                foreach (var item in dto.DanhSachMon)
-                {
-                    var sp = await _db.SanPhams.FirstOrDefaultAsync(x => x.MaSp == item.MaSp);
-                    if (sp == null)
-                    {
-                        await tx.RollbackAsync();
-                        return BadRequest(new { message = $"Không tìm thấy sản phẩm mã '{item.MaSp}' để nhập hàng!" });
-                    }
-
-                    // Trên SQL Server, trigger trg_ChiTietHDN_Change tự động cập nhật tồn kho & giá bán.
-                    // Nếu đang chạy môi trường test InMemory, thực hiện trực tiếp trong bộ nhớ.
-                    if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
-                    {
-                        sp.SoLuong += item.SoLuong;
-                        sp.GiaNhap = item.DonGia;
-                        sp.GiaBan = Math.Round(item.DonGia * 1.10m, 0);
-                    }
-
-                    // Tính thành tiền có chiết khấu/khuyến mãi nếu có
-                    decimal thanhTien = item.SoLuong * item.DonGia * (1 - item.KhuyenMai / 100m);
-                    tongTienHoaDon += thanhTien;
-
-                    var chiTiet = new ChiTietHdn
-                    {
-                        MaHdn = maHdn,
-                        MaSp = item.MaSp,
-                        SoLuong = item.SoLuong,
-                        DonGia = item.DonGia,
-                        KhuyenMai = item.KhuyenMai,
-                        ThanhTien = thanhTien
-                    };
-                    _db.ChiTietHdns.Add(chiTiet);
-
-                    chiTietList.Add(new ChiTietHdnDto
-                    {
-                        MaSp = item.MaSp,
-                        TenSp = sp.TenSp,
-                        SoLuong = item.SoLuong,
-                        DonGia = item.DonGia,
-                        KhuyenMai = item.KhuyenMai,
-                        ThanhTien = thanhTien
-                    });
-                }
-
-                var hdn = new HoaDonNhap
-                {
-                    MaHdn = maHdn,
-                    MaNv = dto.MaNv,
-                    MaNcc = dto.MaNcc,
-                    NgayNhap = DateTime.Now,
-                    TongTien = tongTienHoaDon
-                };
-
-                _db.HoaDonNhaps.Add(hdn);
-
-                await _db.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                var response = new HoaDonNhapResponseDto
-                {
-                    MaHdn = maHdn,
-                    MaNv = dto.MaNv,
-                    TenNv = nv.TenNv,
-                    MaNcc = dto.MaNcc,
-                    TenNcc = ncc.TenNcc,
-                    NgayNhap = hdn.NgayNhap,
-                    TongTien = tongTienHoaDon,
-                    SanPham = chiTietList
-                };
-
-                return CreatedAtAction(nameof(layChiTietHoaDonNhap), new { maHdn = hdn.MaHdn }, response);
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, new { message = "Lỗi khi xử lý nhập hàng: " + ex.Message });
-            }
-        }
+        return CreatedAtAction(
+            nameof(layChiTietHoaDonNhap),
+            new { maHdn = result.Data.MaHdn },
+            result.Data);
     }
 }

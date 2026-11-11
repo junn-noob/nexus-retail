@@ -4,6 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 Action<HttpClient> configureCoreClient = client =>
 {
@@ -19,7 +21,8 @@ Func<HttpMessageHandler> createBypassHandler = () => new HttpClientHandler
 
 // 1. Named HttpClients
 builder.Services.AddHttpClient("CoreApi", configureCoreClient)
-    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 builder.Services.AddHttpClient("IdentityApi", client =>
 {
@@ -31,19 +34,32 @@ builder.Services.AddHttpClient("IdentityApi", client =>
 
 // 2. Typed Modular Service Clients (Separation of Concerns)
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Catalog.ICatalogApiClient, NexusRetail.WebMvc.Services.Catalog.CatalogApiClient>(configureCoreClient)
-    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Orders.IOrderApiClient, NexusRetail.WebMvc.Services.Orders.OrderApiClient>(configureCoreClient)
-    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Reports.IReportApiClient, NexusRetail.WebMvc.Services.Reports.ReportApiClient>(configureCoreClient)
-    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Admin.IAdminProductApiClient, NexusRetail.WebMvc.Services.Admin.AdminProductApiClient>(configureCoreClient)
-    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Admin.IAdminInboundApiClient, NexusRetail.WebMvc.Services.Admin.AdminInboundApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
+
+builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Admin.IAdminBrandApiClient, NexusRetail.WebMvc.Services.Admin.AdminBrandApiClient>(configureCoreClient)
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Chat.IChatApiClient, NexusRetail.WebMvc.Services.Chat.ChatApiClient>(configureCoreClient)
-    .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
+    .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
+    .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
 
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Auth.IAuthApiClient, NexusRetail.WebMvc.Services.Auth.AuthApiClient>(client =>
 {

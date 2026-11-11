@@ -89,7 +89,7 @@ Hệ thống được thiết kế với cơ chế tự động hóa kép (Dual 
 ## 4. TÍCH HỢP CỔNG THANH TOÁN MBBANK & CHUẨN VIETQR
 
 ### 4.1 Quy chuẩn cấu trúc VietQR tĩnh & động
-Nexus Retail tích hợp thư viện thuần static [`VietQrHelper`](file:///c:/Users/hungn/Downloads/Phân%20Tích%20Thiết%20Kế%20Yêu%20Cầu/nexus-retail/src/NexusRetail.Shared/Helpers/VietQrHelper.cs) tuân thủ tiêu chuẩn Napas / EMVCo QR Code:
+Nexus Retail tích hợp thư viện thuần static [`VietQrHelper`](../src/NexusRetail.Shared/Helpers/VietQrHelper.cs) tuân thủ tiêu chuẩn Napas / EMVCo QR Code:
 
 - **Mã Ngân hàng (BIN):** `970422` (MBBank - Ngân hàng TMCP Quân Đội).
 - **Số tài khoản thụ hưởng:** `0963388888` (Cửa hàng Duy Mobile).

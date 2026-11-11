@@ -8,6 +8,7 @@ namespace NexusRetail.WinForms.Forms
     public partial class frmSanPham : Form
     {
         private readonly string _role;
+        private readonly IPosCatalogClient _catalogClient = WinFormsApiClient.Instance;
         private List<SanPhamDto> _products = new();
 
         public frmSanPham(string role)
@@ -51,7 +52,30 @@ namespace NexusRetail.WinForms.Forms
                 }
             };
 
+            LoadFiltersAsync();
             LoadProductsAsync();
+        }
+
+        private async void LoadFiltersAsync()
+        {
+            try
+            {
+                var filters = await _catalogClient.GetCategoryFilterAsync();
+                if (IsDisposed || Disposing || filters == null) return;
+
+                BindComboBox(cboLoai, filters.Loai, nameof(LoaiFilterItem.TenLoai), nameof(LoaiFilterItem.MaLoai));
+                BindComboBox(cboNhanHieu, filters.NhanHieu, nameof(NhanHieuFilterItem.TenNhanHieu), nameof(NhanHieuFilterItem.MaNhanHieu));
+                BindComboBox(cboManHinh, filters.ManHinh, nameof(ManHinhFilterItem.TenManHinh), nameof(ManHinhFilterItem.MaManHinh));
+            }
+            catch { }
+        }
+
+        private static void BindComboBox<T>(ComboBox comboBox, List<T> items, string displayMember, string valueMember)
+        {
+            comboBox.DataSource = null;
+            comboBox.DisplayMember = displayMember;
+            comboBox.ValueMember = valueMember;
+            comboBox.DataSource = items;
         }
 
         private void ApplyCustomStyles()
@@ -70,7 +94,7 @@ namespace NexusRetail.WinForms.Forms
         {
             try
             {
-                _products = await WinFormsApiClient.Instance.GetProductsAsync(q);
+                _products = await _catalogClient.GetProductsAsync(q);
                 if (IsDisposed || Disposing) return;
                 dgvSanPham.DataSource = null;
                 dgvSanPham.DataSource = _products;
@@ -102,6 +126,14 @@ namespace NexusRetail.WinForms.Forms
             dgvSanPham.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
+        private static void TrySelectComboValue(ComboBox comboBox, string? value)
+        {
+            if (!string.IsNullOrEmpty(value) && comboBox.Items.Count > 0)
+            {
+                comboBox.SelectedValue = value;
+            }
+        }
+
         private void dgvSanPham_SelectionChanged(object? sender, EventArgs e)
         {
             if (dgvSanPham.CurrentRow?.DataBoundItem is SanPhamDto sp)
@@ -113,6 +145,9 @@ namespace NexusRetail.WinForms.Forms
                 numSoLuong.Value = Math.Max(0, sp.SoLuong);
                 numBaoHanh.Value = Math.Max(1, sp.ThoiGianBaoHanh);
                 txtGhiChu.Text = sp.GhiChu ?? "";
+                TrySelectComboValue(cboLoai, sp.MaLoai);
+                TrySelectComboValue(cboNhanHieu, sp.MaNhanHieu);
+                TrySelectComboValue(cboManHinh, sp.MaManHinh);
             }
         }
 
@@ -139,6 +174,9 @@ namespace NexusRetail.WinForms.Forms
             numSoLuong.Value = 10;
             numBaoHanh.Value = 12;
             txtGhiChu.Text = "";
+            if (cboLoai.Items.Count > 0) cboLoai.SelectedIndex = 0;
+            if (cboNhanHieu.Items.Count > 0) cboNhanHieu.SelectedIndex = 0;
+            if (cboManHinh.Items.Count > 0) cboManHinh.SelectedIndex = 0;
             txtTenSp.Focus();
         }
 
@@ -166,42 +204,10 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
-            // 2. Tự động nhận diện nhãn hiệu và phân loại thông minh theo tên máy
-            string maNhanHieu = "NH01"; // Apple mặc định
-            string maLoai = "L01";      // Flagship
-            string maManHinh = "MH01";  // Super Retina OLED
-
-            string upper = tenSp.ToUpperInvariant();
-            if (upper.Contains("SAMSUNG") || upper.Contains("GALAXY"))
-            {
-                maNhanHieu = "NH02";
-                maManHinh = "MH02";
-                maLoai = upper.Contains("FOLD") || upper.Contains("FLIP") ? "L06" : (upper.Contains("ULTRA") ? "L01" : "L02");
-            }
-            else if (upper.Contains("XIAOMI") || upper.Contains("REDMI"))
-            {
-                maNhanHieu = "NH03";
-                maManHinh = "MH03";
-                maLoai = upper.Contains("NOTE") || upper.Contains("REDMI") ? "L03" : "L01";
-            }
-            else if (upper.Contains("OPPO"))
-            {
-                maNhanHieu = "NH04";
-                maManHinh = "MH04";
-                maLoai = upper.Contains("FIND") ? "L01" : "L02";
-            }
-            else if (upper.Contains("VIVO"))
-            {
-                maNhanHieu = "NH05";
-                maManHinh = "MH05";
-                maLoai = upper.Contains("X100") || upper.Contains("X200") ? "L01" : "L02";
-            }
-            else if (upper.Contains("IPHONE") || upper.Contains("APPLE"))
-            {
-                maNhanHieu = "NH01";
-                maManHinh = "MH01";
-                maLoai = "L01";
-            }
+            // 2. Lấy phân loại, nhãn hiệu, màn hình từ ComboBox (đã tải từ API)
+            string maLoai = cboLoai.SelectedValue?.ToString() ?? "L01";
+            string maNhanHieu = cboNhanHieu.SelectedValue?.ToString() ?? "NH01";
+            string maManHinh = cboManHinh.SelectedValue?.ToString() ?? "MH01";
 
             string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
             decimal? giaBanInput = decimal.TryParse(cleanGiaBan, out decimal parsedGb) && parsedGb >= giaNhap * 1.10m ? parsedGb : null;
@@ -226,10 +232,10 @@ namespace NexusRetail.WinForms.Forms
             btnThem.Enabled = false;
             try
             {
-                var (success, message, maSp) = await WinFormsApiClient.Instance.CreateProductAsync(dto);
+                var (success, message, maSp) = await _catalogClient.CreateProductAsync(dto);
                 if (success)
                 {
-                    decimal giaBan = Math.Round(giaNhap * 1.1m, 0);
+                    decimal giaBan = giaBanInput ?? Math.Round(giaNhap * 1.1m, 0);
                     MessageBox.Show($"✔ Thêm mới sản phẩm '{tenSp}' thành công!\n• Mã sản phẩm: {maSp}\n• Giá nhập: {giaNhap:N0} ₫\n• Giá bán niêm yết (+10%): {giaBan:N0} ₫", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadProductsAsync();
                     btnLamMoi_Click(sender, e);
@@ -271,9 +277,9 @@ namespace NexusRetail.WinForms.Forms
             }
 
             var current = _products.FirstOrDefault(x => x.MaSp == maSp);
-            string maLoai = current?.MaLoai ?? "L01";
-            string maNhanHieu = current?.MaNhanHieu ?? "NH01";
-            string maManHinh = current?.MaManHinh ?? "MH01";
+            string maLoai = cboLoai.SelectedValue?.ToString() ?? current?.MaLoai ?? "L01";
+            string maNhanHieu = cboNhanHieu.SelectedValue?.ToString() ?? current?.MaNhanHieu ?? "NH01";
+            string maManHinh = cboManHinh.SelectedValue?.ToString() ?? current?.MaManHinh ?? "MH01";
 
             string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
             decimal? giaBanInput = decimal.TryParse(cleanGiaBan, out decimal parsedGb) && parsedGb >= giaNhap * 1.10m ? parsedGb : null;
@@ -297,10 +303,10 @@ namespace NexusRetail.WinForms.Forms
             btnSua.Enabled = false;
             try
             {
-                var (success, message) = await WinFormsApiClient.Instance.UpdateProductAsync(maSp, dto);
+                var (success, message) = await _catalogClient.UpdateProductAsync(maSp, dto);
                 if (success)
                 {
-                    decimal giaBan = Math.Round(giaNhap * 1.1m, 0);
+                    decimal giaBan = giaBanInput ?? Math.Round(giaNhap * 1.1m, 0);
                     MessageBox.Show($"✔ Cập nhật thông tin sản phẩm '{tenSp}' ({maSp}) thành công!\n• Giá bán mới: {giaBan:N0} ₫\n• Tồn kho: {numSoLuong.Value}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadProductsAsync();
                 }
@@ -336,7 +342,7 @@ namespace NexusRetail.WinForms.Forms
             btnXoa.Enabled = false;
             try
             {
-                var (success, message) = await WinFormsApiClient.Instance.DeleteProductAsync(maSp);
+                var (success, message) = await _catalogClient.DeleteProductAsync(maSp);
                 if (success)
                 {
                     MessageBox.Show($"✔ Đã xóa thành công sản phẩm {maSp}!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -345,7 +351,7 @@ namespace NexusRetail.WinForms.Forms
                 }
                 else
                 {
-                    MessageBox.Show("Sản phẩm đã phát sinh hóa đơn bán hàng hoặc hóa đơn nhập hàng, hệ thống bảo vệ toàn vẹn dữ liệu không cho phép xóa!", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(message, "Không thể xóa sản phẩm", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
             finally

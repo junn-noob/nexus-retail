@@ -115,4 +115,52 @@ namespace NexusRetail.WebMvc.Models
         public string MaManHinh { get; set; } = string.Empty;
         public string TenManHinh { get; set; } = string.Empty;
     }
+
+    public class AdminInboundInvoiceItem
+    {
+        public string MaHdn { get; set; } = string.Empty;
+        public string MaNv { get; set; } = string.Empty;
+        public string TenNv { get; set; } = string.Empty;
+        public string MaNcc { get; set; } = string.Empty;
+        public string TenNcc { get; set; } = string.Empty;
+        public DateTime NgayNhap { get; set; }
+        public decimal TongTien { get; set; }
+        public int SoMatHang { get; set; }
+    }
+
+    public class AdminSupplierOption
+    {
+        public string MaNcc { get; set; } = string.Empty;
+        public string TenNcc { get; set; } = string.Empty;
+        public string? DiaChi { get; set; }
+        public string? DienThoai { get; set; }
+    }
+
+    public class AdminEmployeeOption
+    {
+        public string MaNv { get; set; } = string.Empty;
+        public string TenNv { get; set; } = string.Empty;
+        public string? DienThoai { get; set; }
+    }
+
+    public class AdminInboundCreateViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng chọn nhân viên lập phiếu")]
+        public string MaNv { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng chọn nhà cung cấp")]
+        public string MaNcc { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng chọn sản phẩm nhập")]
+        public string MaSp { get; set; } = string.Empty;
+
+        [Range(1, 10000, ErrorMessage = "Số lượng nhập phải từ 1 trở lên")]
+        public int SoLuong { get; set; } = 1;
+
+        [Range(1000, 1000000000, ErrorMessage = "Đơn giá nhập phải từ 1.000đ trở lên")]
+        public decimal DonGia { get; set; }
+
+        [Range(0, 100, ErrorMessage = "Khuyến mại từ 0% đến 100%")]
+        public decimal KhuyenMai { get; set; }
+    }
 }

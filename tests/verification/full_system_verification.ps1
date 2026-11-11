@@ -73,6 +73,16 @@ try {
         Write-Host "  [PASS] POST /api/auth/login: Invalid password correctly rejected (401 Unauthorized)" -ForegroundColor Green
     }
 
+    $authHeaders = @{ Authorization = "Bearer $($loginRes.token)" }
+
+    # 3.3 Test Unauthenticated Write Rejection (RBAC Guard)
+    try {
+        Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham" -Method Post -Body "{}" -ContentType "application/json" -ErrorAction Stop
+        Write-Host "  [FAIL] System allowed unauthenticated POST /api/san-pham!" -ForegroundColor Red
+    } catch {
+        Write-Host "  [PASS] POST /api/san-pham without JWT rejected (401 Unauthorized)" -ForegroundColor Green
+    }
+
     # 4. PRODUCT CATALOG CRUD & PRICING RULES (BR-03, BR-04)
     Write-Host "`n[PHASE 4] PRODUCT CATALOG & PRICING RULES VERIFICATION..." -ForegroundColor Yellow
     
@@ -92,7 +102,7 @@ try {
         ghiChu = "Flagship 2026 for automated testing"
     } | ConvertTo-Json
 
-    $createdProd = Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham" -Method Post -Body $newProdDto -ContentType "application/json; charset=utf-8"
+    $createdProd = Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham" -Method Post -Headers $authHeaders -Body $newProdDto -ContentType "application/json; charset=utf-8"
     $qaMaSp = $createdProd.maSp
     Write-Host "  [PASS] POST /api/san-pham: Created product $qaMaSp ('$($createdProd.tenSp)')" -ForegroundColor Green
     Write-Host "         Auto-calculated GiaBan (110%): $($createdProd.giaBan) VND (GiaNhap: 20,000,000)" -ForegroundColor Gray
@@ -118,7 +128,7 @@ try {
         anh = "/images/products/s26ultra.jpg"
         ghiChu = "Updated warranty to 36 months"
     } | ConvertTo-Json
-    Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Put -Body $updateDto -ContentType "application/json; charset=utf-8"
+    Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Put -Headers $authHeaders -Body $updateDto -ContentType "application/json; charset=utf-8"
     
     # 4.4 Get details to verify update
     $getUpdated = Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Get
@@ -139,7 +149,7 @@ try {
         )
     } | ConvertTo-Json
 
-    $resNhap = Invoke-RestMethod -Uri "http://localhost:5050/api/nhap-hang" -Method Post -Body $nhapDto -ContentType "application/json; charset=utf-8"
+    $resNhap = Invoke-RestMethod -Uri "http://localhost:5050/api/nhap-hang" -Method Post -Headers $authHeaders -Body $nhapDto -ContentType "application/json; charset=utf-8"
     Write-Host "  [PASS] POST /api/nhap-hang: Inbound receipt created: '$($resNhap.maHdn)'" -ForegroundColor Green
 
     # Verify inventory increment and price update
@@ -154,7 +164,7 @@ try {
 
     # 6. SALES & POS CHECKOUT (INVENTORY DEDUCTION & CASH/VIETQR)
     Write-Host "`n[PHASE 6] OUTBOUND SALES & INVENTORY DEDUCTION..." -ForegroundColor Yellow
-    $nextHdb = (Invoke-RestMethod -Uri "http://localhost:5050/api/ban-hang/next-ma-hdb" -Method Get).maHdb
+    $nextHdb = (Invoke-RestMethod -Uri "http://localhost:5050/api/ban-hang/next-ma-hdb" -Method Get -Headers $authHeaders).maHdb
 
     $banDto = @{
         maHdb = $nextHdb
@@ -170,7 +180,7 @@ try {
         )
     } | ConvertTo-Json
 
-    $resBan = Invoke-RestMethod -Uri "http://localhost:5050/api/ban-hang/thanh-toan" -Method Post -Body $banDto -ContentType "application/json; charset=utf-8"
+    $resBan = Invoke-RestMethod -Uri "http://localhost:5050/api/ban-hang/thanh-toan" -Method Post -Headers $authHeaders -Body $banDto -ContentType "application/json; charset=utf-8"
     Write-Host "  [PASS] POST /api/ban-hang/thanh-toan: Invoice issued: '$($resBan.maHdb)' | Total: $($resBan.tongTien) VND" -ForegroundColor Green
 
     # Verify inventory reduction
@@ -179,7 +189,7 @@ try {
 
     # 6.2 Test Delete Constraint: Cannot delete product with sales history
     try {
-        Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Delete -ErrorAction Stop
+        Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Delete -Headers $authHeaders -ErrorAction Stop
         Write-Host "  [FAIL] System allowed deleting a product that has historical invoices!" -ForegroundColor Red
     } catch {
         Write-Host "  [PASS] DELETE /api/san-pham/$($qaMaSp): Correctly prevented deletion of referenced product (Referential Integrity Secured)!" -ForegroundColor Green
@@ -229,23 +239,23 @@ try {
     Write-Host "`n[PHASE 8] ANALYTICAL REPORTS & EXCEL GENERATION..." -ForegroundColor Yellow
     
     # 8.1 Best sellers report (BR-06)
-    $bcTop = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/sp-ban-chay?month=9&year=2026" -Method Get
+    $bcTop = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/sp-ban-chay?month=9&year=2026" -Method Get -Headers $authHeaders
     Write-Host "  [PASS] BR-06 Top Sellers Report: $($bcTop.topSanPham.Count) items found in Month 9/2026" -ForegroundColor Green
 
     # 8.2 Largest inbound shipment (BR-07)
-    $bcHdn = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/hdn-lon-nhat?quarter=3&year=2026" -Method Get
+    $bcHdn = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/hdn-lon-nhat?quarter=3&year=2026" -Method Get -Headers $authHeaders
     Write-Host "  [PASS] BR-07 Largest Inbound Receipt Report: Total Q3 Inbound Value = $($bcHdn.tongTienNhapQuy) VND" -ForegroundColor Green
 
     # 8.3 Yearly sales report (BR-08)
-    $bcYear = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/doanh-so-nam?year=2026" -Method Get
+    $bcYear = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/doanh-so-nam?year=2026" -Method Get -Headers $authHeaders
     Write-Host "  [PASS] BR-08 Yearly Sales Report: Total Invoices = $($bcYear.tongSoDonHang) | Total Revenue = $($bcYear.tongDoanhThu) VND" -ForegroundColor Green
 
     # 8.4 Lowest performing staff report (BR-09)
-    $bcStaff = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/nv-doanh-so-thap?month=9&year=2026" -Method Get
+    $bcStaff = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/nv-doanh-so-thap?month=9&year=2026" -Method Get -Headers $authHeaders
     Write-Host "  [PASS] BR-09 Lowest Sales Staff Report: $($bcStaff.danhSachNhanVien.Count) staff listed" -ForegroundColor Green
 
     # 8.5 Excel Export download test
-    $excelBytes = Invoke-WebRequest -Uri "http://localhost:5050/api/bao-cao/sp-ban-chay/excel?month=9&year=2026" -Method Get -UseBasicParsing
+    $excelBytes = Invoke-WebRequest -Uri "http://localhost:5050/api/bao-cao/sp-ban-chay/excel?month=9&year=2026" -Method Get -Headers $authHeaders -UseBasicParsing
     if ($excelBytes.Content.Length -gt 1000) {
         Write-Host "  [PASS] Excel Export Binary Stream: Successfully downloaded OpenXML (.xlsx) file ($($excelBytes.Content.Length) bytes)!" -ForegroundColor Green
     } else {

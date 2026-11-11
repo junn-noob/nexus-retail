@@ -13,6 +13,14 @@ namespace NexusRetail.WinForms.Forms
     /// </summary>
     public class frmVisualReportViewer : Form
     {
+        private readonly string _tieuDeBaoCao;
+        private readonly string _thoiGianBaoCao;
+        private readonly DataTable _duLieuBaoCao;
+        private readonly string _thongTinTongKet;
+
+        private int _printRowIndex;
+        private int _printPageNumber;
+
         private Panel pnlToolbar = null!;
         private Panel pnlReportCanvas = null!;
         private Panel pnlReportPage = null!;
@@ -30,6 +38,10 @@ namespace NexusRetail.WinForms.Forms
 
         public frmVisualReportViewer(string tieuDeBaoCao, string thoiGianBaoCao, DataTable duLieuBaoCao, string thongTinTongKet)
         {
+            _tieuDeBaoCao = tieuDeBaoCao;
+            _thoiGianBaoCao = thoiGianBaoCao;
+            _duLieuBaoCao = duLieuBaoCao;
+            _thongTinTongKet = thongTinTongKet;
             InitializeComponentManual(tieuDeBaoCao, thoiGianBaoCao, duLieuBaoCao, thongTinTongKet);
         }
 
@@ -227,25 +239,164 @@ namespace NexusRetail.WinForms.Forms
         {
             try
             {
-                using var pd = new PrintDocument();
-                pd.DocumentName = Text;
-                pd.PrintPage += (s, ev) =>
-                {
-                    var bmp = new Bitmap(pnlReportPage.Width, pnlReportPage.Height);
-                    pnlReportPage.DrawToBitmap(bmp, new Rectangle(0, 0, pnlReportPage.Width, pnlReportPage.Height));
-                    ev.Graphics?.DrawImage(bmp, 0, 0, ev.PageBounds.Width, ev.PageBounds.Height);
-                };
+                _printRowIndex = 0;
+                _printPageNumber = 0;
 
-                using var printDlg = new PrintDialog { Document = pd };
-                if (printDlg.ShowDialog() == DialogResult.OK)
+                using var pd = new PrintDocument();
+                pd.DocumentName = _tieuDeBaoCao;
+                pd.DefaultPageSettings.PaperSize = new PaperSize("A4", 827, 1169);
+                pd.DefaultPageSettings.Margins = new Margins(50, 50, 50, 50);
+
+                pd.BeginPrint += (_, _) =>
                 {
-                    pd.Print();
-                }
+                    _printRowIndex = 0;
+                    _printPageNumber = 0;
+                };
+                pd.PrintPage += DrawReportPage;
+
+                using var previewDlg = new PrintPreviewDialog
+                {
+                    Document = pd,
+                    Text = $"Xem trước bản in (Vector A4) - {_tieuDeBaoCao}",
+                    Width = 1024,
+                    Height = 768,
+                    UseAntiAlias = true
+                };
+                previewDlg.ShowDialog(this);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi lệnh in ấn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void DrawReportPage(object? sender, PrintPageEventArgs ev)
+        {
+            var g = ev.Graphics;
+            if (g == null)
+            {
+                ev.HasMorePages = false;
+                return;
+            }
+
+            _printPageNumber++;
+            Rectangle margin = ev.MarginBounds;
+            float y = margin.Top;
+
+            using var fontCompany = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            using var fontTitle = new Font("Segoe UI", 14f, FontStyle.Bold);
+            using var fontSub = new Font("Segoe UI", 9f, FontStyle.Italic);
+            using var fontHeader = new Font("Segoe UI", 9f, FontStyle.Bold);
+            using var fontCell = new Font("Segoe UI", 9f, FontStyle.Regular);
+            using var fontTotal = new Font("Segoe UI", 10.5f, FontStyle.Bold);
+
+            using var brushNavy = new SolidBrush(Color.FromArgb(15, 34, 64));
+            using var brushMuted = new SolidBrush(Color.FromArgb(100, 116, 139));
+            using var brushHeaderBg = new SolidBrush(Color.FromArgb(241, 245, 249));
+            using var brushZebra = new SolidBrush(Color.FromArgb(248, 250, 252));
+            using var brushGreen = new SolidBrush(Color.FromArgb(0, 136, 46));
+            using var penBorder = new Pen(Color.FromArgb(203, 213, 225), 0.75f);
+
+            var centerFmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            var leftFmt = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
+            var rightFmt = new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
+
+            // Report Header (page 1 full header; continuation header on subsequent pages)
+            if (_printPageNumber == 1)
+            {
+                g.DrawString("HỆ THỐNG BÁN LẺ NEXUS RETAIL  •  BÁO CÁO QUẢN TRỊ", fontCompany, brushMuted, new RectangleF(margin.Left, y, margin.Width, 20), centerFmt);
+                y += 24;
+                g.DrawString(_tieuDeBaoCao.ToUpperInvariant(), fontTitle, brushNavy, new RectangleF(margin.Left, y, margin.Width, 28), centerFmt);
+                y += 30;
+                g.DrawString($"Thời gian báo cáo: {_thoiGianBaoCao}  •  Đơn vị: VNĐ", fontSub, brushMuted, new RectangleF(margin.Left, y, margin.Width, 20), centerFmt);
+                y += 28;
+            }
+            else
+            {
+                g.DrawString($"{_tieuDeBaoCao.ToUpperInvariant()} (Tiếp theo)", fontHeader, brushNavy, new RectangleF(margin.Left, y, margin.Width, 22), leftFmt);
+                y += 26;
+            }
+
+            // Table column layout
+            int colCount = Math.Max(1, _duLieuBaoCao.Columns.Count);
+            float colWidth = (float)margin.Width / colCount;
+            const float headerHeight = 28f;
+            const float rowHeight = 24f;
+
+            // Table Header
+            for (int c = 0; c < colCount; c++)
+            {
+                var cellRect = new RectangleF(margin.Left + c * colWidth, y, colWidth, headerHeight);
+                g.FillRectangle(brushHeaderBg, cellRect);
+                g.DrawRectangle(penBorder, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+                string headerText = _duLieuBaoCao.Columns[c].ColumnName;
+                g.DrawString(headerText, fontHeader, brushNavy, RectangleF.Inflate(cellRect, -4, 0), centerFmt);
+            }
+            y += headerHeight;
+
+            // Table Rows (reserve 35px at bottom for page number footer)
+            float maxRowBottom = margin.Bottom - 35f;
+            while (_printRowIndex < _duLieuBaoCao.Rows.Count)
+            {
+                if (y + rowHeight > maxRowBottom)
+                {
+                    DrawPageFooter(g, margin, fontSub, brushMuted, _printPageNumber);
+                    ev.HasMorePages = true;
+                    return;
+                }
+
+                DataRow row = _duLieuBaoCao.Rows[_printRowIndex];
+                bool isAlt = _printRowIndex % 2 == 1;
+                for (int c = 0; c < colCount; c++)
+                {
+                    var cellRect = new RectangleF(margin.Left + c * colWidth, y, colWidth, rowHeight);
+                    if (isAlt) g.FillRectangle(brushZebra, cellRect);
+                    g.DrawRectangle(penBorder, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+
+                    object rawVal = row[c];
+                    bool isNumeric = rawVal is decimal or double or float or int or long;
+                    string cellText = rawVal switch
+                    {
+                        decimal d => d.ToString("#,##0"),
+                        double dbl => dbl.ToString("#,##0"),
+                        DateTime dt => dt.ToString("dd/MM/yyyy"),
+                        _ => rawVal?.ToString() ?? string.Empty
+                    };
+
+                    g.DrawString(cellText, fontCell, Brushes.Black, RectangleF.Inflate(cellRect, -4, 0), isNumeric ? rightFmt : leftFmt);
+                }
+
+                y += rowHeight;
+                _printRowIndex++;
+            }
+
+            // Summary & Signatures Section (start new page if insufficient room)
+            const float footerBlockHeight = 135f;
+            if (y + footerBlockHeight > maxRowBottom)
+            {
+                DrawPageFooter(g, margin, fontSub, brushMuted, _printPageNumber);
+                ev.HasMorePages = true;
+                return;
+            }
+
+            y += 12;
+            g.DrawString($"TỔNG CỘNG: {_thongTinTongKet}", fontTotal, brushGreen, new RectangleF(margin.Left, y, margin.Width, 24), rightFmt);
+            y += 32;
+
+            float sigWidth = margin.Width / 2f;
+            string leftSig = $"Hà Nội, ngày {DateTime.Now.Day} tháng {DateTime.Now.Month} năm {DateTime.Now.Year}\nNGƯỜI LẬP BIỂU\n(Ký và ghi rõ họ tên)\n\n\nNguyễn Văn Hùng";
+            string rightSig = "\nXÁC NHẬN CỦA QUẢN LÝ / GIẢNG VIÊN\n(Ký và ghi rõ họ tên)\n\n\nTS. Cao Thị Luyên";
+            g.DrawString(leftSig, fontCell, Brushes.Black, new RectangleF(margin.Left, y, sigWidth, 95), centerFmt);
+            g.DrawString(rightSig, fontCell, Brushes.Black, new RectangleF(margin.Left + sigWidth, y, sigWidth, 95), centerFmt);
+
+            DrawPageFooter(g, margin, fontSub, brushMuted, _printPageNumber);
+            ev.HasMorePages = false;
+        }
+
+        private static void DrawPageFooter(Graphics g, Rectangle margin, Font font, Brush brush, int pageNumber)
+        {
+            var fmt = new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Center };
+            g.DrawString($"In lúc {DateTime.Now:dd/MM/yyyy HH:mm}  •  Trang {pageNumber}", font, brush, new RectangleF(margin.Left, margin.Bottom - 22, margin.Width, 20), fmt);
         }
     }
 }

@@ -1,0 +1,157 @@
+@model NexusRetail.Shared.DTOs.NhapHang.HoaDonNhapDto
+@using NexusRetail.Shared.DTOs.SanPham
+@using NexusRetail.WebMvc.Models
+
+@{
+    ViewData["Title"] = "Lập phiếu nhập kho";
+    var suppliers = ViewBag.Suppliers as List<AdminSupplierOption> ?? new();
+    var employees = ViewBag.Employees as List<AdminEmployeeOption> ?? new();
+    var products = ViewBag.Products as List<SanPhamDto> ?? new();
+    var nextMaHdn = ViewBag.NextMaHdn as string ?? "HDN001";
+}
+
+<partial name="_AdminNav" />
+
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-box-arrow-in-down text-primary me-2"></i> Lập phiếu nhập kho mới</h3>
+            <small class="text-secondary">Mã phiếu dự kiến: <strong class="text-primary">@nextMaHdn</strong> (tự động cập nhật tồn kho &amp; giá bán niêm yết +10%)</small>
+        </div>
+        <a asp-action="NhapHang" class="btn btn-light border rounded-3 fw-bold px-3">
+            ← Quay lại danh sách
+        </a>
+    </div>
+
+    <form asp-action="TaoHoaDonNhap" method="post" class="card border-0 shadow-sm rounded-4 p-4">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold small">Nhà cung cấp <span class="text-danger">*</span></label>
+                <select asp-for="MaNcc" class="form-select rounded-3" required>
+                    <option value="">-- Chọn nhà cung cấp --</option>
+                    @foreach (var s in suppliers)
+                    {
+                        <option value="@s.MaNcc">@s.TenNcc (@s.MaNcc)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold small">Nhân viên tiếp nhận <span class="text-danger">*</span></label>
+                <select asp-for="MaNv" class="form-select rounded-3" required>
+                    <option value="">-- Chọn nhân viên --</option>
+                    @foreach (var emp in employees)
+                    {
+                        <option value="@emp.MaNv">@emp.TenNv (@emp.MaNv)</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold text-dark m-0">Chi tiết hàng hóa nhập kho</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-3 fw-bold" id="btnAddInboundRow">
+                <i class="bi bi-plus-lg me-1"></i> Thêm dòng sản phẩm
+            </button>
+        </div>
+
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle m-0" id="inboundRowsTable">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th style="min-width: 260px;">Sản phẩm</th>
+                        <th style="width: 110px;">Số lượng</th>
+                        <th style="width: 170px;">Đơn giá nhập (VNĐ)</th>
+                        <th style="width: 120px;">Chiết khấu (%)</th>
+                        <th style="width: 80px;" class="text-center">Xóa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Math.Max(1, Model.DanhSachMon.Count); i++)
+                    {
+                        var line = i < Model.DanhSachMon.Count ? Model.DanhSachMon[i] : new NexusRetail.Shared.DTOs.NhapHang.ChiTietHdnDto();
+                        <tr>
+                            <td>
+                                <select name="DanhSachMon[@i].MaSp" class="form-select form-select-sm inbound-product-select" required>
+                                    <option value="">-- Chọn sản phẩm --</option>
+                                    @foreach (var p in products)
+                                    {
+                                        <option value="@p.MaSp" data-price="@p.GiaNhap" selected="@(p.MaSp == line.MaSp)">@p.MaSp - @p.TenSp (Tồn: @p.SoLuong)</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <input name="DanhSachMon[@i].SoLuong" type="number" min="1" value="@Math.Max(1, line.SoLuong)" class="form-control form-control-sm" required />
+                            </td>
+                            <td>
+                                <input name="DanhSachMon[@i].DonGia" type="number" min="0" step="1000" value="@line.DonGia" class="form-control form-control-sm inbound-price-input" required />
+                            </td>
+                            <td>
+                                <input name="DanhSachMon[@i].KhuyenMai" type="number" min="0" max="100" step="0.5" value="@line.KhuyenMai" class="form-control form-control-sm" />
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-inbound">✕</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-action="NhapHang" class="btn btn-light border rounded-3 px-4">Hủy bỏ</a>
+            <button type="submit" class="btn btn-success rounded-3 fw-bold px-4">
+                <i class="bi bi-check2-circle me-1"></i> Xác nhận nhập kho
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const tableBody = document.querySelector("#inboundRowsTable tbody");
+            const addBtn = document.getElementById("btnAddInboundRow");
+            if (!tableBody || !addBtn) return;
+
+            const reindex = () => {
+                tableBody.querySelectorAll("tr").forEach((tr, idx) => {
+                    tr.querySelector("select")?.setAttribute("name", `DanhSachMon[${idx}].MaSp`);
+                    const inputs = tr.querySelectorAll("input");
+                    if (inputs[0]) inputs[0].setAttribute("name", `DanhSachMon[${idx}].SoLuong`);
+                    if (inputs[1]) inputs[1].setAttribute("name", `DanhSachMon[${idx}].DonGia`);
+                    if (inputs[2]) inputs[2].setAttribute("name", `DanhSachMon[${idx}].KhuyenMai`);
+                });
+            };
+
+            tableBody.addEventListener("change", e => {
+                if (e.target.classList.contains("inbound-product-select")) {
+                    const price = e.target.selectedOptions[0]?.dataset?.price;
+                    const priceInput = e.target.closest("tr")?.querySelector(".inbound-price-input");
+                    if (price && priceInput) priceInput.value = price;
+                }
+            });
+
+            tableBody.addEventListener("click", e => {
+                if (e.target.classList.contains("btn-remove-inbound") && tableBody.rows.length > 1) {
+                    e.target.closest("tr").remove();
+                    reindex();
+                }
+            });
+
+            addBtn.addEventListener("click", () => {
+                const clone = tableBody.rows[0].cloneNode(true);
+                clone.querySelector("select").selectedIndex = 0;
+                const inputs = clone.querySelectorAll("input");
+                if (inputs[0]) inputs[0].value = 1;
+                if (inputs[1]) inputs[1].value = 10000000;
+                if (inputs[2]) inputs[2].value = 0;
+                tableBody.appendChild(clone);
+                reindex();
+            });
+        })();
+    </script>
+}
+

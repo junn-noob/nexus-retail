@@ -1,0 +1,74 @@
+@model NexusRetail.Shared.DTOs.NhapHang.HoaDonNhapResponseDto
+
+@{
+    ViewData["Title"] = $"Chi tiết phiếu nhập {Model.MaHdn}";
+}
+
+<partial name="_AdminNav" />
+
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-file-earmark-text text-primary me-2"></i> Phiếu nhập kho @Model.MaHdn</h3>
+            <small class="text-secondary">Ngày nhập: @Model.NgayNhap.ToString("dd/MM/yyyy HH:mm")</small>
+        </div>
+        <a asp-action="NhapHang" class="btn btn-light border rounded-3 fw-bold px-3">
+            ← Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                <small class="text-secondary">Nhà cung cấp</small>
+                <div class="fw-bold text-primary fs-5 mt-1">@Model.TenNcc</div>
+                <div class="small text-secondary">Mã NCC: @Model.MaNcc</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                <small class="text-secondary">Nhân viên tiếp nhận</small>
+                <div class="fw-bold text-dark fs-5 mt-1">@Model.TenNv</div>
+                <div class="small text-secondary">Mã NV: @Model.MaNv</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                <small class="text-secondary">Tổng giá trị phiếu nhập</small>
+                <div class="fw-bold text-danger fs-4 mt-1">@Model.TongTien.ToString("N0") ₫</div>
+                <div class="small text-success">Đã cộng tồn kho &amp; cập nhật giá bán</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th class="ps-4">Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-end">Đơn giá nhập</th>
+                        <th class="text-end">Chiết khấu (%)</th>
+                        <th class="text-end pe-4">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in Model.SanPham)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">@line.MaSp</td>
+                            <td class="fw-semibold">@(line.TenSp ?? line.MaSp)</td>
+                            <td class="text-center fw-bold">@line.SoLuong</td>
+                            <td class="text-end">@line.DonGia.ToString("N0") ₫</td>
+                            <td class="text-end text-secondary">@line.KhuyenMai %</td>
+                            <td class="text-end fw-bold text-danger pe-4">@line.ThanhTien.ToString("N0") ₫</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

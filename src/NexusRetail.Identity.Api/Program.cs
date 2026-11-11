@@ -6,6 +6,7 @@ using NexusRetail.Identity.Api.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -24,7 +25,13 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppIdentityDbContext>()
 .AddDefaultTokenProviders();
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "DuyMobileNexusRetailSecretKey2026SuperSecure!";
+var jwtKey = Environment.GetEnvironmentVariable("NEXUS_JWT_SECRET")
+             ?? builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "Jwt:Key must be configured (>= 32 chars) via NEXUS_JWT_SECRET, appsettings.Development.json, or appsettings.Local.json.");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "DuyMobile.Identity.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "DuyMobile.Clients";
 
@@ -47,7 +54,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {

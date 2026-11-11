@@ -32,6 +32,17 @@ namespace NexusRetail.WebMvc.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> FilterProducts(int page = 1, string? q = null, string? price = null, string? brand = null)
+        {
+            ViewBag.CurrentPrice = price;
+            ViewBag.CurrentQ = q;
+            ViewBag.CurrentBrand = brand;
+
+            var data = await _catalogClient.GetProductsAsync(page, 9, q, brand, price);
+            return PartialView("_ProductCatalogPartial", data);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> LaySanPhamTheoNhanHieu(string? maNhanHieu, int page = 1)
         {
             var data = await _catalogClient.GetProductsByBrandAsync(maNhanHieu, page, 9);
