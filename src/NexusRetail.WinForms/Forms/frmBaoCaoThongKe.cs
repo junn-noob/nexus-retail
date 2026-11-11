@@ -39,6 +39,19 @@ namespace NexusRetail.WinForms.Forms
             UiTheme.ApplySecondaryButton(btnBieuMauKho, "📄 Báo Cáo Xuất Nhập Tồn");
             UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng (Esc)");
 
+            // Nút mở Báo cáo Trực quan mô phỏng SAP Crystal Reports Viewer
+            var btnCrystal = new Button
+            {
+                Text = "📊 Báo Cáo Trực Quan (Crystal)",
+                Size = new Size(210, 36),
+                Location = new Point(520, 50),
+                Cursor = Cursors.Hand,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+            };
+            UiTheme.ApplyPrimaryButton(btnCrystal, "📊 Báo Cáo Trực Quan (Crystal)");
+            btnCrystal.Click += (s, e) => MoVisualReportViewer();
+            pnlControls.Controls.Add(btnCrystal);
+
             lblTongKet.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
             lblTongKet.ForeColor = UiTheme.PrimaryDark;
         }
@@ -387,6 +400,39 @@ namespace NexusRetail.WinForms.Forms
                 btnBieuMauKho.Enabled = true;
                 btnBieuMauKho.Text = "📋 Báo Cáo Xuất Nhập Tồn";
             }
+        }
+
+        private void MoVisualReportViewer()
+        {
+            if (dgvBaoCao.Rows.Count == 0)
+            {
+                MessageBox.Show("Vui lòng nhấn 'Xem Báo Cáo' để tải dữ liệu trước khi mở chế độ xem trực quan Crystal Report!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var dt = new System.Data.DataTable();
+            foreach (DataGridViewColumn col in dgvBaoCao.Columns)
+            {
+                dt.Columns.Add(col.HeaderText);
+            }
+            foreach (DataGridViewRow row in dgvBaoCao.Rows)
+            {
+                if (row.IsNewRow) continue;
+                var r = dt.NewRow();
+                for (int i = 0; i < dgvBaoCao.Columns.Count; i++)
+                {
+                    r[i] = row.Cells[i].Value?.ToString() ?? "";
+                }
+                dt.Rows.Add(r);
+            }
+
+            string tieuDe = cboLoaiBaoCao.SelectedItem?.ToString() ?? "BÁO CÁO THỐNG KÊ DOANH THU";
+            string thoiGian = $"Tháng {numThang.Value} / Năm {numNam.Value}";
+            if (cboLoaiBaoCao.SelectedIndex == 1) thoiGian = $"Quý {numQuy.Value} / Năm {numNam.Value}";
+            else if (cboLoaiBaoCao.SelectedIndex == 2) thoiGian = $"Năm {numNam.Value}";
+
+            using var viewer = new frmVisualReportViewer(tieuDe, thoiGian, dt, lblTongKet.Text);
+            viewer.ShowDialog(this);
         }
 
         private void btnDong_Click(object sender, EventArgs e)

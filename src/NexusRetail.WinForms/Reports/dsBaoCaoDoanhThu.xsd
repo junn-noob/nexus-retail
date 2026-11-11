@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsBaoCaoDoanhThu" 
+    targetNamespace="http://tempuri.org/dsBaoCaoDoanhThu.xsd" 
+    xmlns:mstns="http://tempuri.org/dsBaoCaoDoanhThu.xsd" 
+    xmlns="http://tempuri.org/dsBaoCaoDoanhThu.xsd" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" 
+    xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" 
+    attributeFormDefault="qualified" 
+    elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsBaoCaoDoanhThu" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dtSanPhamBanChay">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Stt" type="xs:int" minOccurs="0" />
+              <xs:element name="MaSp" type="xs:string" minOccurs="0" />
+              <xs:element name="TenSp" type="xs:string" minOccurs="0" />
+              <xs:element name="TenLoai" type="xs:string" minOccurs="0" />
+              <xs:element name="TenNhanHieu" type="xs:string" minOccurs="0" />
+              <xs:element name="TongSoLuong" type="xs:int" minOccurs="0" />
+              <xs:element name="TongDoanhThu" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="dtHdnLonNhat">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Stt" type="xs:int" minOccurs="0" />
+              <xs:element name="MaHdn" type="xs:string" minOccurs="0" />
+              <xs:element name="NgayNhap" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="TenNcc" type="xs:string" minOccurs="0" />
+              <xs:element name="TenNv" type="xs:string" minOccurs="0" />
+              <xs:element name="TongTien" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="dtDoanhSoNam">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Stt" type="xs:int" minOccurs="0" />
+              <xs:element name="MaHdb" type="xs:string" minOccurs="0" />
+              <xs:element name="NgayBan" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="TenKhach" type="xs:string" minOccurs="0" />
+              <xs:element name="TenNv" type="xs:string" minOccurs="0" />
+              <xs:element name="TongTien" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="dt5NvDoanhSoThap">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Stt" type="xs:int" minOccurs="0" />
+              <xs:element name="MaNv" type="xs:string" minOccurs="0" />
+              <xs:element name="TenNv" type="xs:string" minOccurs="0" />
+              <xs:element name="GioiTinh" type="xs:string" minOccurs="0" />
+              <xs:element name="DienThoai" type="xs:string" minOccurs="0" />
+              <xs:element name="TongTienBan" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="dtXuatNhapTon">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Stt" type="xs:int" minOccurs="0" />
+              <xs:element name="MaSp" type="xs:string" minOccurs="0" />
+              <xs:element name="TenSp" type="xs:string" minOccurs="0" />
+              <xs:element name="TenNhanHieu" type="xs:string" minOccurs="0" />
+              <xs:element name="NhapSl" type="xs:int" minOccurs="0" />
+              <xs:element name="NhapTien" type="xs:decimal" minOccurs="0" />
+              <xs:element name="XuatSl" type="xs:int" minOccurs="0" />
+              <xs:element name="XuatTien" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TonCuoiSl" type="xs:int" minOccurs="0" />
+              <xs:element name="TonCuoiTien" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TrangThai" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
+
