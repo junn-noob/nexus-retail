@@ -7,6 +7,9 @@ namespace NexusRetail.WinForms.Forms
     {
         private readonly string _username;
         private readonly string _role;
+        private readonly IPosAuthClient _authClient = WinFormsApiClient.Auth;
+        private readonly IPosCatalogClient _catalogClient = WinFormsApiClient.Catalog;
+        private readonly IPosSalesClient _salesClient = WinFormsApiClient.Sales;
         private readonly System.Windows.Forms.Timer _clockTimer;
         public bool IsLogoutRequested { get; private set; }
 
@@ -106,13 +109,13 @@ namespace NexusRetail.WinForms.Forms
         {
             try
             {
-                var products = await WinFormsApiClient.Instance.GetProductsAsync();
+                var products = await _catalogClient.GetProductsAsync();
                 lblCard3Val.Text = $"{products.Count} Sản Phẩm";
                 int lowStock = products.Count(p => p.SoLuong <= 5);
                 lblCard4Val.Text = lowStock > 0 ? $"⚠️ {lowStock} SP sắp hết" : "Tồn kho: Ổn định";
                 lblCard4Val.ForeColor = lowStock > 0 ? Color.FromArgb(220, 38, 38) : Color.FromArgb(16, 185, 129);
 
-                var invoices = await WinFormsApiClient.Instance.SearchSaleInvoicesAsync();
+                var invoices = await _salesClient.SearchSaleInvoicesAsync();
                 lblCard2Val.Text = $"{invoices.Count} Hóa Đơn";
                 decimal totalRev = invoices.Sum(i => i.TongTien);
                 lblCard1Val.Text = $"{totalRev:N0} ₫";
@@ -181,7 +184,7 @@ namespace NexusRetail.WinForms.Forms
             if (confirm == DialogResult.Yes)
             {
                 IsLogoutRequested = true;
-                NexusRetail.WinForms.Services.WinFormsApiClient.Instance.Logout();
+                _authClient.Logout();
                 Close();
             }
         }

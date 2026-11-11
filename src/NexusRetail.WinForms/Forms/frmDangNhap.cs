@@ -5,6 +5,8 @@ namespace NexusRetail.WinForms.Forms
 {
     public partial class frmDangNhap : Form
     {
+        private readonly IPosAuthClient _authClient = WinFormsApiClient.Auth;
+
         public frmDangNhap()
         {
             InitializeComponent();
@@ -38,7 +40,7 @@ namespace NexusRetail.WinForms.Forms
             btnDangNhap.Enabled = false;
             btnDangNhap.Text = "Đang xác thực...";
 
-            var (success, role, message) = await WinFormsApiClient.Instance.LoginAsync(user, pass);
+            var (success, role, message) = await _authClient.LoginAsync(user, pass);
 
             btnDangNhap.Enabled = true;
             btnDangNhap.Text = "🔐 ĐĂNG NHẬP HỆ THỐNG";

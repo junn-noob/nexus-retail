@@ -6,6 +6,8 @@ namespace NexusRetail.WinForms.Forms
 {
     public partial class frmTraCuuHoaDon : Form
     {
+        private readonly IPosSalesClient _salesClient = WinFormsApiClient.Sales;
+        private readonly IPosInboundClient _inboundClient = WinFormsApiClient.Inbound;
         private List<InvoiceSearchItem> _saleList = new();
         private List<InboundInvoiceSearchItem> _inboundList = new();
 
@@ -117,7 +119,7 @@ namespace NexusRetail.WinForms.Forms
             dgvChiTietBan.Rows.Clear();
             var culture = new CultureInfo("vi-VN");
 
-            _saleList = await WinFormsApiClient.Instance.SearchSaleInvoicesAsync(q);
+            _saleList = await _salesClient.SearchSaleInvoicesAsync(q);
             if (IsDisposed || Disposing) return;
             foreach (var item in _saleList)
             {
@@ -140,7 +142,7 @@ namespace NexusRetail.WinForms.Forms
             dgvChiTietNhap.Rows.Clear();
             var culture = new CultureInfo("vi-VN");
 
-            _inboundList = await WinFormsApiClient.Instance.SearchInboundInvoicesAsync();
+            _inboundList = await _inboundClient.SearchInboundInvoicesAsync();
             if (IsDisposed || Disposing) return;
 
             var filtered = _inboundList.AsEnumerable();
@@ -175,7 +177,7 @@ namespace NexusRetail.WinForms.Forms
             string maHdb = dgvHoaDonBan.SelectedRows[0].Cells["colMaHdb"].Value?.ToString() ?? "";
             if (string.IsNullOrEmpty(maHdb)) return;
 
-            var details = await WinFormsApiClient.Instance.GetSaleInvoiceDetailsAsync(maHdb);
+            var details = await _salesClient.GetSaleInvoiceDetailsAsync(maHdb);
             dgvChiTietBan.Rows.Clear();
             var culture = new CultureInfo("vi-VN");
 
@@ -199,7 +201,7 @@ namespace NexusRetail.WinForms.Forms
             string maHdn = dgvHoaDonNhap.SelectedRows[0].Cells["colMaHdn"].Value?.ToString() ?? "";
             if (string.IsNullOrEmpty(maHdn)) return;
 
-            var details = await WinFormsApiClient.Instance.GetInboundInvoiceDetailsAsync(maHdn);
+            var details = await _inboundClient.GetInboundInvoiceDetailsAsync(maHdn);
             dgvChiTietNhap.Rows.Clear();
             var culture = new CultureInfo("vi-VN");
 
@@ -286,7 +288,7 @@ namespace NexusRetail.WinForms.Forms
 
             try
             {
-                var details = await WinFormsApiClient.Instance.GetSaleInvoiceDetailsAsync(maHdb);
+                var details = await _salesClient.GetSaleInvoiceDetailsAsync(maHdb);
                 var bieuMauItems = new List<ItemBieuMauBan>();
 
                 for (int i = 0; i < details.Count; i++)
@@ -345,7 +347,7 @@ namespace NexusRetail.WinForms.Forms
 
             try
             {
-                var details = await WinFormsApiClient.Instance.GetInboundInvoiceDetailsAsync(maHdn);
+                var details = await _inboundClient.GetInboundInvoiceDetailsAsync(maHdn);
                 var bieuMauItems = new List<ItemBieuMauNhap>();
 
                 for (int i = 0; i < details.Count; i++)

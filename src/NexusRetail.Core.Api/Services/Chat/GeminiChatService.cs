@@ -55,7 +55,7 @@ namespace NexusRetail.Core.Api.Services.Chat
             }
 
             // 2. Chọn model từ appsettings.json.
-            string configuredModel = DefaultModel;
+            string configuredModel = _config["Gemini:Model"] ?? DefaultModel;
 
             configuredModel = configuredModel.Trim();
 

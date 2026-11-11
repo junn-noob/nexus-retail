@@ -9,6 +9,8 @@ namespace NexusRetail.WinForms.Forms
     public partial class frmHoaDonNhap : Form
     {
         private readonly string _currentUser;
+        private readonly IPosCatalogClient _catalogClient = WinFormsApiClient.Catalog;
+        private readonly IPosInboundClient _inboundClient = WinFormsApiClient.Inbound;
         private List<SanPhamDto> _productList = new();
         private List<NhaCungCapItem> _supplierList = new();
         private List<NhanVienItem> _employeeList = new();
@@ -71,14 +73,14 @@ namespace NexusRetail.WinForms.Forms
             try
             {
                 // 1. Tải danh sách nhà cung cấp
-                _supplierList = await WinFormsApiClient.Instance.GetSuppliersAsync();
+                _supplierList = await _inboundClient.GetSuppliersAsync();
                 if (IsDisposed || Disposing) return;
                 cboNhaCungCap.DataSource = _supplierList;
                 cboNhaCungCap.DisplayMember = "TenNcc";
                 cboNhaCungCap.ValueMember = "MaNcc";
 
                 // 2. Tải danh sách nhân viên
-                _employeeList = await WinFormsApiClient.Instance.GetEmployeesAsync();
+                _employeeList = await _inboundClient.GetEmployeesAsync();
                 if (IsDisposed || Disposing) return;
                 cboNhanVien.DataSource = _employeeList;
                 cboNhanVien.DisplayMember = "TenNv";
@@ -92,7 +94,7 @@ namespace NexusRetail.WinForms.Forms
                 }
 
                 // 3. Tải danh mục sản phẩm
-                _productList = await WinFormsApiClient.Instance.GetProductsAsync();
+                _productList = await _catalogClient.GetProductsAsync();
                 if (IsDisposed || Disposing) return;
                 cboSanPham.DataSource = _productList;
                 cboSanPham.DisplayMember = "TenSp";
@@ -263,7 +265,7 @@ namespace NexusRetail.WinForms.Forms
                     }).ToList()
                 };
 
-                var (success, message, maHdn, tongTien) = await WinFormsApiClient.Instance.CreateInboundOrderAsync(dto);
+                var (success, message, maHdn, tongTien) = await _inboundClient.CreateInboundOrderAsync(dto);
 
                 if (success)
                 {

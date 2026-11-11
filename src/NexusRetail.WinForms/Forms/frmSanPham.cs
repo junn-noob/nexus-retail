@@ -8,7 +8,7 @@ namespace NexusRetail.WinForms.Forms
     public partial class frmSanPham : Form
     {
         private readonly string _role;
-        private readonly IPosCatalogClient _catalogClient = WinFormsApiClient.Instance;
+        private readonly IPosCatalogClient _catalogClient = WinFormsApiClient.Catalog;
         private List<SanPhamDto> _products = new();
 
         public frmSanPham(string role)

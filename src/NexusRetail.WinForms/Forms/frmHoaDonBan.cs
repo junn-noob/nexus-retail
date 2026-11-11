@@ -9,6 +9,8 @@ namespace NexusRetail.WinForms.Forms
     public partial class frmHoaDonBan : Form
     {
         private readonly string _nhanVien;
+        private readonly IPosCatalogClient _catalogClient = WinFormsApiClient.Catalog;
+        private readonly IPosSalesClient _salesClient = WinFormsApiClient.Sales;
         private List<SanPhamDto> _products = new();
         private readonly DataTable _cartTable = new();
 
@@ -46,7 +48,7 @@ namespace NexusRetail.WinForms.Forms
 
             try
             {
-                var orders = await WinFormsApiClient.Instance.SearchSaleInvoicesAsync(sdt);
+                var orders = await _salesClient.SearchSaleInvoicesAsync(sdt);
                 var existing = orders.FirstOrDefault(x => x.DienThoai == sdt && !string.IsNullOrWhiteSpace(x.TenKhach));
                 if (existing != null && (string.IsNullOrWhiteSpace(txtTenKhach.Text) || txtTenKhach.Text == "Khách mua tại quầy"))
                 {
@@ -168,7 +170,7 @@ namespace NexusRetail.WinForms.Forms
         {
             try
             {
-                _products = await WinFormsApiClient.Instance.GetProductsAsync();
+                _products = await _catalogClient.GetProductsAsync();
                 if (IsDisposed || Disposing) return;
                 cboSanPham.DataSource = _products;
                 cboSanPham.DisplayMember = "TenSp";
@@ -297,7 +299,7 @@ namespace NexusRetail.WinForms.Forms
             }
 
             // Lấy mã hóa đơn bán kế tiếp chuẩn từ Server (Ví dụ: HDB13)
-            string? maHdb = await WinFormsApiClient.Instance.GetNextInvoiceCodeAsync();
+            string? maHdb = await _salesClient.GetNextInvoiceCodeAsync();
             if (string.IsNullOrWhiteSpace(maHdb))
             {
                 MessageBox.Show("Không thể kết nối đến máy chủ API để tạo mã hóa đơn! Vui lòng đảm bảo dịch vụ Backend đang hoạt động.", "Lỗi kết nối", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -343,7 +345,7 @@ namespace NexusRetail.WinForms.Forms
                 }).ToList()
             };
 
-            var (success, message, maHdb, _) = await WinFormsApiClient.Instance.CreateSaleOrderAsync(dto);
+            var (success, message, maHdb, _) = await _salesClient.CreateSaleOrderAsync(dto);
 
             if (success)
             {

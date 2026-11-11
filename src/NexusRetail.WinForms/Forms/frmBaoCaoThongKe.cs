@@ -7,6 +7,8 @@ namespace NexusRetail.WinForms.Forms
 {
     public partial class frmBaoCaoThongKe : Form
     {
+        private readonly IPosReportClient _reportClient = WinFormsApiClient.Report;
+
         public frmBaoCaoThongKe()
         {
             InitializeComponent();
@@ -131,7 +133,7 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colSoLuong", "Số Lượng Đã Bán");
                             dgvBaoCao.Columns.Add("colDoanhThu", "Tổng Doanh Thu");
 
-                            var data = await WinFormsApiClient.Instance.GetReportSpBanChayAsync(thang, nam);
+                            var data = await _reportClient.GetReportSpBanChayAsync(thang, nam);
                             if (IsDisposed || Disposing) return;
                             decimal tongDoanhThu = 0;
                             int tongSl = 0;
@@ -157,7 +159,7 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colNv", "Nhân Viên Nhập");
                             dgvBaoCao.Columns.Add("colTongTien", "Tổng Tiền Nhập");
 
-                            var data = await WinFormsApiClient.Instance.GetReportHdnLonNhatAsync(quy, nam);
+                            var data = await _reportClient.GetReportHdnLonNhatAsync(quy, nam);
                             decimal tongTien = 0;
                             for (int i = 0; i < data.Count; i++)
                             {
@@ -180,7 +182,7 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colNv", "Nhân Viên Thu Ngân");
                             dgvBaoCao.Columns.Add("colTongTien", "Tổng Tiền HĐ");
 
-                            var data = await WinFormsApiClient.Instance.GetReportDoanhSoNamAsync(nam);
+                            var data = await _reportClient.GetReportDoanhSoNamAsync(nam);
                             decimal tongDoanhThu = 0;
                             for (int i = 0; i < data.Count; i++)
                             {
@@ -203,7 +205,7 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colDienThoai", "Số Điện Thoại");
                             dgvBaoCao.Columns.Add("colDoanhSo", "Doanh Số Đạt Được");
 
-                            var data = await WinFormsApiClient.Instance.GetReportNvDoanhSoThapAsync(thang, nam);
+                            var data = await _reportClient.GetReportNvDoanhSoThapAsync(thang, nam);
                             for (int i = 0; i < data.Count; i++)
                             {
                                 var item = data[i];
@@ -229,7 +231,7 @@ namespace NexusRetail.WinForms.Forms
                             dgvBaoCao.Columns.Add("colTonCuoiTien", "Giá Trị Tồn Kho");
                             dgvBaoCao.Columns.Add("colTrangThai", "Trạng Thái");
 
-                            var data = await WinFormsApiClient.Instance.GetReportTonKhoAsync(thang, nam);
+                            var data = await _reportClient.GetReportTonKhoAsync(thang, nam);
                             int tongTon = 0;
                             decimal tongGiaTriTon = 0;
 
@@ -322,7 +324,7 @@ namespace NexusRetail.WinForms.Forms
                 btnXuatExcel.Enabled = false;
                 btnXuatExcel.Text = "⏳ Đang kết xuất...";
 
-                var (success, message) = await WinFormsApiClient.Instance.DownloadExcelAsync(endpoint, sfd.FileName);
+                var (success, message) = await _reportClient.DownloadExcelAsync(endpoint, sfd.FileName);
 
                 btnXuatExcel.Enabled = true;
                 btnXuatExcel.Text = "📊 Xuất Excel";
@@ -360,7 +362,7 @@ namespace NexusRetail.WinForms.Forms
                 btnBieuMauKho.Enabled = false;
                 btnBieuMauKho.Text = "⏳ Đang kết xuất...";
 
-                var data = await WinFormsApiClient.Instance.GetReportTonKhoAsync(thang, nam);
+                var data = await _reportClient.GetReportTonKhoAsync(thang, nam);
                 var list = new List<ItemBieuMauKho>();
 
                 for (int i = 0; i < data.Count; i++)

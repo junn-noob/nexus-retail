@@ -92,7 +92,7 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <label asp-for="Password" class="form-label small fw-bold text-dark m-0">Mật khẩu</label>
-                                    <a href="javascript:void(0)" onclick="alert('Vui lòng liên hệ hotline 1800.6868 hoặc dùng các tài khoản Demo có sẵn phía dưới.');" class="small text-decoration-none">Quên mật khẩu?</a>
+                                    <a href="javascript:void(0)" onclick="alert('Vui lòng liên hệ hotline 1800.6868 hoặc quản trị viên để được hỗ trợ đặt lại mật khẩu.');" class="small text-decoration-none">Quên mật khẩu?</a>
                                 </div>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-lock"></i></span>
@@ -128,16 +128,6 @@
 
 @section Scripts {
     <script>
-        function fillDemo(username, password) {
-            const u = document.getElementById('loginUsername');
-            const p = document.getElementById('loginPassword');
-            if (u && p) {
-                u.value = username;
-                p.value = password;
-                u.focus();
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = document.getElementById('togglePwd');
             const pwdInput = document.getElementById('loginPassword');

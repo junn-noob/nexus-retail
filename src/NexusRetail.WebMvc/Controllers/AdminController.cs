@@ -77,6 +77,37 @@ namespace NexusRetail.WebMvc.Controllers
             ViewBag.ManHinhs = filter?.ManHinh ?? new List<ScreenOption>();
         }
 
+        private async Task<(bool Ok, string FileName)> SaveProductImageAsync(IFormFile? file, string fallbackFileName)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return (true, fallbackFileName);
+            }
+
+            var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExts.Contains(ext))
+            {
+                ModelState.AddModelError("FileAnh", "Chỉ chấp nhận định dạng ảnh .jpg, .png, .webp!");
+                return (false, fallbackFileName);
+            }
+
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                ModelState.AddModelError("FileAnh", "Dung lượng ảnh không được vượt quá 5MB!");
+                return (false, fallbackFileName);
+            }
+
+            string fileName = $"sp_{DateTime.UtcNow.Ticks}{ext}";
+            var uploadDir = Path.Combine(_env.WebRootPath, "images", "products");
+            Directory.CreateDirectory(uploadDir);
+            var filePath = Path.Combine(uploadDir, fileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+            return (true, fileName);
+        }
+
         // 3. THÊM SẢN PHẨM MỚI (Tự tính Giá Bán niêm yết + Upload ảnh)
         [HttpGet]
         public async Task<IActionResult> ThemSanPham()
@@ -100,35 +131,11 @@ namespace NexusRetail.WebMvc.Controllers
                 return View(model);
             }
 
-            string fileName = "iphone_16_plus_black_37a9bceca0.png";
-            if (model.FileAnh != null && model.FileAnh.Length > 0)
+            var (imageOk, fileName) = await SaveProductImageAsync(model.FileAnh, "iphone_16_plus_black_37a9bceca0.png");
+            if (!imageOk)
             {
-                var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-                var ext = Path.GetExtension(model.FileAnh.FileName).ToLower();
-
-                if (!allowedExts.Contains(ext))
-                {
-                    ModelState.AddModelError("FileAnh", "Chỉ chấp nhận định dạng ảnh .jpg, .png, .webp!");
-                    await LoadCategoriesViewBagAsync();
-                    return View(model);
-                }
-
-                if (model.FileAnh.Length > 5 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("FileAnh", "Dung lượng ảnh không được vượt quá 5MB!");
-                    await LoadCategoriesViewBagAsync();
-                    return View(model);
-                }
-
-                fileName = $"sp_{DateTime.UtcNow.Ticks}{ext}";
-                var uploadDir = Path.Combine(_env.WebRootPath, "images", "products");
-                if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
-                var filePath = Path.Combine(uploadDir, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await model.FileAnh.CopyToAsync(stream);
-                }
+                await LoadCategoriesViewBagAsync();
+                return View(model);
             }
 
             var dto = new ThemSanPhamDto
@@ -199,28 +206,11 @@ namespace NexusRetail.WebMvc.Controllers
                 return View(model);
             }
 
-            string fileName = model.Anh ?? "iphone_16_plus_black_37a9bceca0.png";
-            if (model.FileAnh != null && model.FileAnh.Length > 0)
+            var (imageOk, fileName) = await SaveProductImageAsync(model.FileAnh, model.Anh ?? "iphone_16_plus_black_37a9bceca0.png");
+            if (!imageOk)
             {
-                var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-                var ext = Path.GetExtension(model.FileAnh.FileName).ToLower();
-
-                if (!allowedExts.Contains(ext))
-                {
-                    ModelState.AddModelError("FileAnh", "Chỉ chấp nhận định dạng ảnh .jpg, .png, .webp!");
-                    await LoadCategoriesViewBagAsync();
-                    return View(model);
-                }
-
-                fileName = $"sp_{DateTime.UtcNow.Ticks}{ext}";
-                var uploadDir = Path.Combine(_env.WebRootPath, "images", "products");
-                if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
-                var filePath = Path.Combine(uploadDir, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await model.FileAnh.CopyToAsync(stream);
-                }
+                await LoadCategoriesViewBagAsync();
+                return View(model);
             }
 
             var dto = new SuaSanPhamDto

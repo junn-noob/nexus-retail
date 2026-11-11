@@ -59,7 +59,6 @@ namespace NexusRetail.WinForms.Services
         Task<string?> GetNextInvoiceCodeAsync();
         Task<(bool Success, string Message, string? MaHdb, decimal TongTien)> CreateSaleOrderAsync(HoaDonBanDto dto);
         Task<PaymentCheckResult> CheckBankPaymentStatusAsync(string maHdb, decimal? expectedAmount = null);
-        Task<(bool Success, string Message)> SimulateBankPaymentAsync(string maHdb, decimal amount);
         Task<List<InvoiceSearchItem>> SearchSaleInvoicesAsync(string? q = null);
         Task<List<InvoiceDetailItem>> GetSaleInvoiceDetailsAsync(string maHdb);
     }

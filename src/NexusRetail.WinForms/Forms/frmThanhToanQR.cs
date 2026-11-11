@@ -79,7 +79,7 @@ namespace NexusRetail.WinForms.Forms
             try
             {
                 // Xây dựng chuỗi EMVCo chuẩn VietQR MBBank
-                string emvPayload = BuildVietQrEmvCoString(
+                string emvPayload = VietQrHelper.BuildVietQrEmvCoString(
                     bin: "970422", // MBBank NAPAS BIN
                     accountNumber: _accountNumber,
                     amount: (long)_soTien,
@@ -105,7 +105,7 @@ namespace NexusRetail.WinForms.Forms
                 // Ưu tiên 2: Fallback với PngByteQRCode (tạo Bitmap độc lập an toàn bộ nhớ)
                 try
                 {
-                    string emvPayload = BuildVietQrEmvCoString("970422", _accountNumber, (long)_soTien, $"DUYMOBILE {_maHdb}");
+                    string emvPayload = VietQrHelper.BuildVietQrEmvCoString("970422", _accountNumber, (long)_soTien, $"DUYMOBILE {_maHdb}");
                     using var qrGen = new QRCodeGenerator();
                     using var qrData = qrGen.CreateQrCode(emvPayload, QRCodeGenerator.ECCLevel.M);
                     using var pngQr = new PngByteQRCode(qrData);
@@ -131,22 +131,11 @@ namespace NexusRetail.WinForms.Forms
             }
         }
 
-        #region Thuật toán tạo chuỗi VietQR EMVCo (NAPAS 247) 100% Offline
-        public static string BuildVietQrEmvCoString(string bin, string accountNumber, long amount, string content)
-            => VietQrHelper.BuildVietQrEmvCoString(bin, accountNumber, amount, content);
-
-        public static string RemoveDiacritics(string text)
-            => VietQrHelper.RemoveDiacritics(text);
-
-        public static string ComputeCrc16(string data)
-            => VietQrHelper.ComputeCrc16(data);
-        #endregion
-
         private async void PollingTimer_Tick(object? sender, EventArgs e)
         {
             if (IsDisposed || !Visible || IsPaymentSuccessful) return;
 
-            var result = await WinFormsApiClient.Instance.CheckBankPaymentStatusAsync(_maHdb, _soTien);
+            var result = await WinFormsApiClient.Sales.CheckBankPaymentStatusAsync(_maHdb, _soTien);
 
             if (IsDisposed || !Visible || IsPaymentSuccessful) return;
 
@@ -243,7 +232,7 @@ namespace NexusRetail.WinForms.Forms
 
             try
             {
-                var result = await WinFormsApiClient.Instance.CheckBankPaymentStatusAsync(_maHdb, _soTien);
+                var result = await WinFormsApiClient.Sales.CheckBankPaymentStatusAsync(_maHdb, _soTien);
 
                 if (IsDisposed || !Visible || IsPaymentSuccessful) return;
 
