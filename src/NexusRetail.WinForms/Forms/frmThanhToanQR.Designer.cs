@@ -44,6 +44,7 @@ namespace NexusRetail.WinForms.Forms
             this.pnlStatus = new System.Windows.Forms.Panel();
             this.lblStatus = new System.Windows.Forms.Label();
             this.btnKiemTra = new System.Windows.Forms.Button();
+            this.btnGiaLap = new System.Windows.Forms.Button();
             this.btnDong = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picQr)).BeginInit();
@@ -262,15 +263,31 @@ namespace NexusRetail.WinForms.Forms
             this.btnKiemTra.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnKiemTra.FlatAppearance.BorderSize = 0;
             this.btnKiemTra.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnKiemTra.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnKiemTra.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnKiemTra.ForeColor = System.Drawing.Color.White;
             this.btnKiemTra.Location = new System.Drawing.Point(20, 595);
             this.btnKiemTra.Name = "btnKiemTra";
-            this.btnKiemTra.Size = new System.Drawing.Size(310, 44);
+            this.btnKiemTra.Size = new System.Drawing.Size(200, 44);
             this.btnKiemTra.TabIndex = 4;
-            this.btnKiemTra.Text = "🔄 Kiểm Tra Thanh Toán (F5)";
+            this.btnKiemTra.Text = "🔄 Kiểm Tra (F5)";
             this.btnKiemTra.UseVisualStyleBackColor = false;
             this.btnKiemTra.Click += new System.EventHandler(this.btnKiemTra_Click);
+            // 
+            // btnGiaLap
+            // 
+            this.btnGiaLap.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
+            this.btnGiaLap.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnGiaLap.FlatAppearance.BorderSize = 0;
+            this.btnGiaLap.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnGiaLap.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnGiaLap.ForeColor = System.Drawing.Color.White;
+            this.btnGiaLap.Location = new System.Drawing.Point(228, 595);
+            this.btnGiaLap.Name = "btnGiaLap";
+            this.btnGiaLap.Size = new System.Drawing.Size(154, 44);
+            this.btnGiaLap.TabIndex = 5;
+            this.btnGiaLap.Text = "🧪 Giả lập đối soát";
+            this.btnGiaLap.UseVisualStyleBackColor = false;
+            this.btnGiaLap.Click += new System.EventHandler(this.btnGiaLap_Click);
             // 
             // btnDong
             // 
@@ -280,11 +297,11 @@ namespace NexusRetail.WinForms.Forms
             this.btnDong.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDong.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnDong.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.btnDong.Location = new System.Drawing.Point(340, 595);
+            this.btnDong.Location = new System.Drawing.Point(390, 595);
             this.btnDong.Name = "btnDong";
-            this.btnDong.Size = new System.Drawing.Size(160, 44);
-            this.btnDong.TabIndex = 5;
-            this.btnDong.Text = "Hủy Bỏ (Esc)";
+            this.btnDong.Size = new System.Drawing.Size(110, 44);
+            this.btnDong.TabIndex = 6;
+            this.btnDong.Text = "Hủy (Esc)";
             this.btnDong.UseVisualStyleBackColor = false;
             this.btnDong.Click += new System.EventHandler(this.btnDong_Click);
             // 
@@ -295,6 +312,7 @@ namespace NexusRetail.WinForms.Forms
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(520, 660);
             this.Controls.Add(this.btnDong);
+            this.Controls.Add(this.btnGiaLap);
             this.Controls.Add(this.btnKiemTra);
             this.Controls.Add(this.pnlStatus);
             this.Controls.Add(this.pnlInfo);
@@ -336,6 +354,7 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Panel pnlStatus;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.Button btnKiemTra;
+        private System.Windows.Forms.Button btnGiaLap;
         private System.Windows.Forms.Button btnDong;
     }
 }

@@ -10,8 +10,8 @@
 </div>
 
 <!-- Modal Navigation Tabs -->
-<div class="px-4 pt-3 bg-light border-bottom">
-    <ul class="nav nav-pills gap-2" id="productModalTabs" role="tablist">
+<div class="px-3 px-sm-4 pt-3 pb-2 bg-light border-bottom">
+    <ul class="nav nav-pills flex-wrap gap-2" id="productModalTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active rounded-3 fw-bold py-2 px-3" id="tab-overview-btn" data-bs-toggle="pill" data-bs-target="#pane-overview" type="button" role="tab">
                 <i class="bi bi-info-circle me-1"></i> Tổng quan
@@ -35,9 +35,8 @@
     </ul>
 </div>
 
-<div class="modal-body p-4">
+<div class="modal-body p-3 p-sm-4">
     <div class="tab-content" id="productModalTabContent">
-        <!-- 1. OVERVIEW TAB -->
         <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
             <div class="row g-4 align-items-center">
                 <!-- Image -->
@@ -56,8 +55,8 @@
                     </div>
                     <h2 class="fw-bolder text-dark mb-2">@Model.TenSp</h2>
                     
-                    <div class="d-flex align-items-baseline gap-3 mb-3">
-                        <div class="fs-2 fw-bolder text-danger">@Model.GiaBan.ToString("N0") ₫</div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3 mb-3">
+                        <div class="fs-2 fw-bolder text-danger text-nowrap">@Model.GiaBan.ToString("N0") ₫</div>
                         @if (Model.SoLuong > 0)
                         {
                             <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">
@@ -76,25 +75,24 @@
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         @if (!string.IsNullOrWhiteSpace(Model.TenManHinh))
                         {
-                            <span class="badge bg-light text-dark border p-2">
+                            <span class="badge bg-light text-dark border p-2 text-wrap text-start lh-base">
                                 Màn hình: @Model.TenManHinh
                             </span>
                         }
                         @if (!string.IsNullOrWhiteSpace(Model.ChupAnh))
                         {
-                            <span class="badge bg-light text-dark border p-2">
+                            <span class="badge bg-light text-dark border p-2 text-wrap text-start lh-base">
                                 Camera: @Model.ChupAnh
                             </span>
                         }
                         @if (Model.ThoiGianBaoHanh > 0)
                         {
-                            <span class="badge bg-light text-dark border p-2">
+                            <span class="badge bg-light text-dark border p-2 text-wrap text-start lh-base">
                                 Bảo hành @Model.ThoiGianBaoHanh tháng VNA
                             </span>
                         }
                     </div>
 
-                    <!-- Ghi chú / AI context -->
                     @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
                     {
                         <div class="p-3 bg-primary-subtle rounded-3 mb-4">
@@ -106,19 +104,27 @@
                     }
 
                     <!-- Action buttons -->
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-primary btn-lg rounded-3 fw-bold flex-grow-1 shadow-sm" onclick="addToCartFromModal('@Model.MaSp')">
-                            Thêm vào giỏ
-                        </button>
-                        <button type="button" class="btn btn-dark btn-lg rounded-3 fw-bold px-4" onclick="buyNowFromModal('@Model.MaSp')">
-                            Mua ngay
-                        </button>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.SoLuong > 0)
+                        {
+                            <button type="button" class="btn btn-primary btn-lg rounded-3 fw-bold flex-grow-1 shadow-sm" onclick="addToCartFromModal('@Model.MaSp')">
+                                Thêm vào giỏ
+                            </button>
+                            <button type="button" class="btn btn-dark btn-lg rounded-3 fw-bold px-4" onclick="buyNowFromModal('@Model.MaSp')">
+                                Mua ngay
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-secondary btn-lg rounded-3 fw-bold flex-grow-1" disabled>
+                                Tạm hết hàng
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. SPECS TAB -->
         <div class="tab-pane fade" id="pane-specs" role="tabpanel">
             <h5 class="fw-bold mb-3 text-dark">Bảng thông số kỹ thuật chi tiết</h5>
             <div class="table-responsive">
@@ -161,7 +167,6 @@
             </div>
         </div>
 
-        <!-- 3. REVIEWS TAB -->
         <div class="tab-pane fade" id="pane-reviews" role="tabpanel">
             <div class="row align-items-center p-3 bg-light rounded-4 mb-4">
                 <div class="col-sm-4 text-center border-end">
@@ -196,7 +201,6 @@
             </div>
         </div>
 
-        <!-- 4. LIVE COMPARE TAB -->
         <div class="tab-pane fade" id="pane-compare" role="tabpanel">
             <h5 class="fw-bold mb-2 text-dark">So sánh đối đầu sản phẩm</h5>
             <p class="small text-secondary mb-3">Chọn một sản phẩm khác để so sánh chi tiết cấu hình và mức giá cạnh tranh:</p>

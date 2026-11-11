@@ -13,11 +13,11 @@ namespace NexusRetail.WebMvc.Services.Chat
             _logger = logger;
         }
 
-        public async Task<string> SendMessageJsonAsync(string message)
+        public async Task<string> SendMessageJsonAsync(string message, string? sessionId = null)
         {
             try
             {
-                var response = await _client.PostAsJsonAsync("api/chat", new { message });
+                var response = await _client.PostAsJsonAsync("api/chat", new { message, sessionId });
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsStringAsync();

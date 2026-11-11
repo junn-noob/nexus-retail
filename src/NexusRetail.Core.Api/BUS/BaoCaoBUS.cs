@@ -20,6 +20,11 @@ public record LargestInboundRow(string MaHdn, DateTime NgayNhap, string MaNcc, s
 public record AnnualRevenueRow(string MaHdb, DateTime NgayBan, string MaKhach, string TenKhach, string MaNv, string TenNv, decimal TongTien);
 public record LowPerformingStaffRow(string MaNv, string TenNv, string GioiTinh, string DienThoai, int SoHoaDon, decimal TongTienBan);
 public record InventorySummaryRow(int Stt, string MaSp, string TenSp, string TenNhanHieu, string TenLoai, int NhapSl, decimal NhapTien, int XuatSl, decimal XuatTien, int TonCuoiSl, decimal TonCuoiTien, string TrangThai);
+public record DashboardChartsDto(
+    List<string> MonthlyLabels,
+    List<decimal> MonthlyRevenuesMillions,
+    List<string> BrandLabels,
+    List<decimal> BrandPercentages);
 
 public interface IBaoCaoBUS
 {
@@ -34,6 +39,7 @@ public interface IBaoCaoBUS
     Task<object> LayBaoCaoTonKhoAsync(int month, int year);
     Task<byte[]> XuatExcelBaoCaoTonKhoAsync(int month, int year);
     Task<List<LowStockProductDto>> LayCanhBaoTonKhoAdoNetAsync(int nguong = 5);
+    Task<DashboardChartsDto> LayDuLieuBieuDoDashboardAsync();
 }
 
 /// <summary>
@@ -73,7 +79,7 @@ public class BaoCaoBUS : IBaoCaoBUS
     private static DateTime ReadDateTime(DataRow row, string col)
         => row.Table.Columns.Contains(col) && row[col] != DBNull.Value ? Convert.ToDateTime(row[col]) : DateTime.Now;
 
-    #region 1. Top 5 Sản phẩm bán chạy (Stored Procedure: sp_BaoCao_SP_BanChayNhat_Thang)
+    #region Top 5 Sản phẩm bán chạy (Stored Procedure: sp_BaoCao_SP_BanChayNhat_Thang)
     private async Task<List<TopSellingProductRow>> GetSpBanChayDataAsync(int m, int y)
     {
         if (UseAdoNet)
@@ -105,7 +111,9 @@ public class BaoCaoBUS : IBaoCaoBUS
 
         var raw = await _db.ChiTietHdbs
             .AsNoTracking()
-            .Where(x => x.MaHdbNavigation.NgayBan.Month == m && x.MaHdbNavigation.NgayBan.Year == y)
+            .Where(x => x.MaHdbNavigation.NgayBan.Month == m
+                && x.MaHdbNavigation.NgayBan.Year == y
+                && x.MaHdbNavigation.TrangThaiDonHang != "DaHuy")
             .Select(x => new
             {
                 x.MaSp,
@@ -160,7 +168,7 @@ public class BaoCaoBUS : IBaoCaoBUS
     }
     #endregion
 
-    #region 2. Hóa đơn nhập lớn nhất quý (Stored Procedure: sp_BaoCao_HDNhap_LonNhat_Quy)
+    #region Hóa đơn nhập lớn nhất quý (Stored Procedure: sp_BaoCao_HDNhap_LonNhat_Quy)
     private async Task<List<LargestInboundRow>> GetHdnLonNhatDataAsync(int q, int y)
     {
         if (UseAdoNet)
@@ -199,8 +207,8 @@ public class BaoCaoBUS : IBaoCaoBUS
                 x.NgayNhap,
                 x.MaNcc,
                 x.MaNccNavigation != null ? x.MaNccNavigation.TenNcc : x.MaNcc,
-                x.MaNv,
-                x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : x.MaNv,
+                x.MaNv ?? "",
+                x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : (x.MaNv ?? ""),
                 x.TongTien))
             .ToListAsync();
     }
@@ -233,7 +241,7 @@ public class BaoCaoBUS : IBaoCaoBUS
     }
     #endregion
 
-    #region 3. Doanh số bán theo năm (Stored Procedure: sp_BaoCao_DoanhSo_Nam)
+    #region Doanh số bán theo năm (Stored Procedure: sp_BaoCao_DoanhSo_Nam)
     private async Task<List<AnnualRevenueRow>> GetDoanhSoNamDataAsync(int y)
     {
         if (UseAdoNet)
@@ -262,15 +270,15 @@ public class BaoCaoBUS : IBaoCaoBUS
             .AsNoTracking()
             .Include(x => x.MaKhachNavigation)
             .Include(x => x.MaNvNavigation)
-            .Where(x => x.NgayBan.Year == y)
+            .Where(x => x.NgayBan.Year == y && x.TrangThaiDonHang != "DaHuy")
             .OrderBy(x => x.NgayBan)
             .Select(x => new AnnualRevenueRow(
                 x.MaHdb,
                 x.NgayBan,
                 x.MaKhach,
                 x.MaKhachNavigation != null ? x.MaKhachNavigation.TenKhach : x.MaKhach,
-                x.MaNv,
-                x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : x.MaNv,
+                x.MaNv ?? "ONLINE",
+                x.MaNvNavigation != null ? x.MaNvNavigation.TenNv : "Khách Online",
                 x.TongTien))
             .ToListAsync();
     }
@@ -301,7 +309,7 @@ public class BaoCaoBUS : IBaoCaoBUS
     }
     #endregion
 
-    #region 4. 5 Nhân viên doanh số thấp nhất tháng (Stored Procedure: sp_BaoCao_5NV_BanItNhat_Thang)
+    #region 5 Nhân viên doanh số thấp nhất tháng (Stored Procedure: sp_BaoCao_5NV_BanItNhat_Thang)
     private async Task<List<LowPerformingStaffRow>> GetNvDoanhSoThapDataAsync(int m, int y)
     {
         if (UseAdoNet)
@@ -341,9 +349,9 @@ public class BaoCaoBUS : IBaoCaoBUS
                 nv.TenNv,
                 nv.GioiTinh ?? "Nam",
                 nv.DienThoai ?? "",
-                _db.HoaDonBans.Count(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y),
+                _db.HoaDonBans.Count(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y && h.TrangThaiDonHang != "DaHuy"),
                 _db.HoaDonBans
-                    .Where(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y)
+                    .Where(h => h.MaNv == nv.MaNv && h.NgayBan.Month == m && h.NgayBan.Year == y && h.TrangThaiDonHang != "DaHuy")
                     .Sum(h => (decimal?)h.TongTien) ?? 0m))
             .OrderBy(x => x.TongTienBan)
             .Take(5)
@@ -375,7 +383,7 @@ public class BaoCaoBUS : IBaoCaoBUS
     }
     #endregion
 
-    #region 5. Xuất - Nhập - Tồn kho & Cảnh báo tồn kho ADO.NET (SQL Text)
+    #region Xuất - Nhập - Tồn kho & Cảnh báo tồn kho ADO.NET (SQL Text)
     private async Task<List<InventorySummaryRow>> GetTonKhoDataAsync(int m, int y)
     {
         var products = await _db.SanPhams
@@ -394,7 +402,9 @@ public class BaoCaoBUS : IBaoCaoBUS
 
         var xuatDict = await _db.ChiTietHdbs
             .AsNoTracking()
-            .Where(x => x.MaHdbNavigation.NgayBan.Month == m && x.MaHdbNavigation.NgayBan.Year == y)
+            .Where(x => x.MaHdbNavigation.NgayBan.Month == m
+                && x.MaHdbNavigation.NgayBan.Year == y
+                && x.MaHdbNavigation.TrangThaiDonHang != "DaHuy")
             .GroupBy(x => x.MaSp)
             .Select(g => new { MaSp = g.Key, SoLuong = g.Sum(x => x.SoLuong), TongTien = g.Sum(x => x.ThanhTien) })
             .ToDictionaryAsync(x => x.MaSp, x => x);
@@ -497,6 +507,87 @@ public class BaoCaoBUS : IBaoCaoBUS
                 x.GiaNhap,
                 x.GiaBan))
             .ToListAsync();
+    }
+    #endregion
+
+    #region Dữ liệu biểu đồ Dashboard (Doanh thu 6 tháng & Cơ cấu hãng)
+    public async Task<DashboardChartsDto> LayDuLieuBieuDoDashboardAsync()
+    {
+        var anchor = DateTime.Now;
+        var monthStarts = Enumerable.Range(0, 6)
+            .Select(offset => new DateTime(anchor.Year, anchor.Month, 1).AddMonths(offset - 5))
+            .ToList();
+
+        var earliest = monthStarts.First();
+        var ordersWindow = await _db.HoaDonBans
+            .AsNoTracking()
+            .Where(h => h.NgayBan >= earliest && h.TrangThaiDonHang != "DaHuy")
+            .Select(h => new { h.NgayBan.Year, h.NgayBan.Month, h.TongTien })
+            .ToListAsync();
+
+        var monthlyLabels = new List<string>(6);
+        var monthlyRevenuesMillions = new List<decimal>(6);
+        foreach (var ms in monthStarts)
+        {
+            monthlyLabels.Add($"T{ms.Month}/{ms.Year}");
+            decimal rev = ordersWindow
+                .Where(o => o.Year == ms.Year && o.Month == ms.Month)
+                .Sum(o => o.TongTien);
+            monthlyRevenuesMillions.Add(Math.Round(rev / 1_000_000m, 2));
+        }
+
+        var salesByBrand = await _db.ChiTietHdbs
+            .AsNoTracking()
+            .Where(ct => ct.MaHdbNavigation.TrangThaiDonHang != "DaHuy")
+            .GroupBy(ct => ct.MaSpNavigation.MaNhanHieuNavigation != null
+                ? ct.MaSpNavigation.MaNhanHieuNavigation.TenNhanHieu
+                : "Khác")
+            .Select(g => new { Brand = g.Key, Total = g.Sum(x => x.ThanhTien) })
+            .OrderByDescending(x => x.Total)
+            .ToListAsync();
+
+        if (salesByBrand.Count == 0 || salesByBrand.Sum(x => x.Total) <= 0)
+        {
+            var stockByBrand = await _db.SanPhams
+                .AsNoTracking()
+                .GroupBy(sp => sp.MaNhanHieuNavigation != null
+                    ? sp.MaNhanHieuNavigation.TenNhanHieu
+                    : "Khác")
+                .Select(g => new { Brand = g.Key, Total = (decimal)g.Sum(x => x.SoLuong) })
+                .OrderByDescending(x => x.Total)
+                .ToListAsync();
+            salesByBrand = stockByBrand;
+        }
+
+        decimal grandTotal = salesByBrand.Sum(x => x.Total);
+        var brandLabels = new List<string>();
+        var brandPercentages = new List<decimal>();
+        if (grandTotal > 0)
+        {
+            var top3 = salesByBrand.Take(3).ToList();
+            decimal topSum = 0m;
+            foreach (var item in top3)
+            {
+                decimal pct = Math.Round(item.Total * 100m / grandTotal, 1);
+                brandLabels.Add(item.Brand);
+                brandPercentages.Add(pct);
+                topSum += pct;
+            }
+
+            if (salesByBrand.Count > 3)
+            {
+                decimal otherPct = Math.Max(0m, Math.Round(100m - topSum, 1));
+                brandLabels.Add("Khác");
+                brandPercentages.Add(otherPct);
+            }
+        }
+        else
+        {
+            brandLabels.Add("Chưa có dữ liệu");
+            brandPercentages.Add(100m);
+        }
+
+        return new DashboardChartsDto(monthlyLabels, monthlyRevenuesMillions, brandLabels, brandPercentages);
     }
     #endregion
 }

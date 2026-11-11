@@ -5,16 +5,28 @@
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
     int totalItems = ViewBag.TotalItems ?? 0;
+    string query = ViewBag.Query as string ?? "";
 }
 
 <partial name="_AdminNav" />
 
 <div class="container pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-box-seam text-primary me-2"></i> Danh sách đơn hàng bán</h3>
             <small class="text-secondary">Tổng cộng: <strong>@totalItems</strong> hóa đơn bán hàng trên toàn hệ thống</small>
         </div>
+
+        <form method="get" asp-action="DonHang" class="d-flex gap-2">
+            <input type="text" name="q" value="@query" class="form-control rounded-3" placeholder="Tìm mã HĐ, khách, SĐT, trạng thái..." style="min-width: 260px;" />
+            <button type="submit" class="btn btn-primary rounded-3 fw-bold text-nowrap">
+                <i class="bi bi-search me-1"></i> Tìm
+            </button>
+            @if (!string.IsNullOrWhiteSpace(query))
+            {
+                <a asp-action="DonHang" class="btn btn-outline-secondary rounded-3 text-nowrap">Xóa lọc</a>
+            }
+        </form>
     </div>
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
@@ -27,6 +39,8 @@
                         <th>Khách hàng</th>
                         <th>Số điện thoại</th>
                         <th>Nhân viên</th>
+                        <th class="text-center">Thanh toán</th>
+                        <th class="text-center">Trạng thái đơn</th>
                         <th class="text-end">Tổng tiền</th>
                         <th class="text-center pe-4">Thao tác</th>
                     </tr>
@@ -36,12 +50,33 @@
                     {
                         foreach (var ord in Model)
                         {
+                            var orderBadge = ord.TrangThaiDonHang switch
+                            {
+                                "HoanThanh" => ("bg-success-subtle text-success", "Hoàn thành"),
+                                "DangGiao" => ("bg-info-subtle text-info", "Đang giao"),
+                                "DaHuy" => ("bg-danger-subtle text-danger", "Đã hủy"),
+                                _ => ("bg-warning-subtle text-warning", "Chờ xác nhận")
+                            };
+                            var payBadge = ord.TrangThaiThanhToan switch
+                            {
+                                "DaThanhToan" => ("bg-success-subtle text-success", "Đã thanh toán"),
+                                "ThanhToanMotPhan" => ("bg-warning-subtle text-warning", "Thanh toán 1 phần"),
+                                _ => ("bg-secondary-subtle text-secondary", "Chưa thanh toán")
+                            };
+
                             <tr>
                                 <td class="ps-4 fw-bold text-dark">@ord.MaHdb</td>
                                 <td class="text-secondary small">@ord.NgayBan.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="fw-bold text-dark">@ord.TenKhach</td>
                                 <td class="text-primary fw-semibold">@ord.DienThoai</td>
                                 <td class="text-secondary">@(string.IsNullOrEmpty(ord.TenNv) ? "Khách Online" : ord.TenNv)</td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">@DisplayFormatExtensions.FormatPaymentMethod(ord.PhuongThucThanhToan)</span><br />
+                                    <span class="badge @payBadge.Item1 mt-1">@payBadge.Item2</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @orderBadge.Item1 px-2 py-1">@orderBadge.Item2</span>
+                                </td>
                                 <td class="text-end fw-bold text-danger fs-6">
                                     @ord.TongTien.ToString("N0") ₫
                                 </td>
@@ -56,9 +91,9 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-secondary">
+                            <td colspan="9" class="text-center py-5 text-secondary">
                                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                Chưa có đơn hàng nào phát sinh trên hệ thống.
+                                Không tìm thấy đơn hàng nào phù hợp.
                             </td>
                         </tr>
                     }
@@ -74,21 +109,21 @@
             @if (currentPage > 1)
             {
                 <li class="page-item">
-                    <a class="page-link rounded-3 fw-bold" asp-action="DonHang" asp-route-page="@(currentPage - 1)">← Trước</a>
+                    <a class="page-link rounded-3 fw-bold" asp-action="DonHang" asp-route-page="@(currentPage - 1)" asp-route-q="@query">← Trước</a>
                 </li>
             }
 
             @for (int p = 1; p <= totalPages; p++)
             {
                 <li class="page-item @(p == currentPage ? "active" : "")">
-                    <a class="page-link rounded-3 fw-bold" asp-action="DonHang" asp-route-page="@p">@p</a>
+                    <a class="page-link rounded-3 fw-bold" asp-action="DonHang" asp-route-page="@p" asp-route-q="@query">@p</a>
                 </li>
             }
 
             @if (currentPage < totalPages)
             {
                 <li class="page-item">
-                    <a class="page-link rounded-3 fw-bold" asp-action="DonHang" asp-route-page="@(currentPage + 1)">Sau →</a>
+                    <a class="page-link rounded-3 fw-bold" asp-action="DonHang" asp-route-page="@(currentPage + 1)" asp-route-q="@query">Sau →</a>
                 </li>
             }
         </ul>

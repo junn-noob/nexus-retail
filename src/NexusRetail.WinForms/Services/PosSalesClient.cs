@@ -63,6 +63,24 @@ public class PosSalesClient : PosApiClientBase, IPosSalesClient
         }
     }
 
+    public async Task<(bool Success, string Message)> SimulateBankPaymentAsync(string maHdb, decimal amount)
+    {
+        try
+        {
+            var response = await Client.PostAsJsonAsync("api/webhook/bank/simulate", new { maHdb, amount });
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, $"Đã ghi nhận đối soát giả lập cho đơn {maHdb}!");
+            }
+
+            return (false, await FormatApiErrorAsync(response, "Không thể giả lập thanh toán"));
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Lỗi kết nối máy chủ: {ex.Message}");
+        }
+    }
+
     public Task<List<InvoiceSearchItem>> SearchSaleInvoicesAsync(string? q = null)
     {
         string url = "api/ban-hang/danh-sach?page=1&pageSize=100";

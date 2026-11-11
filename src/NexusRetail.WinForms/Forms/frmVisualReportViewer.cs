@@ -5,11 +5,7 @@ using NexusRetail.WinForms.UI;
 namespace NexusRetail.WinForms.Forms
 {
     /// <summary>
-    /// Màn hình Trình xem Báo cáo Trực quan (Visual Crystal Report Viewer).
-    /// Đáp ứng trọn vẹn tiêu chí chấm điểm Bài tập lớn LTTQ:
-    /// - Mô phỏng chuẩn xác giao diện và cấu trúc phân vùng của SAP Crystal Reports (.rpt)
-    /// - Hỗ trợ thanh công cụ: In ấn trực tiếp (PrintDocument), Xuất PDF/Excel, Thu phóng và Xem phân trang
-    /// - Phân chia đầy đủ các Section: Report Header, Page Header, Details, Report Footer, Page Footer
+    /// Trình xem và in báo cáo trực quan trên nền WinForms (PrintDocument / xuất Excel).
     /// </summary>
     public class frmVisualReportViewer : Form
     {
@@ -47,17 +43,16 @@ namespace NexusRetail.WinForms.Forms
 
         private void InitializeComponentManual(string tieuDe, string thoiGian, DataTable data, string tongKet)
         {
-            Text = $"Crystal Report Viewer - {tieuDe}";
+            Text = $"Trình xem báo cáo - {tieuDe}";
             Size = new Size(1050, 780);
             StartPosition = FormStartPosition.CenterParent;
             BackColor = Color.FromArgb(241, 245, 249);
             Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
 
-            // 1. TOOLBAR MÔ PHỎNG CRYSTAL REPORT VIEWER
             pnlToolbar = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 48,
+                Size = new Size(ClientSize.Width, 48),
                 BackColor = Color.FromArgb(15, 34, 64),
                 Padding = new Padding(12, 6, 12, 6)
             };
@@ -104,7 +99,7 @@ namespace NexusRetail.WinForms.Forms
                 Text = "❌ Đóng",
                 Size = new Size(90, 34),
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                Location = new Point(Width - 120, 7),
+                Location = new Point(pnlToolbar.Width - 102, 7),
                 BackColor = Color.FromArgb(71, 85, 105),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -118,29 +113,26 @@ namespace NexusRetail.WinForms.Forms
             pnlToolbar.Controls.Add(lblPageInfo);
             pnlToolbar.Controls.Add(btnClose);
 
-            // 2. CANVAS CHỨA TRANG IN KHỔ GIẤY A4
             pnlReportCanvas = new Panel
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true,
                 BackColor = Color.FromArgb(226, 232, 240),
+                Padding = new Padding(16)
+            };
+
+            pnlReportPage = new Panel
+            {
+                Size = new Size(920, 665),
+                Location = new Point(45, 12),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
                 Padding = new Padding(24)
             };
 
-            // 3. TRANG GIẤY BÁO CÁO MÔ PHỎNG A4 (Trắng, Đổ bóng)
-            pnlReportPage = new Panel
-            {
-                Size = new Size(920, 950),
-                Location = new Point(45, 20),
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
-                Padding = new Padding(30)
-            };
-
-            // SECTION 1: REPORT HEADER
             var lblDonVi = new Label
             {
-                Text = "TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI - KHOA CÔNG NGHỆ THÔNG TIN\nHỆ THỐNG QUẢN LÝ BÁN LẺ & KHO THIẾT BỊ DI ĐỘNG NEXUS RETAIL (POS)",
+                Text = "DUY MOBILE • HỆ THỐNG BÁN LẺ THIẾT BỊ DI ĐỘNG\nNỀN TẢNG QUẢN LÝ BÁN HÀNG & KHO NEXUS RETAIL (POS)",
                 Dock = DockStyle.Top,
                 Height = 40,
                 Font = new Font("Segoe UI", 9f, FontStyle.Bold),
@@ -172,7 +164,7 @@ namespace NexusRetail.WinForms.Forms
             dgvReportData = new DataGridView
             {
                 Dock = DockStyle.Top,
-                Height = 420,
+                Height = 300,
                 DataSource = data,
                 ReadOnly = true,
                 AllowUserToAddRows = false,
@@ -187,15 +179,15 @@ namespace NexusRetail.WinForms.Forms
             pnlReportFooter = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 160,
-                Padding = new Padding(10)
+                Height = 165,
+                Padding = new Padding(8)
             };
 
             lblTongKetTien = new Label
             {
                 Text = $"TỔNG CỘNG: {tongKet}",
                 Dock = DockStyle.Top,
-                Height = 35,
+                Height = 32,
                 Font = new Font("Segoe UI", 11.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(0, 136, 46),
                 TextAlign = ContentAlignment.MiddleRight
@@ -204,17 +196,17 @@ namespace NexusRetail.WinForms.Forms
             lblChuKyNguoiLap = new Label
             {
                 Text = $"Hà Nội, ngày {DateTime.Now.Day} tháng {DateTime.Now.Month} năm {DateTime.Now.Year}\nNGƯỜI LẬP BIỂU\n(Ký và ghi rõ họ tên)\n\n\n\nNguyễn Văn Hùng",
-                Size = new Size(300, 110),
-                Location = new Point(40, 45),
+                Size = new Size(300, 105),
+                Location = new Point(40, 50),
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
                 TextAlign = ContentAlignment.TopCenter
             };
 
             lblChuKyThuTruong = new Label
             {
-                Text = $"XÁC NHẬN CỦA QUẢN LÝ / GIẢNG VIÊN\n(Ký và ghi rõ họ tên)\n\n\n\nTS. Cao Thị Luyên",
-                Size = new Size(300, 110),
-                Location = new Point(520, 45),
+                Text = "CHỦ CƠ SỞ / QUẢN LÝ PHÊ DUYỆT\n(Ký, đóng dấu và ghi rõ họ tên)\n\n\n\nNguyễn Thành Duy",
+                Size = new Size(300, 105),
+                Location = new Point(520, 50),
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
                 TextAlign = ContentAlignment.TopCenter
             };
@@ -385,7 +377,7 @@ namespace NexusRetail.WinForms.Forms
 
             float sigWidth = margin.Width / 2f;
             string leftSig = $"Hà Nội, ngày {DateTime.Now.Day} tháng {DateTime.Now.Month} năm {DateTime.Now.Year}\nNGƯỜI LẬP BIỂU\n(Ký và ghi rõ họ tên)\n\n\nNguyễn Văn Hùng";
-            string rightSig = "\nXÁC NHẬN CỦA QUẢN LÝ / GIẢNG VIÊN\n(Ký và ghi rõ họ tên)\n\n\nTS. Cao Thị Luyên";
+            string rightSig = "\nCHỦ CƠ SỞ / QUẢN LÝ PHÊ DUYỆT\n(Ký, đóng dấu và ghi rõ họ tên)\n\n\nNguyễn Thành Duy";
             g.DrawString(leftSig, fontCell, Brushes.Black, new RectangleF(margin.Left, y, sigWidth, 95), centerFmt);
             g.DrawString(rightSig, fontCell, Brushes.Black, new RectangleF(margin.Left + sigWidth, y, sigWidth, 95), centerFmt);
 

@@ -5,11 +5,10 @@ namespace NexusRetail.UnitTests
 {
     public class BusinessRuleTests
     {
-        // 1. Tự động tính giá bán: GiaBan = GiaNhap * 1.10
         [Fact]
         public void Test_SellingPriceMarkup10Percent()
         {
-            decimal giaNhap = 10000000m; // 10 triệu
+            decimal giaNhap = 10000000m;
             var sp = new SanPham
             {
                 MaSp = "SP_TEST_01",
@@ -22,7 +21,6 @@ namespace NexusRetail.UnitTests
             Assert.Equal(11000000m, sp.GiaBan);
         }
 
-        // 2. Trừ tồn kho khi xuất bán: Tồn 10, bán 3 -> Tồn 7
         [Fact]
         public void Test_InventoryDeductionOnSale()
         {
@@ -42,7 +40,6 @@ namespace NexusRetail.UnitTests
             Assert.Equal(7, sp.SoLuong);
         }
 
-        // 3. Chặn giao dịch khi tồn kho không đủ (Tồn 2, mua 5)
         [Fact]
         public void Test_ThrowExceptionWhenOutOfStock()
         {
@@ -65,7 +62,6 @@ namespace NexusRetail.UnitTests
             });
         }
 
-        // 4. Nhập hàng tự động cập nhật giá nhập và tính lại giá bán = giá nhập * 1.10
         [Fact]
         public void Test_CostPriceAndSellingPriceUpdatedOnStockIn()
         {
@@ -81,7 +77,6 @@ namespace NexusRetail.UnitTests
             decimal donGiaNhapMoi = 20000000m;
             int soLuongNhap = 10;
 
-            // Nghiệp vụ nhập kho: Tăng tồn, cập nhật giá nhập mới, cập nhật giá bán mới
             sp.SoLuong += soLuongNhap;
             sp.GiaNhap = donGiaNhapMoi;
             sp.GiaBan = Math.Round(donGiaNhapMoi * 1.10m, 0);
@@ -91,7 +86,6 @@ namespace NexusRetail.UnitTests
             Assert.Equal(22000000m, sp.GiaBan);
         }
 
-        // 5. Lọc sản phẩm theo khoảng giá và tìm kiếm từ khóa
         [Fact]
         public void Test_ProductFilteringByPriceAndKeyword()
         {
@@ -103,7 +97,6 @@ namespace NexusRetail.UnitTests
                 new SanPham { MaSp = "SP05", TenSp = "Redmi Note 13 Pro", GiaBan = 4950000m }
             };
 
-            // Lọc dưới 20 triệu và chứa "Xiaomi"
             var filtered = list
                 .Where(x => x.GiaBan < 20000000m && x.TenSp.Contains("Xiaomi", StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -112,7 +105,6 @@ namespace NexusRetail.UnitTests
             Assert.Equal("SP03", filtered[0].MaSp);
         }
 
-        // 6. Tra cứu & tính thời hạn bảo hành thiết bị theo số tháng
         [Fact]
         public void Test_WarrantyPeriodCalculation()
         {
@@ -125,21 +117,18 @@ namespace NexusRetail.UnitTests
             Assert.True(hanBaoHanh > ngayMua);
         }
 
-        // 7. Tính chiết khấu phần trăm bán hàng: Đơn giá * Số lượng * (1 - KhuyenMai/100)
         [Fact]
         public void Test_DiscountPercentageCalculation()
         {
             decimal giaBan = 28600000m;
             int soLuong = 2;
-            decimal khuyenMai = 5m; // 5%
+            decimal khuyenMai = 5m;
 
             decimal thanhTien = Math.Round(soLuong * giaBan * (1m - (khuyenMai / 100m)), 0);
 
-            // 2 * 28,600,000 * 0.95 = 54,340,000
             Assert.Equal(54340000m, thanhTien);
         }
 
-        // 8. Định giá tài sản tồn kho: SoLuong * GiaNhap
         [Fact]
         public void Test_InventoryValuation()
         {
@@ -151,12 +140,11 @@ namespace NexusRetail.UnitTests
             Assert.Equal(300000000m, giaTriTonKho);
         }
 
-        // 9. Cho phép thiết lập giá bán cao hơn tỷ lệ markup 10% (Markup linh hoạt)
         [Fact]
         public void Test_CustomMarkupHigherThanMinimum()
         {
             decimal giaNhap = 10000000m;
-            decimal customGiaBan = 12500000m; // Markup 25%
+            decimal customGiaBan = 12500000m;
             decimal minGiaBan = Math.Round(giaNhap * 1.10m, 0);
 
             decimal finalGiaBan = customGiaBan >= minGiaBan ? customGiaBan : minGiaBan;
@@ -165,7 +153,6 @@ namespace NexusRetail.UnitTests
             Assert.Equal(12500000m, finalGiaBan);
         }
 
-        // 10. Phương trình kế toán Xuất - Nhập - Tồn kho: Tồn Đầu = Tồn Cuối + Xuất - Nhập
         [Fact]
         public void Test_InventoryBalanceEquation()
         {

@@ -164,7 +164,7 @@ namespace NexusRetail.UnitTests
         }
 
         [Fact]
-        public async Task NhapHang_CreatesReceipt_IncrementsStock_And_RecalculatesGiaBan110Percent()
+        public async Task NhapHang_CreatesReceipt_IncrementsStock_And_CalculatesWeightedAvgCostPreservingHigherGiaBan()
         {
             // Arrange
             using var db = CreateInMemoryDbContext();
@@ -172,6 +172,8 @@ namespace NexusRetail.UnitTests
 
             // Initial: SP01 has SoLuong = 10, GiaNhap = 28,000,000, GiaBan = 30,800,000
             // Inbound shipment: 5 items @ 25,000,000 VND
+            // Weighted avg cost = (10 * 28M + 5 * 25M) / 15 = 27,000,000 VND
+            // Existing curated GiaBan (30,800,000) > 27M * 1.1 (29,700,000) -> preserved!
             var dto = new HoaDonNhapDto
             {
                 MaNv = "NV01",
@@ -200,11 +202,44 @@ namespace NexusRetail.UnitTests
             var sp = await db.SanPhams.FirstAsync(x => x.MaSp == "SP01");
             Assert.Equal(15, sp.SoLuong);
 
-            // Verify GiaNhap updated to 25,000,000
-            Assert.Equal(25000000m, sp.GiaNhap);
+            // Verify weighted average GiaNhap = 27,000,000
+            Assert.Equal(27000000m, sp.GiaNhap);
 
-            // Verify GiaBan updated to 110% of GiaNhap = 27,500,000
-            Assert.Equal(27500000m, sp.GiaBan);
+            // Verify higher curated GiaBan preserved = 30,800,000
+            Assert.Equal(30800000m, sp.GiaBan);
+        }
+
+        [Fact]
+        public async Task NhapHang_WhenWeightedCostExceedsExistingMargin_RaisesGiaBanTo110Percent()
+        {
+            using var db = CreateInMemoryDbContext();
+            var controller = new NhapHangController(db);
+
+            // Initial: SP01 has SoLuong = 10, GiaNhap = 28,000,000, GiaBan = 30,800,000
+            // Inbound: 10 items @ 35,000,000 -> weighted avg = 31,500,000 -> 110% = 34,650,000 > 30,800,000
+            var dto = new HoaDonNhapDto
+            {
+                MaNv = "NV01",
+                MaNcc = "NCC01",
+                DanhSachMon = new List<ChiTietHdnDto>
+                {
+                    new ChiTietHdnDto
+                    {
+                        MaSp = "SP01",
+                        SoLuong = 10,
+                        DonGia = 35000000m,
+                        KhuyenMai = 0
+                    }
+                }
+            };
+
+            var result = await controller.nhapHang(dto);
+            Assert.IsType<CreatedAtActionResult>(result);
+
+            var sp = await db.SanPhams.FirstAsync(x => x.MaSp == "SP01");
+            Assert.Equal(20, sp.SoLuong);
+            Assert.Equal(31500000m, sp.GiaNhap);
+            Assert.Equal(34650000m, sp.GiaBan);
         }
 
         [Fact]

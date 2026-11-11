@@ -72,16 +72,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 Hệ thống được thiết kế với cơ chế tự động hóa kép (Dual Execution Guard): vừa bảo đảm bằng **Database Triggers** cấp độ SQL Server (ACID), vừa được kiểm soát trong **Application Domain Code**:
 
-* **BR-01 (Quản lý tồn kho tự động):**
+* **Quản lý tồn kho tự động:**
   - Khi lập Phiếu nhập hàng (`POST /api/nhap-hang`), tồn kho của sản phẩm tự động tăng tương ứng.
   - Khi lập Hóa đơn bán hàng (`POST /api/ban-hang/thanh-toan`), hệ thống kiểm tra tồn kho tức thời. Nếu không đủ hàng, giao dịch tự động Rollback và trả về mã lỗi 400 cùng số lượng tồn hiện có. Nếu đủ hàng, tồn kho được trừ tự động.
-* **BR-02 (Cập nhật giá vốn):**
-  - Đơn giá nhập mới nhất từ nhà cung cấp sẽ tự động cập nhật trường `GiaNhap` trong bảng `SanPham`.
-* **BR-03 (Công thức giá bán niêm yết tự động):**
-  - Giá bán lẻ được tự động tính toán bằng đúng **110% giá vốn** (`GiaBan = Round(GiaNhap * 1.10, 0)`). Áp dụng khi thêm mới sản phẩm, sửa sản phẩm hoặc khi nhập lô hàng mới.
-* **BR-04 (Bộ lọc tìm kiếm đa tiêu chí):**
+* **Cập nhật giá vốn (bình quân gia quyền):**
+  - Khi nhập thêm lô hàng mới, giá vốn `GiaNhap` trong bảng `SanPham` được tính lại theo bình quân gia quyền dựa trên giá trị tồn kho hiện hữu và giá trị thực nhập sau chiết khấu.
+* **Công thức giá bán niêm yết tự động:**
+  - Giá bán lẻ được gợi ý và kiểm soát tối thiểu **110% giá vốn** (`GiaBan >= Round(GiaNhap * 1.10, 0)`). Áp dụng khi thêm mới sản phẩm, sửa sản phẩm hoặc khi nhập lô hàng mới.
+* **Bộ lọc tìm kiếm đa tiêu chí:**
   - Hỗ trợ tìm kiếm theo từ khóa mã SP/tên SP, nhãn hiệu (Apple, Samsung, Xiaomi...), phân loại (Smartphone, Phụ kiện...) và khoảng giá (`minPrice`, `maxPrice`).
-* **BR-05 (Bảo toàn toàn vẹn dữ liệu - Referential Integrity):**
+* **Bảo toàn toàn vẹn dữ liệu (Referential Integrity):**
   - Không cho phép xóa sản phẩm nếu sản phẩm đó đã phát sinh lịch sử hóa đơn bán hoặc hóa đơn nhập nhằm đảm bảo dữ liệu kế toán đối soát không bị sai lệch.
 
 ---
@@ -155,10 +155,10 @@ Core API cung cấp đầy đủ các báo cáo quản trị theo các quy tắc
 
 | Báo cáo | Endpoint JSON | Endpoint xuất Excel |
 | :--- | :--- | :--- |
-| **BR-06: Top 5 SP bán chạy** | `GET /api/bao-cao/sp-ban-chay?month=9&year=2026` | `GET /api/bao-cao/sp-ban-chay/excel?month=9&year=2026` |
-| **BR-07: HĐ Nhập lớn nhất theo quý** | `GET /api/bao-cao/hdn-lon-nhat?quarter=3&year=2026` | `GET /api/bao-cao/hdn-lon-nhat/excel?quarter=3&year=2026` |
-| **BR-08: Doanh số bán theo năm** | `GET /api/bao-cao/doanh-so-nam?year=2026` | `GET /api/bao-cao/doanh-so-nam/excel?year=2026` |
-| **BR-09: Nhân viên bán ít nhất** | `GET /api/bao-cao/nv-doanh-so-thap?month=9&year=2026` | `GET /api/bao-cao/nv-doanh-so-thap/excel?month=9&year=2026` |
+| **Top 5 SP bán chạy** | `GET /api/bao-cao/sp-ban-chay?month=9&year=2026` | `GET /api/bao-cao/sp-ban-chay/excel?month=9&year=2026` |
+| **HĐ Nhập lớn nhất theo quý** | `GET /api/bao-cao/hdn-lon-nhat?quarter=3&year=2026` | `GET /api/bao-cao/hdn-lon-nhat/excel?quarter=3&year=2026` |
+| **Doanh số bán theo năm** | `GET /api/bao-cao/doanh-so-nam?year=2026` | `GET /api/bao-cao/doanh-so-nam/excel?year=2026` |
+| **5 nhân viên bán ít nhất** | `GET /api/bao-cao/nv-doanh-so-thap?month=9&year=2026` | `GET /api/bao-cao/nv-doanh-so-thap/excel?month=9&year=2026` |
 
 *Tất cả file Excel xuất ra đều được định dạng tiêu đề in hoa, căn lề tự động, kẻ khung bảng, định dạng cột tiền tệ chuẩn Việt Nam Đồng và có chữ ký xác nhận của kế toán.*
 
@@ -189,22 +189,16 @@ Core API cung cấp đầy đủ các báo cáo quản trị theo các quy tắc
 - Database: Microsoft SQL Server 2019+ hoặc LocalDB (`(localdb)\MSSQLLocalDB`)
 
 ### 8.2 Khởi động hệ thống
-Đối tác có thể khởi chạy toàn bộ giải pháp chỉ bằng một câu lệnh tại thư mục gốc:
+Đối tác có thể khởi chạy toàn bộ hệ thống web/API chỉ bằng một lệnh tại thư mục gốc:
 ```powershell
-# Chạy toàn bộ các bài kiểm tra tự động trước khi vận hành
+# Khởi tạo CSDL SQL Server / LocalDB
+.\sql\setup_database.ps1
+
+# Khởi chạy toàn bộ Gateway, Identity API, Core API và WebMvc (thêm -WithPos để mở kèm WinForms POS)
+.\start-dev.ps1
+
+# Chạy kịch bản kiểm thử tích hợp API
 powershell -ExecutionPolicy Bypass -File tests/verification/full_system_verification.ps1
-
-# Khởi chạy Core API
-dotnet run --project src/NexusRetail.Core.Api/NexusRetail.Core.Api.csproj --launch-profile http
-
-# Khởi chạy Identity API
-dotnet run --project src/NexusRetail.Identity.Api/NexusRetail.Identity.Api.csproj --launch-profile http
-
-# Khởi chạy WebMvc
-dotnet run --project src/NexusRetail.WebMvc/NexusRetail.WebMvc.csproj
-
-# Khởi chạy phần mềm POS WinForms
-dotnet run --project src/NexusRetail.WinForms/NexusRetail.WinForms.csproj
 ```
 
 ---

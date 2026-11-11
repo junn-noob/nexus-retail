@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NexusRetail.Shared.DTOs.BanHang;
 using NexusRetail.Shared.DTOs.Common;
 using NexusRetail.Shared.DTOs.NhapHang;
 using NexusRetail.Shared.DTOs.SanPham;
@@ -8,6 +9,7 @@ using NexusRetail.WebMvc.Services.Admin;
 using NexusRetail.WebMvc.Services.Catalog;
 using NexusRetail.WebMvc.Services.Orders;
 using NexusRetail.WebMvc.Services.Reports;
+using System.Text.Json;
 
 namespace NexusRetail.WebMvc.Controllers
 {
@@ -43,21 +45,28 @@ namespace NexusRetail.WebMvc.Controllers
             _logger = logger;
         }
 
-        // 1. DASHBOARD TỔNG QUAN
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var stats = await _reportClient.GetDashboardStatsAsync();
+            var statsTask = _reportClient.GetDashboardStatsAsync();
+            var chartsTask = _reportClient.GetDashboardChartsAsync();
+            await Task.WhenAll(statsTask, chartsTask);
+
+            var stats = await statsTask;
+            var charts = await chartsTask;
 
             ViewBag.TotalProducts = stats.TotalProducts;
             ViewBag.TotalOrders = stats.TotalOrders;
             ViewBag.TotalRevenue = stats.TotalRevenue;
             ViewBag.TotalCustomers = stats.TotalCustomers;
+            ViewBag.ChartsJson = JsonSerializer.Serialize(charts, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
 
             return View();
         }
 
-        // 2. QUẢN LÝ SẢN PHẨM (DANH SÁCH + PHÂN TRANG + TÌM KIẾM)
         [HttpGet]
         public async Task<IActionResult> SanPham(int page = 1, string? q = null)
         {
@@ -108,7 +117,6 @@ namespace NexusRetail.WebMvc.Controllers
             return (true, fileName);
         }
 
-        // 3. THÊM SẢN PHẨM MỚI (Tự tính Giá Bán niêm yết + Upload ảnh)
         [HttpGet]
         public async Task<IActionResult> ThemSanPham()
         {
@@ -116,15 +124,28 @@ namespace NexusRetail.WebMvc.Controllers
             return View(new AdminProductViewModel
             {
                 GiaNhap = 10000000m,
+                GiaBan = 11000000m,
                 SoLuong = 10,
                 ThoiGianBaoHanh = 12
             });
+        }
+
+        private void ValidateProductPricing(AdminProductViewModel model)
+        {
+            if (model.GiaNhap <= 0) return;
+            decimal minGiaBan = Math.Round(model.GiaNhap * 1.10m, 0);
+            if (model.GiaBan < minGiaBan)
+            {
+                ModelState.AddModelError(nameof(model.GiaBan),
+                    $"Giá bán niêm yết phải tối thiểu >= 110% giá nhập (tối thiểu {minGiaBan:N0} ₫)!");
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ThemSanPham(AdminProductViewModel model)
         {
+            ValidateProductPricing(model);
             if (!ModelState.IsValid)
             {
                 await LoadCategoriesViewBagAsync();
@@ -166,7 +187,6 @@ namespace NexusRetail.WebMvc.Controllers
             return View(model);
         }
 
-        // 4. SỬA SẢN PHẨM
         [HttpGet]
         public async Task<IActionResult> SuaSanPham(string id)
         {
@@ -185,6 +205,7 @@ namespace NexusRetail.WebMvc.Controllers
                 MaNhanHieu = sp.MaNhanHieu,
                 MaManHinh = sp.MaManHinh ?? "",
                 GiaNhap = sp.GiaNhap > 0 ? sp.GiaNhap : Math.Round(sp.GiaBan / 1.1m, 0),
+                GiaBan = sp.GiaBan > 0 ? sp.GiaBan : Math.Round(sp.GiaNhap * 1.1m, 0),
                 SoLuong = sp.SoLuong,
                 ThoiGianBaoHanh = sp.ThoiGianBaoHanh,
                 AmThanh = sp.AmThanh,
@@ -200,6 +221,7 @@ namespace NexusRetail.WebMvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuaSanPham(string id, AdminProductViewModel model)
         {
+            ValidateProductPricing(model);
             if (!ModelState.IsValid)
             {
                 await LoadCategoriesViewBagAsync();
@@ -241,7 +263,6 @@ namespace NexusRetail.WebMvc.Controllers
             return View(model);
         }
 
-        // 5. XÓA SẢN PHẨM (CHỈ ADMIN)
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -260,14 +281,14 @@ namespace NexusRetail.WebMvc.Controllers
             return RedirectToAction(nameof(SanPham));
         }
 
-        // 6. QUẢN LÝ ĐƠN HÀNG
         [HttpGet]
-        public async Task<IActionResult> DonHang(int page = 1)
+        public async Task<IActionResult> DonHang(int page = 1, string? q = null)
         {
             page = Math.Max(1, page);
             ViewBag.CurrentPage = page;
+            ViewBag.Query = q;
 
-            var (items, totalPages, totalItems) = await _orderClient.GetOrdersListAsync(page, 15);
+            var (items, totalPages, totalItems) = await _orderClient.GetOrdersListAsync(page, 15, q);
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
 
@@ -285,15 +306,40 @@ namespace NexusRetail.WebMvc.Controllers
             return View(vm);
         }
 
-        // 7. BÁO CÁO THỐNG KÊ (CHỈ ADMIN)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CapNhatTrangThaiDon(string id, string? trangThaiDonHang, string? trangThaiThanhToan)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["ErrorMessage"] = "Mã hóa đơn không hợp lệ.";
+                return RedirectToAction(nameof(DonHang));
+            }
+
+            var dto = new CapNhatTrangThaiDonDto
+            {
+                TrangThaiDonHang = string.IsNullOrWhiteSpace(trangThaiDonHang) ? null : trangThaiDonHang.Trim(),
+                TrangThaiThanhToan = string.IsNullOrWhiteSpace(trangThaiThanhToan) ? null : trangThaiThanhToan.Trim()
+            };
+
+            var (success, message) = await _orderClient.UpdateOrderStatusAsync(id, dto);
+            if (success)
+                TempData["SuccessMessage"] = message;
+            else
+                TempData["ErrorMessage"] = message;
+
+            return RedirectToAction(nameof(ChiTietDonHang), new { id });
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> BaoCao(string? loai = "sp-ban-chay", int? thang = null, int? nam = null, int? quy = null)
         {
+            var now = DateTime.Now;
             loai ??= "sp-ban-chay";
-            nam ??= 2026;
-            thang ??= 9; // Mặc định tháng 9/2026
-            quy ??= 3;   // Mặc định Quý 3/2026
+            nam ??= now.Year;
+            thang ??= now.Month;
+            quy ??= (now.Month - 1) / 3 + 1;
 
             ViewBag.Loai = loai;
             ViewBag.Thang = thang;
@@ -308,9 +354,10 @@ namespace NexusRetail.WebMvc.Controllers
         [HttpGet]
         public async Task<IActionResult> XuatExcel(string loai, int? thang = null, int? nam = null, int? quy = null)
         {
-            nam ??= 2026;
-            thang ??= 9;
-            quy ??= 3;
+            var now = DateTime.Now;
+            nam ??= now.Year;
+            thang ??= now.Month;
+            quy ??= (now.Month - 1) / 3 + 1;
 
             var fileBytes = await _reportClient.DownloadExcelReportAsync(loai, thang, nam, quy);
             if (fileBytes != null && fileBytes.Length > 0)
@@ -323,7 +370,6 @@ namespace NexusRetail.WebMvc.Controllers
             return RedirectToAction(nameof(BaoCao), new { loai, thang, nam, quy });
         }
 
-        // 8. QUẢN LÝ NHẬP HÀNG KHO
         [HttpGet]
         public async Task<IActionResult> NhapHang()
         {
@@ -396,7 +442,6 @@ namespace NexusRetail.WebMvc.Controllers
             return View(dto);
         }
 
-        // 9. QUẢN LÝ NHÃN HIỆU
         [HttpGet]
         public async Task<IActionResult> NhanHieu()
         {

@@ -207,10 +207,17 @@ GO
 -- ------------------------------------------------------------------------------------
 CREATE TABLE HoaDonBan (
     MaHDB NVARCHAR(20) NOT NULL,
-    MaNV NVARCHAR(20) NOT NULL,
+    MaNV NVARCHAR(20) NULL,
     NgayBan DATETIME NOT NULL DEFAULT GETDATE(),
     MaKhach NVARCHAR(20) NOT NULL,
     TongTien DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (TongTien >= 0),
+    PhuongThucThanhToan NVARCHAR(30) NOT NULL CONSTRAINT DF_HoaDonBan_PTTT DEFAULT N'COD',
+    TrangThaiThanhToan NVARCHAR(30) NOT NULL CONSTRAINT DF_HoaDonBan_TTTT DEFAULT N'DaThanhToan',
+    TrangThaiDonHang NVARCHAR(30) NOT NULL CONSTRAINT DF_HoaDonBan_TTDH DEFAULT N'HoanThanh',
+    DiaChiGiaoHang NVARCHAR(250) NULL,
+    GhiChu NVARCHAR(300) NULL,
+    MaGiaoDich NVARCHAR(60) NULL,
+    SoTienDaThanhToan DECIMAL(18,2) NOT NULL CONSTRAINT DF_HoaDonBan_SoTienDaTT DEFAULT 0 CHECK (SoTienDaThanhToan >= 0),
     CONSTRAINT PK_HoaDonBan PRIMARY KEY (MaHDB),
     CONSTRAINT FK_HoaDonBan_NhanVien FOREIGN KEY (MaNV) REFERENCES NhanVien(MaNV) ON UPDATE CASCADE,
     CONSTRAINT FK_HoaDonBan_KhachHang FOREIGN KEY (MaKhach) REFERENCES KhachHang(MaKhach) ON UPDATE CASCADE
@@ -224,6 +231,7 @@ CREATE TABLE ChiTietHDB (
     MaHDB NVARCHAR(20) NOT NULL,
     MaSP NVARCHAR(20) NOT NULL,
     SoLuong INT NOT NULL CHECK (SoLuong > 0),
+    DonGia DECIMAL(18,2) NOT NULL CONSTRAINT DF_ChiTietHDB_DonGia DEFAULT 0 CHECK (DonGia >= 0),
     KhuyenMai DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (KhuyenMai >= 0 AND KhuyenMai <= 100),
     ThanhTien DECIMAL(18,2) NOT NULL CHECK (ThanhTien >= 0),
     CONSTRAINT PK_ChiTietHDB PRIMARY KEY (MaHDB, MaSP),
@@ -266,20 +274,31 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Cộng tồn kho khi nhập mới
+    -- Cộng tồn kho, tính bình quân gia quyền giá vốn thực (sau chiết khấu) và bảo vệ biên lợi nhuận tối thiểu 10%
     IF EXISTS (SELECT 1 FROM inserted)
     BEGIN
         UPDATE sp
         SET 
             sp.SoLuong = sp.SoLuong + ins.TongNhap,
-            sp.GiaNhap = ins.DonGia,
-            sp.GiaBan = ROUND(ins.DonGia * 1.10, 0)
+            sp.GiaNhap = calc.NewGiaNhap,
+            sp.GiaBan = CASE
+                WHEN sp.GiaBan < ROUND(calc.NewGiaNhap * 1.10, 0) THEN ROUND(calc.NewGiaNhap * 1.10, 0)
+                ELSE sp.GiaBan
+            END
         FROM SanPham sp
         INNER JOIN (
-            SELECT MaSP, SUM(SoLuong) AS TongNhap, MAX(DonGia) AS DonGia
+            SELECT MaSP,
+                   SUM(SoLuong) AS TongNhap,
+                   SUM(CAST(SoLuong AS DECIMAL(18,2)) * DonGia * (1.0 - KhuyenMai / 100.0)) AS TongTienThucNhap
             FROM inserted
             GROUP BY MaSP
-        ) ins ON sp.MaSP = ins.MaSP;
+        ) ins ON sp.MaSP = ins.MaSP
+        CROSS APPLY (
+            SELECT CASE
+                WHEN sp.SoLuong > 0 THEN ROUND((CAST(sp.SoLuong AS DECIMAL(18,2)) * sp.GiaNhap + ins.TongTienThucNhap) / NULLIF(sp.SoLuong + ins.TongNhap, 0), 0)
+                ELSE ROUND(ins.TongTienThucNhap / NULLIF(ins.TongNhap, 0), 0)
+            END AS NewGiaNhap
+        ) calc;
     END;
 
     -- Trừ tồn kho nếu xóa hoặc sửa chi tiết nhập cũ
@@ -431,22 +450,27 @@ AS
 SELECT 
     hdb.MaHDB,
     hdb.NgayBan,
-    hdb.MaNV,
-    nv.TenNV,
+    ISNULL(hdb.MaNV, N'') AS MaNV,
+    ISNULL(nv.TenNV, N'Khách Online') AS TenNV,
     hdb.MaKhach,
     kh.TenKhach,
     kh.DienThoai AS SDT_Khach,
     ctb.MaSP,
     sp.TenSP,
     ctb.SoLuong,
-    sp.GiaBan AS DonGiaNiemYet,
+    CASE WHEN ctb.DonGia > 0 THEN ctb.DonGia ELSE sp.GiaBan END AS DonGiaNiemYet,
     ctb.KhuyenMai,
     ctb.ThanhTien,
-    hdb.TongTien AS TongTienHoaDon
+    hdb.TongTien AS TongTienHoaDon,
+    hdb.PhuongThucThanhToan,
+    hdb.TrangThaiThanhToan,
+    hdb.TrangThaiDonHang,
+    hdb.DiaChiGiaoHang,
+    hdb.GhiChu
 FROM HoaDonBan hdb
 INNER JOIN ChiTietHDB ctb ON hdb.MaHDB = ctb.MaHDB
 INNER JOIN SanPham sp ON ctb.MaSP = sp.MaSP
-INNER JOIN NhanVien nv ON hdb.MaNV = nv.MaNV
+LEFT JOIN NhanVien nv ON hdb.MaNV = nv.MaNV
 INNER JOIN KhachHang kh ON hdb.MaKhach = kh.MaKhach;
 GO
 
@@ -480,7 +504,9 @@ BEGIN
     INNER JOIN SanPham sp ON ctb.MaSP = sp.MaSP
     INNER JOIN NhanHieu nh ON sp.MaNhanHieu = nh.MaNhanHieu
     INNER JOIN Loai l ON sp.MaLoai = l.MaLoai
-    WHERE MONTH(hdb.NgayBan) = @Thang AND YEAR(hdb.NgayBan) = @Nam
+    WHERE MONTH(hdb.NgayBan) = @Thang
+      AND YEAR(hdb.NgayBan) = @Nam
+      AND hdb.TrangThaiDonHang <> N'DaHuy'
     GROUP BY sp.MaSP, sp.TenSP, nh.TenNhanHieu, l.TenLoai, sp.GiaBan
     ORDER BY TongSoLuongBan DESC;
 END;
@@ -530,16 +556,17 @@ BEGIN
         ROW_NUMBER() OVER(ORDER BY hdb.NgayBan ASC) AS STT,
         hdb.MaHDB,
         hdb.NgayBan,
-        nv.MaNV,
-        nv.TenNV AS NhanVienBan,
+        ISNULL(hdb.MaNV, N'') AS MaNV,
+        ISNULL(nv.TenNV, N'Khách Online') AS NhanVienBan,
         kh.MaKhach,
         kh.TenKhach,
         kh.DienThoai AS SDT_Khach,
         hdb.TongTien
     FROM HoaDonBan hdb
-    INNER JOIN NhanVien nv ON hdb.MaNV = nv.MaNV
+    LEFT JOIN NhanVien nv ON hdb.MaNV = nv.MaNV
     INNER JOIN KhachHang kh ON hdb.MaKhach = kh.MaKhach
     WHERE YEAR(hdb.NgayBan) = @Nam
+      AND hdb.TrangThaiDonHang <> N'DaHuy'
     ORDER BY hdb.NgayBan ASC;
 END;
 GO
@@ -567,6 +594,7 @@ BEGIN
     LEFT JOIN HoaDonBan hdb ON nv.MaNV = hdb.MaNV 
          AND MONTH(hdb.NgayBan) = @Thang 
          AND YEAR(hdb.NgayBan) = @Nam
+         AND hdb.TrangThaiDonHang <> N'DaHuy'
     GROUP BY nv.MaNV, nv.TenNV, nv.DienThoai
     ORDER BY TongTienBanDuoc ASC, nv.MaNV ASC;
 END;
@@ -687,17 +715,17 @@ INSERT INTO ChiTietHDN (MaHDN, MaSP, SoLuong, DonGia, KhuyenMai, ThanhTien) VALU
 ('HDN02', 'SP05', 30,  4500000, 0, 135000000);
 
 -- 11. HÓA ĐƠN BÁN HÀNG MẪU
-INSERT INTO HoaDonBan (MaHDB, MaNV, NgayBan, MaKhach, TongTien) VALUES 
-('HDB01', 'NV03', '2026-09-10 10:20:00', 'KH01', 0),
-('HDB02', 'NV04', '2026-09-12 15:45:00', 'KH02', 0),
-('HDB03', 'NV03', '2026-09-15 11:30:00', 'KH03', 0);
+INSERT INTO HoaDonBan (MaHDB, MaNV, NgayBan, MaKhach, TongTien, PhuongThucThanhToan, TrangThaiThanhToan, TrangThaiDonHang, DiaChiGiaoHang, SoTienDaThanhToan) VALUES 
+('HDB01', 'NV03', '2026-09-10 10:20:00', 'KH01', 0, N'Cash', N'DaThanhToan', N'HoanThanh', N'Số 12 Phố Huế, Hai Bà Trưng, Hà Nội', 28600000),
+('HDB02', 'NV04', '2026-09-12 15:45:00', 'KH02', 0, N'VietQR', N'DaThanhToan', N'HoanThanh', N'88 Lê Lợi, Quận 1, TP. Hồ Chí Minh', 35772000),
+('HDB03', 'NV03', '2026-09-15 11:30:00', 'KH03', 0, N'Cash', N'DaThanhToan', N'HoanThanh', N'145 Nguyễn Văn Linh, Hải Châu, Đà Nẵng', 33440000);
 
 -- 12. CHI TIẾT HÓA ĐƠN BÁN
-INSERT INTO ChiTietHDB (MaHDB, MaSP, SoLuong, KhuyenMai, ThanhTien) VALUES 
-('HDB01', 'SP01', 1, 0, 28600000),
-('HDB02', 'SP02', 1, 2.0, 25872000),
-('HDB02', 'SP05', 2, 0,    9900000),
-('HDB03', 'SP03', 2, 5.0, 33440000);
+INSERT INTO ChiTietHDB (MaHDB, MaSP, SoLuong, DonGia, KhuyenMai, ThanhTien) VALUES 
+('HDB01', 'SP01', 1, 28600000, 0,   28600000),
+('HDB02', 'SP02', 1, 26400000, 2.0, 25872000),
+('HDB02', 'SP05', 2,  4950000, 0,    9900000),
+('HDB03', 'SP03', 2, 17600000, 5.0, 33440000);
 
 -- 13. DỮ LIỆU NHẬT KÝ TƯ VẤN CHATBOT AI MẪU
 INSERT INTO Chatbot_TuVanLog (SessionId, NhuCauKhach, NganSachToiDa, MaSP_GoiY, PhanHoiChatbot) VALUES 
@@ -833,25 +861,25 @@ INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES
 -- KHỞI TẠO TÀI KHOẢN MẪU (MẬT KHẨU ĐÃ BĂM PBKDF2 CHUẨN ASP.NET CORE IDENTITY)
 -- 1. admin     / admin123
 -- 2. nhanvien  / 123456
--- 3. customer  / 123456
+-- 3. khachhang / 123456
 INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, PhoneNumber) VALUES 
-('87facb0c-1847-4bb6-8dfa-8398caafe5d2', 'admin', 'ADMIN', 'admin@nexusretail.vn', 'ADMIN@NEXUSRETAIL.VN', 1, 'AQAAAAIAAYagAAAAEJG6RITiFscu0Qi0lq/+78FkvT3BcsXPm25GywVgQ36VD3DCWvrFIYRVcBupLr6IUg==', 'TOJ2RVTPOTJWRUKAUZMEJXAD6QYXGZ7U', NEWID(), '0981234567'),
-('919f4f75-00d1-4e34-8bb3-a44486f8c535', 'nhanvien', 'NHANVIEN', 'nhanvien@nexusretail.vn', 'NHANVIEN@NEXUSRETAIL.VN', 1, 'AQAAAAIAAYagAAAAEDNYdagvmxStQMb8l4AcWB46sB/TCz4hgSonvuD+f+WlXIGXeC+y5cZUg98jGTFYbw==', 'KGLMM72OTARKYEDQOSBQHNSCJCQNDKCS', NEWID(), '0978999888'),
-('e8098fcc-f98b-4799-897f-40b899c5a923', 'customer', 'CUSTOMER', 'customer@nexusretail.vn', 'CUSTOMER@NEXUSRETAIL.VN', 1, 'AQAAAAIAAYagAAAAEMwfMaA0yh7q2plIS77wnczQDtxWukz+EnMmbfLsF1BuypwIUrH7SfE4Rt24WHn/BA==', 'A4X3JUFPRUCDE2EVXEXZZVRX4HV2JYQB', NEWID(), '0966554433');
+('87facb0c-1847-4bb6-8dfa-8398caafe5d2', 'admin', 'ADMIN', 'admin@duymobile.vn', 'ADMIN@DUYMOBILE.VN', 1, 'AQAAAAIAAYagAAAAEJG6RITiFscu0Qi0lq/+78FkvT3BcsXPm25GywVgQ36VD3DCWvrFIYRVcBupLr6IUg==', 'TOJ2RVTPOTJWRUKAUZMEJXAD6QYXGZ7U', NEWID(), '0981234567'),
+('919f4f75-00d1-4e34-8bb3-a44486f8c535', 'nhanvien', 'NHANVIEN', 'nhanvien@duymobile.vn', 'NHANVIEN@DUYMOBILE.VN', 1, 'AQAAAAIAAYagAAAAEDNYdagvmxStQMb8l4AcWB46sB/TCz4hgSonvuD+f+WlXIGXeC+y5cZUg98jGTFYbw==', 'KGLMM72OTARKYEDQOSBQHNSCJCQNDKCS', NEWID(), '0978999888'),
+('e8098fcc-f98b-4799-897f-40b899c5a923', 'khachhang', 'KHACHHANG', 'khachhang@duymobile.vn', 'KHACHHANG@DUYMOBILE.VN', 1, 'AQAAAAIAAYagAAAAEIG/dHF2YKNE3yiBEOj3jPXSvmLUkmIzp+9sgDoyiuGCIs8kq/W/iAcCymN6YWNtcw==', 'ALLWR2S45NAAEXBOPE7YLI76SB4DOYA4', NEWID(), '0966554433');
 
 -- GÁN ROLE CHO TÀI KHOẢN
 INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES 
 ('87facb0c-1847-4bb6-8dfa-8398caafe5d2', 'R01'), -- admin -> Admin
 ('919f4f75-00d1-4e34-8bb3-a44486f8c535', 'R02'), -- nhanvien -> Staff
-('e8098fcc-f98b-4799-897f-40b899c5a923', 'R03'); -- customer -> Customer
+('e8098fcc-f98b-4799-897f-40b899c5a923', 'R03'); -- khachhang -> Customer
 GO
 
 PRINT N'================================================================================';
-PRINT N'✔ HOÀN TẤT CÀI ĐẶT 100% CƠ SỞ DỮ LIỆU NEXUS RETAIL CHO MÁY MỚI!';
+PRINT N'✔ HOÀN TẤT CÀI ĐẶT CƠ SỞ DỮ LIỆU NEXUS RETAIL!';
 PRINT N'1. NexusRetailDb: 13 bảng + 2 triggers + 2 views + 4 stored procedures + seed';
 PRINT N'2. NexusRetailIdentityDb: Quản lý người dùng, roles và pre-hashed credentials';
-PRINT N'   - Tài khoản Admin:    admin    / admin123';
-PRINT N'   - Tài khoản Nhân viên: nhanvien / 123456';
-PRINT N'   - Tài khoản Khách:    customer / 123456';
+PRINT N'   - Tài khoản Admin:      admin     / admin123';
+PRINT N'   - Tài khoản Nhân viên:  nhanvien  / 123456';
+PRINT N'   - Tài khoản Khách hàng: khachhang / 123456';
 PRINT N'================================================================================';
 GO

@@ -10,6 +10,6 @@ namespace NexusRetail.WebMvc.Services.Chat
 
     public interface IChatApiClient
     {
-        Task<string> SendMessageJsonAsync(string message);
+        Task<string> SendMessageJsonAsync(string message, string? sessionId = null);
     }
 }

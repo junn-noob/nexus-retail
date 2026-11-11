@@ -27,13 +27,10 @@ namespace NexusRetail.WebMvc.Models
         [Display(Name = "Giá nhập (VNĐ)")]
         public decimal GiaNhap { get; set; }
 
-        private decimal? _giaBan;
-        [Display(Name = "Giá bán niêm yết (Tối thiểu = Giá nhập × 1.10)")]
-        public decimal GiaBan
-        {
-            get => (_giaBan.HasValue && _giaBan.Value >= Math.Round(GiaNhap * 1.1m, 0)) ? _giaBan.Value : Math.Round(GiaNhap * 1.1m, 0);
-            set => _giaBan = value;
-        }
+        [Required(ErrorMessage = "Vui lòng nhập giá bán niêm yết")]
+        [Range(1000, 1000000000, ErrorMessage = "Giá bán phải từ 1.000đ trở lên")]
+        [Display(Name = "Giá bán niêm yết (VNĐ)")]
+        public decimal GiaBan { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập số lượng")]
         [Range(0, 10000, ErrorMessage = "Số lượng phải từ 0 trở lên")]
@@ -68,6 +65,10 @@ namespace NexusRetail.WebMvc.Models
         public string TenKhach { get; set; } = string.Empty;
         public string DienThoai { get; set; } = string.Empty;
         public string TenNv { get; set; } = string.Empty;
+        public string PhuongThucThanhToan { get; set; } = "Cash";
+        public string TrangThaiThanhToan { get; set; } = "DaThanhToan";
+        public string TrangThaiDonHang { get; set; } = "HoanThanh";
+        public string DiaChiGiaoHang { get; set; } = string.Empty;
     }
 
     public class AdminOrderDetailViewModel
@@ -78,6 +79,13 @@ namespace NexusRetail.WebMvc.Models
         public string TenKhach { get; set; } = string.Empty;
         public string DienThoai { get; set; } = string.Empty;
         public string TenNv { get; set; } = string.Empty;
+        public string PhuongThucThanhToan { get; set; } = "Cash";
+        public string TrangThaiThanhToan { get; set; } = "DaThanhToan";
+        public string TrangThaiDonHang { get; set; } = "HoanThanh";
+        public string DiaChiGiaoHang { get; set; } = string.Empty;
+        public string GhiChu { get; set; } = string.Empty;
+        public decimal SoTienDaThanhToan { get; set; }
+        public string MaGiaoDich { get; set; } = string.Empty;
         public List<AdminOrderItem> ChiTiet { get; set; } = new();
     }
 

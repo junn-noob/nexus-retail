@@ -61,7 +61,16 @@ try {
         Write-Host "  [PASS] POST /api/auth/login: Admin authenticated successfully!" -ForegroundColor Green
         Write-Host "         Role: $($loginRes.role) | Token length: $($loginRes.token.Length) chars" -ForegroundColor Gray
     } else {
-        Write-Host "  [FAIL] Failed to obtain JWT token for admin" -ForegroundColor Red
+        throw "Failed to obtain JWT token for admin"
+    }
+
+    foreach ($acct in @(@{ u = "nhanvien"; p = "123456"; r = "Staff" }, @{ u = "khachhang"; p = "123456"; r = "Customer" })) {
+        $acctBody = @{ username = $acct.u; password = $acct.p } | ConvertTo-Json
+        $acctRes = Invoke-RestMethod -Uri "http://localhost:5001/api/auth/login" -Method Post -Body $acctBody -ContentType "application/json"
+        if (-not $acctRes.token -or $acctRes.role -ne $acct.r) {
+            throw "Seeded account $($acct.u) failed login or role verification!"
+        }
+        Write-Host "  [PASS] POST /api/auth/login: $($acct.u) ($($acctRes.role)) authenticated cleanly!" -ForegroundColor Green
     }
 
     # 3.2 Test Invalid Credentials Rejection
@@ -83,7 +92,7 @@ try {
         Write-Host "  [PASS] POST /api/san-pham without JWT rejected (401 Unauthorized)" -ForegroundColor Green
     }
 
-    # 4. PRODUCT CATALOG CRUD & PRICING RULES (BR-03, BR-04)
+    # 4. PRODUCT CATALOG CRUD & PRICING RULES
     Write-Host "`n[PHASE 4] PRODUCT CATALOG & PRICING RULES VERIFICATION..." -ForegroundColor Yellow
     
     # 4.1 Create new product
@@ -107,11 +116,11 @@ try {
     Write-Host "  [PASS] POST /api/san-pham: Created product $qaMaSp ('$($createdProd.tenSp)')" -ForegroundColor Green
     Write-Host "         Auto-calculated GiaBan (110%): $($createdProd.giaBan) VND (GiaNhap: 20,000,000)" -ForegroundColor Gray
 
-    # 4.2 Verify GiaBan rule: 20,000,000 * 1.1 = 22,000,000
+    # Verify GiaBan rule: 20,000,000 * 1.1 = 22,000,000
     if ($createdProd.giaBan -eq 22000000) {
-        Write-Host "  [PASS] BR-03: Formula GiaBan = GiaNhap * 1.10 strictly verified!" -ForegroundColor Green
+        Write-Host "  [PASS] Pricing rule: GiaBan = GiaNhap * 1.10 verified!" -ForegroundColor Green
     } else {
-        Write-Host "  [FAIL] BR-03 violated: Expected 22,000,000 but got $($createdProd.giaBan)" -ForegroundColor Red
+        Write-Host "  [FAIL] Pricing rule violated: Expected 22,000,000 but got $($createdProd.giaBan)" -ForegroundColor Red
     }
 
     # 4.3 Update product
@@ -134,7 +143,7 @@ try {
     $getUpdated = Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Get
     Write-Host "  [PASS] PUT /api/san-pham/$($qaMaSp): Updated product name: '$($getUpdated.tenSp)' | Warranty: $($getUpdated.thoiGianBaoHanh) mos | GiaBan: $($getUpdated.giaBan)" -ForegroundColor Green
 
-    # 5. INBOUND SHIPMENT & AUTO-INVENTORY ADJUSTMENT (BR-01, BR-02, BR-03)
+    # 5. INBOUND SHIPMENT & AUTO-INVENTORY ADJUSTMENT
     Write-Host "`n[PHASE 5] INBOUND SHIPMENT & PRICING RECALCULATION..." -ForegroundColor Yellow
     $nhapDto = @{
         maNv = "NV01"
@@ -152,14 +161,15 @@ try {
     $resNhap = Invoke-RestMethod -Uri "http://localhost:5050/api/nhap-hang" -Method Post -Headers $authHeaders -Body $nhapDto -ContentType "application/json; charset=utf-8"
     Write-Host "  [PASS] POST /api/nhap-hang: Inbound receipt created: '$($resNhap.maHdn)'" -ForegroundColor Green
 
-    # Verify inventory increment and price update
+    # Verify inventory increment and weighted-average cost / markup price update:
+    # (5 * 21,000,000 + 10 * 24,000,000) / 15 = 23,000,000 -> GiaBan = 23,000,000 * 1.10 = 25,300,000
     $checkAfterNhap = Invoke-RestMethod -Uri "http://localhost:5050/api/san-pham/$qaMaSp" -Method Get
-    Write-Host "  [PASS] BR-01 Inventory Check: Stock increased from 5 -> $($checkAfterNhap.soLuong) (Expected: 15)" -ForegroundColor Green
-    Write-Host "  [PASS] BR-02 Cost Price Check: GiaNhap updated to $($checkAfterNhap.giaNhap) VND" -ForegroundColor Green
-    Write-Host "  [PASS] BR-03 Retail Price Check: GiaBan recalculated to $($checkAfterNhap.giaBan) VND (Expected: 26,400,000)" -ForegroundColor Green
+    Write-Host "  [PASS] Inventory Check: Stock increased from 5 -> $($checkAfterNhap.soLuong) (Expected: 15)" -ForegroundColor Green
+    Write-Host "  [PASS] Weighted-Avg Cost Check: GiaNhap updated to $($checkAfterNhap.giaNhap) VND (Expected: 23,000,000)" -ForegroundColor Green
+    Write-Host "  [PASS] Retail Price Check: GiaBan recalculated to $($checkAfterNhap.giaBan) VND (Expected: 25,300,000)" -ForegroundColor Green
 
-    if ($checkAfterNhap.soLuong -ne 15 -or $checkAfterNhap.giaBan -ne 26400000) {
-        Write-Host "  [FAIL] Inbound pricing or inventory calculation failed!" -ForegroundColor Red
+    if ($checkAfterNhap.soLuong -ne 15 -or $checkAfterNhap.giaNhap -ne 23000000 -or $checkAfterNhap.giaBan -ne 25300000) {
+        throw "Inbound pricing or inventory calculation mismatch!"
     }
 
     # 6. SALES & POS CHECKOUT (INVENTORY DEDUCTION & CASH/VIETQR)
@@ -171,6 +181,7 @@ try {
         tenKhachVangLai = "Do Doanh Nghiep"
         dienThoai = "0987654321"
         maNv = "NV01"
+        phuongThucThanhToan = "VietQR"
         danhSachMon = @(
             @{
                 maSp = $qaMaSp
@@ -208,12 +219,14 @@ try {
         referenceCode = "FT_E2E_PARTIAL"
     } | ConvertTo-Json
 
-    Invoke-RestMethod -Uri "http://localhost:5050/api/webhook/bank" -Method Post -Body $webhookUnder -ContentType "application/json"
+    Invoke-RestMethod -Uri "http://localhost:5050/api/webhook/bank" -Method Post -Body $webhookUnder -ContentType "application/json" | Out-Null
     $statusUnder = Invoke-RestMethod -Uri "http://localhost:5050/api/webhook/bank/status/$($resBan.maHdb)?expectedAmount=$invoiceAmount" -Method Get
 
-    if (-not $statusUnder.isPaid) {
+    if (-not $statusUnder.isPaid -and $statusUnder.paidAmount -eq $partialAmount) {
         Write-Host "  [PASS] Underpayment reconciliation verified: Received $partialAmount / Required $invoiceAmount" -ForegroundColor Green
         Write-Host "         Server message: $($statusUnder.message)" -ForegroundColor Gray
+    } else {
+        throw "Underpayment test failed: isPaid=$($statusUnder.isPaid), paidAmount=$($statusUnder.paidAmount), expected partial=$partialAmount"
     }
 
     # 7.2 Webhook Completion Test
@@ -225,34 +238,34 @@ try {
         referenceCode = "FT_E2E_FINAL"
     } | ConvertTo-Json
 
-    Invoke-RestMethod -Uri "http://localhost:5050/api/webhook/bank" -Method Post -Body $webhookComplete -ContentType "application/json"
+    Invoke-RestMethod -Uri "http://localhost:5050/api/webhook/bank" -Method Post -Body $webhookComplete -ContentType "application/json" | Out-Null
     $statusFinal = Invoke-RestMethod -Uri "http://localhost:5050/api/webhook/bank/status/$($resBan.maHdb)?expectedAmount=$invoiceAmount" -Method Get
 
-    if ($statusFinal.isPaid) {
+    if ($statusFinal.isPaid -and $statusFinal.paidAmount -eq $invoiceAmount) {
         Write-Host "  [PASS] Full payment automatically settled: Total received $($statusFinal.paidAmount) VND" -ForegroundColor Green
         Write-Host "         Order status: IsPaid = $($statusFinal.isPaid) | Tx: $($statusFinal.transactionCode)" -ForegroundColor Gray
     } else {
-        Write-Host "  [FAIL] Webhook settlement failed to trigger IsPaid!" -ForegroundColor Red
+        throw "Webhook settlement failed: isPaid=$($statusFinal.isPaid), paidAmount=$($statusFinal.paidAmount), expected=$invoiceAmount"
     }
 
-    # 8. ANALYTICAL REPORTS & EXCEL EXPORTS (BR-06, BR-07, BR-08, BR-09)
+    # 8. ANALYTICAL REPORTS & EXCEL EXPORTS
     Write-Host "`n[PHASE 8] ANALYTICAL REPORTS & EXCEL GENERATION..." -ForegroundColor Yellow
     
-    # 8.1 Best sellers report (BR-06)
+    # Best sellers report
     $bcTop = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/sp-ban-chay?month=9&year=2026" -Method Get -Headers $authHeaders
-    Write-Host "  [PASS] BR-06 Top Sellers Report: $($bcTop.topSanPham.Count) items found in Month 9/2026" -ForegroundColor Green
+    Write-Host "  [PASS] Top Sellers Report: $($bcTop.topSanPham.Count) items found in Month 9/2026" -ForegroundColor Green
 
-    # 8.2 Largest inbound shipment (BR-07)
+    # Largest inbound shipment
     $bcHdn = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/hdn-lon-nhat?quarter=3&year=2026" -Method Get -Headers $authHeaders
-    Write-Host "  [PASS] BR-07 Largest Inbound Receipt Report: Total Q3 Inbound Value = $($bcHdn.tongTienNhapQuy) VND" -ForegroundColor Green
+    Write-Host "  [PASS] Largest Inbound Receipt Report: Total Q3 Inbound Value = $($bcHdn.tongTienNhapQuy) VND" -ForegroundColor Green
 
-    # 8.3 Yearly sales report (BR-08)
+    # Yearly sales report
     $bcYear = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/doanh-so-nam?year=2026" -Method Get -Headers $authHeaders
-    Write-Host "  [PASS] BR-08 Yearly Sales Report: Total Invoices = $($bcYear.tongSoDonHang) | Total Revenue = $($bcYear.tongDoanhThu) VND" -ForegroundColor Green
+    Write-Host "  [PASS] Yearly Sales Report: Total Invoices = $($bcYear.tongSoDonHang) | Total Revenue = $($bcYear.tongDoanhThu) VND" -ForegroundColor Green
 
-    # 8.4 Lowest performing staff report (BR-09)
+    # Lowest performing staff report
     $bcStaff = Invoke-RestMethod -Uri "http://localhost:5050/api/bao-cao/nv-doanh-so-thap?month=9&year=2026" -Method Get -Headers $authHeaders
-    Write-Host "  [PASS] BR-09 Lowest Sales Staff Report: $($bcStaff.danhSachNhanVien.Count) staff listed" -ForegroundColor Green
+    Write-Host "  [PASS] Lowest Sales Staff Report: $($bcStaff.danhSachNhanVien.Count) staff listed" -ForegroundColor Green
 
     # 8.5 Excel Export download test
     $excelBytes = Invoke-WebRequest -Uri "http://localhost:5050/api/bao-cao/sp-ban-chay/excel?month=9&year=2026" -Method Get -Headers $authHeaders -UseBasicParsing
@@ -271,11 +284,22 @@ try {
 
     Write-Host "`n================================================================================" -ForegroundColor Cyan
     Write-Host "  ALL SYSTEM FLOWS TESTED & VALIDATED WITH 100% SUCCESS!" -ForegroundColor Green
-    Write-Host "  READY FOR COMMERCIAL COMMERCIAL PRODUCTION DEPLOYMENT." -ForegroundColor Green
+    Write-Host "  READY FOR COMMERCIAL PRODUCTION DEPLOYMENT." -ForegroundColor Green
     Write-Host "================================================================================" -ForegroundColor Cyan
 
 } finally {
-    Write-Host "`nTerminating test processes..." -ForegroundColor Gray
+    Write-Host "`nCleaning up QA test records and terminating test processes..." -ForegroundColor Gray
+    try {
+        if ($resBan -and $resBan.maHdb -match '^[A-Za-z0-9_]+$') {
+            sqlcmd -S "(localdb)\MSSQLLocalDB" -d "NexusRetailDb" -Q "DELETE FROM ChiTietHDB WHERE MaHDB = '$($resBan.maHdb)'; DELETE FROM HoaDonBan WHERE MaHDB = '$($resBan.maHdb)'; DELETE FROM KhachHang WHERE DienThoai = '0987654321' AND NOT EXISTS (SELECT 1 FROM HoaDonBan WHERE MaKhach = KhachHang.MaKhach);" | Out-Null
+        }
+        if ($resNhap -and $resNhap.maHdn -match '^[A-Za-z0-9_]+$') {
+            sqlcmd -S "(localdb)\MSSQLLocalDB" -d "NexusRetailDb" -Q "DELETE FROM ChiTietHDN WHERE MaHDN = '$($resNhap.maHdn)'; DELETE FROM HoaDonNhap WHERE MaHDN = '$($resNhap.maHdn)';" | Out-Null
+        }
+        if ($qaMaSp -match '^[A-Za-z0-9_]+$') {
+            sqlcmd -S "(localdb)\MSSQLLocalDB" -d "NexusRetailDb" -Q "DELETE FROM SanPham WHERE MaSP = '$qaMaSp';" | Out-Null
+        }
+    } catch {}
     if ($coreProc -and -not $coreProc.HasExited) { Stop-Process -Id $coreProc.Id -Force -ErrorAction SilentlyContinue }
     if ($idProc -and -not $idProc.HasExited) { Stop-Process -Id $idProc.Id -Force -ErrorAction SilentlyContinue }
 }

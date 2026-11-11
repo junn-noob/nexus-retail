@@ -9,7 +9,6 @@ namespace NexusRetail.Core.Api.Services.Export
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add(sheetName);
 
-            // 1. Tiêu đề chính lớn
             worksheet.Cell(1, 1).Value = tieuDe;
             worksheet.Cell(1, 1).Style.Font.Bold = true;
             worksheet.Cell(1, 1).Style.Font.FontSize = 16;
@@ -19,25 +18,22 @@ namespace NexusRetail.Core.Api.Services.Export
             worksheet.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             worksheet.Cell(1, 1).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-            // 2. Ngày xuất báo cáo
             worksheet.Cell(2, 1).Value = $"Thời gian xuất báo cáo: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
             worksheet.Cell(2, 1).Style.Font.Italic = true;
             worksheet.Range(2, 1, 2, Math.Max(cotTieuDe.Length, 1)).Merge();
 
-            // 3. Header cột
             for (int i = 0; i < cotTieuDe.Length; i++)
             {
                 var cell = worksheet.Cell(4, i + 1);
                 cell.Value = cotTieuDe[i];
                 cell.Style.Font.Bold = true;
                 cell.Style.Font.FontColor = XLColor.White;
-                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1E3A8A"); // Navy blue
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1E3A8A");
                 cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             }
             worksheet.Row(4).Height = 25;
 
-            // 4. Dữ liệu từng dòng
             for (int r = 0; r < duLieuHang.Count; r++)
             {
                 var rowNumber = r + 5;

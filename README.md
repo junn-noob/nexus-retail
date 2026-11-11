@@ -11,11 +11,11 @@ nexus-retail/
 ├── Directory.Build.props
 ├── NexusRetail.slnx
 ├── README.md
+├── start-dev.ps1                          # Khởi chạy nhanh toàn bộ Web/API (+ -WithPos cho WinForms)
 ├── docs/
 │   └── HUONG_DAN_DOI_TAC_VAN_HANH_VA_TICH_HOP.md
 ├── sql/
 │   ├── NexusRetail_Database_Full.sql      # Schema, Views, Stored Procedures & Seed dữ liệu chuẩn
-│   ├── seed_rich_products.sql             # Script bổ sung dữ liệu sản phẩm phong phú
 │   └── setup_database.ps1                 # Tự động dò SQL Server & khởi tạo CSDL
 ├── src/
 │   ├── NexusRetail.Shared/                # Entities (ChungTuBase, HoaDonBan...), DTOs, VietQrHelper
@@ -23,7 +23,7 @@ nexus-retail/
 │   ├── NexusRetail.Core.Api/              # Core REST API (3-tier: Controllers / BUS / Data + EF Migrations)
 │   ├── NexusRetail.Gateway/               # YARP Reverse Proxy định tuyến tập trung (Port 5000)
 │   ├── NexusRetail.WebMvc/                # Website TMĐT & Cổng quản trị Admin/Staff (Port 5296 / 7122)
-│   ├── NexusRetail.WinForms/              # Ứng dụng POS WinForms & Báo cáo (Vector Print / RDLC)
+│   ├── NexusRetail.WinForms/              # Ứng dụng POS WinForms & Báo cáo (PrintDocument / HTML)
 │   └── NexusRetail.UnitTests/             # Bộ kiểm thử đơn vị xUnit
 └── tests/
     └── verification/
@@ -59,16 +59,28 @@ dotnet ef database update --project src/NexusRetail.Core.Api -- --environment De
 dotnet ef database update --project src/NexusRetail.Identity.Api -- --environment Development
 ```
 
-> Lưu ý cấu hình JWT khi chạy ở môi trường `Production`: đặt biến môi trường `NEXUS_JWT_SECRET` (tối thiểu 32 ký tự) hoặc cấu hình `Jwt:Key` trong `appsettings.Local.json` (đã nằm trong `.gitignore`).
+> Lưu ý cấu hình bí mật cục bộ (không commit lên Git):
+> - Trong `Development`, hệ thống chạy sẵn với SQL Server LocalDB và cấu hình mẫu trong `appsettings.Development.json`.
+> - Để cấu hình chuỗi kết nối SQL Server riêng, `Gemini:ApiKey`, `Webhook:Secret` hoặc `Jwt:Key` cho `Production` (>= 32 ký tự), hãy sao chép mẫu `appsettings.Local.example.json` thành `appsettings.Local.json` trong `src/NexusRetail.Core.Api` và `src/NexusRetail.Identity.Api` (hoặc đặt biến môi trường `NEXUS_JWT_SECRET`, `GEMINI_API_KEY`).
 
-### 2. Biên dịch & Chạy kiểm thử tự động
+### 2. Khởi chạy toàn bộ hệ thống (1 lệnh)
+
+```powershell
+# Khởi chạy Identity.Api (5001), Core.Api (5050), Gateway (5000) và WebMvc (5296)
+.\start-dev.ps1
+
+# Hoặc khởi chạy kèm ứng dụng Desktop POS WinForms
+.\start-dev.ps1 -WithPos
+```
+
+### 3. Biên dịch & Chạy kiểm thử tự động
 
 ```powershell
 dotnet build NexusRetail.slnx
 dotnet test NexusRetail.slnx
 ```
 
-### 3. Tài khoản mẫu (`Identity.Api` seeding trong DB)
+### 4. Tài khoản mẫu (`Identity.Api` seeding trong DB)
 
 | Vai trò | Tên đăng nhập | Mật khẩu |
 | :--- | :--- | :--- |

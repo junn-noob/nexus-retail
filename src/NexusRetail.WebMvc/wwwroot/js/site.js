@@ -5,7 +5,7 @@
 (() => {
     "use strict";
 
-    // 1. Global keyboard shortcuts (Esc to close modals/chat, Ctrl+K or / to focus search)
+    // Global keyboard shortcuts (Esc to close modals/chat, Ctrl+K or / to focus search)
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
             if (typeof window.closeChat === "function") window.closeChat();
@@ -23,7 +23,7 @@
         }
     });
 
-    // 2. Unified AJAX catalog filtering & pagination (Fetch API + Razor PartialView)
+    // Unified AJAX catalog filtering & pagination (Fetch API + Razor PartialView)
     const params = new URLSearchParams(window.location.search);
     const catalogState = {
         brand: params.get("brand") || "",
@@ -43,9 +43,44 @@
 
     const syncActivePriceLinks = () => {
         document.querySelectorAll(".dm-filter-opt[data-price]").forEach(el => {
-            const isMatch = (el.dataset.price || "") === catalogState.price;
+            const p = el.dataset.price || "";
+            const isMatch = p === catalogState.price;
             el.classList.toggle("active", isMatch);
+            el.querySelector(".dm-price-check")?.classList.toggle("d-none", !isMatch);
+
+            const qs = new URLSearchParams();
+            qs.set("page", "1");
+            if (p) qs.set("price", p);
+            if (catalogState.q) qs.set("q", catalogState.q);
+            if (catalogState.brand) qs.set("brand", catalogState.brand);
+            el.setAttribute("href", `/?${qs.toString()}#productCatalog`);
         });
+    };
+
+    const syncFilterChrome = () => {
+        document.querySelectorAll(".dm-search-form input[name='q']").forEach(inp => {
+            inp.value = catalogState.q;
+        });
+
+        const hasFilters = Boolean(catalogState.brand || catalogState.price || catalogState.q);
+        document.getElementById("btnResetFilters")?.classList.toggle("d-none", !hasFilters);
+
+        const qBox = document.getElementById("activeQueryBox");
+        const qTxt = document.getElementById("activeQueryText");
+        if (qBox && qTxt) {
+            qBox.classList.toggle("d-none", !catalogState.q);
+            qTxt.textContent = catalogState.q ? `"${catalogState.q}"` : "";
+        }
+
+        const bBox = document.getElementById("activeBrandBox");
+        const bTxt = document.getElementById("activeBrandText");
+        if (bBox && bTxt) {
+            bBox.classList.toggle("d-none", !catalogState.brand);
+            const activePill = document.querySelector(`.dm-brand-pill[data-id="${CSS.escape(catalogState.brand)}"]`);
+            bTxt.textContent = catalogState.brand
+                ? (activePill ? activePill.textContent.trim() : catalogState.brand)
+                : "";
+        }
     };
 
     const filterCatalog = async (overrides = {}) => {
@@ -64,6 +99,7 @@
 
         syncActiveBrandPill();
         syncActivePriceLinks();
+        syncFilterChrome();
 
         if (activeAbort) activeAbort.abort();
         activeAbort = new AbortController();
@@ -124,6 +160,27 @@
     document.addEventListener("DOMContentLoaded", () => {
         syncActiveBrandPill();
         syncActivePriceLinks();
+        syncFilterChrome();
+
+        // Tự động ẩn toast thông báo trạng thái sau 4.5 giây để tránh che nút thao tác
+        document.querySelectorAll(".toast.show").forEach(toastEl => {
+            setTimeout(() => {
+                if (typeof bootstrap !== "undefined" && bootstrap.Toast) {
+                    bootstrap.Toast.getOrCreateInstance(toastEl).hide();
+                } else {
+                    toastEl.classList.remove("show");
+                }
+            }, 4500);
+        });
+
+        document.querySelectorAll(".dm-search-form").forEach(form => {
+            form.addEventListener("submit", event => {
+                if (!document.getElementById("productCatalogResults")) return;
+                event.preventDefault();
+                const val = (form.querySelector("input[name='q']")?.value || "").trim();
+                filterCatalog({ q: val, page: 1 });
+            });
+        });
 
         document.addEventListener("click", event => {
             const brandLink = event.target.closest(".dm-brand-pill[data-id]");

@@ -17,12 +17,16 @@ namespace NexusRetail.WebMvc.Controllers
         public class ChatRequest
         {
             public string Message { get; set; } = "";
+            public string? SessionId { get; set; }
         }
 
         [HttpPost]
         public async Task<IActionResult> PostMessage([FromBody] ChatRequest req)
         {
-            var json = await _chatClient.SendMessageJsonAsync(req?.Message ?? "");
+            string sessionId = !string.IsNullOrWhiteSpace(req?.SessionId)
+                ? req.SessionId.Trim()
+                : HttpContext.Session.Id;
+            var json = await _chatClient.SendMessageJsonAsync(req?.Message ?? "", sessionId);
             return Content(json, "application/json");
         }
     }

@@ -37,6 +37,22 @@ public class BanHangController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
+        // Nếu gọi qua HTTP từ khách vãng lai hoặc Customer (không phải Admin/Staff),
+        // không cho phép tự gán MaNV thu ngân hay tự áp chiết khấu trên giá niêm yết.
+        bool hasHttpContext = HttpContext != null;
+        bool isStaffOrAdmin = hasHttpContext && (User.IsInRole("Admin") || User.IsInRole("Staff"));
+        if (hasHttpContext && !isStaffOrAdmin)
+        {
+            dto.MaNv = null;
+            if (dto.DanhSachMon != null)
+            {
+                foreach (var item in dto.DanhSachMon)
+                {
+                    item.KhuyenMai = 0m;
+                }
+            }
+        }
+
         var result = await _bus.ThanhToanAsync(dto);
         return result.ToActionResult();
     }
@@ -45,7 +61,8 @@ public class BanHangController : ControllerBase
     [HttpGet("tra-cuu/{sdt}")]
     public async Task<IActionResult> traCuuDonHang(string sdt)
     {
-        var result = await _bus.TraCuuDonHangAsync(sdt);
+        bool isStaffOrAdmin = HttpContext != null && (User.IsInRole("Admin") || User.IsInRole("Staff"));
+        var result = await _bus.TraCuuDonHangAsync(sdt, maskPii: !isStaffOrAdmin);
         return result.ToActionResult();
     }
 
@@ -65,6 +82,16 @@ public class BanHangController : ControllerBase
     public async Task<IActionResult> layChiTiet(string id)
     {
         var result = await _bus.LayChiTietAsync(id);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpPatch("{id}/trang-thai")]
+    public async Task<IActionResult> capNhatTrangThai(string id, [FromBody] CapNhatTrangThaiDonDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var result = await _bus.CapNhatTrangThaiAsync(id, dto);
         return result.ToActionResult();
     }
 

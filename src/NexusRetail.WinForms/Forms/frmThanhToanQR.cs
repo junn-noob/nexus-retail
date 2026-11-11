@@ -43,7 +43,6 @@ namespace NexusRetail.WinForms.Forms
 
             picQr.BringToFront();
 
-            // 1. Sinh ngay lập tức mã VietQR EMVCo chuẩn NAPAS 100% OFFLINE (0ms, không phụ thuộc mạng hay API ngoài)
             GenerateAndDisplayQrOffline();
 
             this.Shown += (s, e) =>
@@ -54,7 +53,7 @@ namespace NexusRetail.WinForms.Forms
                 }
             };
 
-            // Khởi động Timer lắng nghe Webhook (1.5 giây/lần)
+            // Lắng nghe webhook đối soát định kỳ mỗi 1.5 giây
             _pollingTimer.Interval = 1500;
             _pollingTimer.Tick += PollingTimer_Tick;
             _pollingTimer.Start();
@@ -66,8 +65,9 @@ namespace NexusRetail.WinForms.Forms
             lblSoTien.Font = UiTheme.FontTitle;
             lblSoTien.ForeColor = UiTheme.Danger;
 
-            UiTheme.ApplyPrimaryButton(btnKiemTra, "🔄 Kiểm Tra Thanh Toán (F5)");
-            UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng Giao Dịch (Esc)");
+            UiTheme.ApplyPrimaryButton(btnKiemTra, "🔄 Kiểm Tra (F5)");
+            UiTheme.ApplyPrimaryButton(btnGiaLap, "🧪 Giả lập đối soát");
+            UiTheme.ApplySecondaryButton(btnDong, "❌ Hủy (Esc)");
         }
 
 
@@ -222,6 +222,31 @@ namespace NexusRetail.WinForms.Forms
             await KiemTraThanhToanAsync();
         }
 
+        private async void btnGiaLap_Click(object? sender, EventArgs e)
+        {
+            if (IsDisposed || !Visible || IsPaymentSuccessful) return;
+
+            btnGiaLap.Enabled = false;
+            try
+            {
+                var (ok, msg) = await WinFormsApiClient.Sales.SimulateBankPaymentAsync(_maHdb, _soTien);
+                if (!ok)
+                {
+                    lblStatus.Text = msg;
+                    return;
+                }
+
+                await KiemTraThanhToanAsync();
+            }
+            finally
+            {
+                if (!IsDisposed && !IsPaymentSuccessful)
+                {
+                    btnGiaLap.Enabled = true;
+                }
+            }
+        }
+
         private async Task KiemTraThanhToanAsync()
         {
             if (IsDisposed || !Visible || IsPaymentSuccessful) return;
@@ -264,7 +289,7 @@ namespace NexusRetail.WinForms.Forms
                 if (!IsDisposed && !IsPaymentSuccessful)
                 {
                     btnKiemTra.Enabled = true;
-                    btnKiemTra.Text = "🔄 Kiểm Tra Thanh Toán (F5)";
+                    btnKiemTra.Text = "🔄 Kiểm Tra (F5)";
                 }
             }
         }

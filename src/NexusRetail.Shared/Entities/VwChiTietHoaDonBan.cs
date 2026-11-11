@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace NexusRetail.Shared.Entities;
@@ -32,4 +32,14 @@ public partial class VwChiTietHoaDonBan
     public decimal ThanhTien { get; set; }
 
     public decimal TongTienHoaDon { get; set; }
+
+    public string? PhuongThucThanhToan { get; set; }
+
+    public string? TrangThaiThanhToan { get; set; }
+
+    public string? TrangThaiDonHang { get; set; }
+
+    public string? DiaChiGiaoHang { get; set; }
+
+    public string? GhiChu { get; set; }
 }

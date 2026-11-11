@@ -116,8 +116,12 @@ namespace NexusRetail.WinForms.Forms
                 lblCard4Val.ForeColor = lowStock > 0 ? Color.FromArgb(220, 38, 38) : Color.FromArgb(16, 185, 129);
 
                 var invoices = await _salesClient.SearchSaleInvoicesAsync();
-                lblCard2Val.Text = $"{invoices.Count} Hóa Đơn";
-                decimal totalRev = invoices.Sum(i => i.TongTien);
+                var activeInvoices = invoices
+                    .Where(i => !string.Equals(i.TrangThaiDonHang, "DaHuy", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                lblCard2Val.Text = $"{activeInvoices.Count} Hóa Đơn";
+                decimal totalRev = activeInvoices.Sum(i => i.TongTien);
                 lblCard1Val.Text = $"{totalRev:N0} ₫";
 
                 dgvRecentSales.Rows.Clear();
@@ -128,13 +132,27 @@ namespace NexusRetail.WinForms.Forms
                         inv.NgayBan.ToString("dd/MM/yyyy HH:mm"),
                         inv.TenKhach,
                         inv.DienThoai,
-                        inv.TenNv,
+                        string.IsNullOrWhiteSpace(inv.TenNv) ? "Đơn Online (Web)" : inv.TenNv,
                         inv.TongTien.ToString("N0") + " ₫",
-                        "Đã thanh toán"
+                        FormatOrderStatus(inv)
                     );
                 }
             }
             catch { }
+        }
+
+        private static string FormatOrderStatus(InvoiceSearchItem inv)
+        {
+            if (string.Equals(inv.TrangThaiDonHang, "DaHuy", StringComparison.OrdinalIgnoreCase))
+                return "Đã hủy";
+            if (string.Equals(inv.TrangThaiThanhToan, "DaThanhToan", StringComparison.OrdinalIgnoreCase))
+                return "Đã thanh toán";
+            return inv.TrangThaiDonHang switch
+            {
+                "DangGiao" => "Đang giao (Chờ TT)",
+                "HoanThanh" => "Hoàn thành",
+                _ => "Chờ xác nhận"
+            };
         }
 
         private void btnBanHang_Click(object sender, EventArgs e)

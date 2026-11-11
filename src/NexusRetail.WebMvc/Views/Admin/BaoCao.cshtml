@@ -4,9 +4,9 @@
 @{
     ViewData["Title"] = "Báo cáo thống kê kinh doanh (Admin)";
     string loai = ViewBag.Loai as string ?? "sp-ban-chay";
-    int thang = ViewBag.Thang ?? 9;
-    int nam = ViewBag.Nam ?? 2026;
-    int quy = ViewBag.Quy ?? 3;
+    int thang = ViewBag.Thang ?? DateTime.Now.Month;
+    int nam = ViewBag.Nam ?? DateTime.Now.Year;
+    int quy = ViewBag.Quy ?? ((DateTime.Now.Month - 1) / 3 + 1);
 
     // Trích xuất danh sách dòng từ JsonElement đa cấu trúc
     JsonElement rowsArray = default;
@@ -42,14 +42,29 @@
                 tongTienTongHop = v1;
             else if (root.TryGetProperty("tongTienNhapQuy", out var nq) && nq.TryGetDecimal(out var v2)) 
                 tongTienTongHop = v2;
+            else if (root.TryGetProperty("tongGiaTriTon", out var gt) && gt.TryGetDecimal(out var v2b))
+                tongTienTongHop = v2b;
 
             if (root.TryGetProperty("tongSoLuongBan", out var sl) && sl.TryGetInt32(out var v3)) 
                 tongSoLuongTongHop = v3;
+            else if (root.TryGetProperty("tongTonCuoi", out var tc) && tc.TryGetInt32(out var v3b))
+                tongSoLuongTongHop = v3b;
 
             if (root.TryGetProperty("tongSoDonHang", out var dh) && dh.TryGetInt32(out var v4)) 
                 tongSoDonHangTongHop = v4;
             else if (root.TryGetProperty("tongSoHoaDon", out var hd) && hd.TryGetInt32(out var v5)) 
                 tongSoDonHangTongHop = v5;
+        }
+
+        if (loai == "ton-kho" && hasRows && tongTienTongHop == 0 && tongSoLuongTongHop == 0)
+        {
+            foreach (var item in rowsArray.EnumerateArray())
+            {
+                if (item.TryGetProperty("tonCuoiTien", out var tVal) && tVal.TryGetDecimal(out var decVal))
+                    tongTienTongHop += decVal;
+                if (item.TryGetProperty("tonCuoiSl", out var slVal) && slVal.TryGetInt32(out var intVal))
+                    tongSoLuongTongHop += intVal;
+            }
         }
     }
 }
@@ -79,10 +94,11 @@
                     <option value="nhap-lon-nhat-quy" selected="@(loai == "nhap-lon-nhat-quy")">Hóa đơn & Tiền nhập lớn nhất theo Quý</option>
                     <option value="doanh-so-nam" selected="@(loai == "doanh-so-nam")">Hóa đơn & Tổng doanh số theo Năm</option>
                     <option value="nv-ban-it-nhat" selected="@(loai == "nv-ban-it-nhat")">5 Nhân viên có doanh số thấp nhất (Tháng/Năm)</option>
+                    <option value="ton-kho" selected="@(loai == "ton-kho")">Báo cáo Xuất - Nhập - Tồn kho (Tháng/Năm)</option>
                 </select>
             </div>
 
-            @if (loai == "sp-ban-chay" || loai == "nv-ban-it-nhat")
+            @if (loai == "sp-ban-chay" || loai == "nv-ban-it-nhat" || loai == "ton-kho")
             {
                 <div class="col-md-3 col-6">
                     <label class="form-label small fw-bold text-secondary">Tháng:</label>
@@ -134,7 +150,7 @@
                 <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <small class="fw-bold text-secondary text-uppercase">
-                            @(loai == "nhap-lon-nhat-quy" ? "Tổng tiền nhập hàng" : "Tổng doanh thu ghi nhận")
+                            @(loai == "nhap-lon-nhat-quy" ? "Tổng tiền nhập hàng" : (loai == "ton-kho" ? "Tổng giá trị tồn kho" : "Tổng doanh thu ghi nhận"))
                         </small>
                         <i class="bi bi-cash-stack text-success fs-4"></i>
                     </div>
@@ -148,12 +164,12 @@
                 <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <small class="fw-bold text-secondary text-uppercase">
-                            @(loai == "sp-ban-chay" ? "Tổng máy bán ra" : (loai == "nv-ban-it-nhat" ? "Số nhân viên thống kê" : "Tổng số đơn hàng"))
+                            @(loai == "sp-ban-chay" ? "Tổng máy bán ra" : (loai == "nv-ban-it-nhat" ? "Số nhân viên thống kê" : (loai == "ton-kho" ? "Tổng số lượng tồn cuối" : "Tổng số đơn hàng")))
                         </small>
                         <i class="bi bi-bar-chart-fill text-primary fs-4"></i>
                     </div>
                     <div class="fs-4 fw-bolder text-dark">
-                        @(loai == "sp-ban-chay" ? $"{tongSoLuongTongHop} sản phẩm" : (loai == "nv-ban-it-nhat" ? $"{rowsArray.GetArrayLength()} nhân viên" : $"{tongSoDonHangTongHop} hóa đơn"))
+                        @(loai == "sp-ban-chay" ? $"{tongSoLuongTongHop} sản phẩm" : (loai == "nv-ban-it-nhat" ? $"{rowsArray.GetArrayLength()} nhân viên" : (loai == "ton-kho" ? $"{tongSoLuongTongHop} máy" : $"{tongSoDonHangTongHop} hóa đơn")))
                     </div>
                 </div>
             </div>
@@ -388,6 +404,69 @@
                                 <td colspan="7" class="text-center py-5 text-secondary">
                                     <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
                                     Không có dữ liệu nhân viên bán hàng trong <strong>Tháng @thang/@nam</strong>.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else if (loai == "ton-kho")
+            {
+                <table class="table table-hover align-middle m-0">
+                    <thead class="table-light small text-secondary">
+                        <tr>
+                            <th class="ps-4 text-center" style="width: 60px;">STT</th>
+                            <th>Mã SP</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Hãng</th>
+                            <th class="text-center">Nhập (SL)</th>
+                            <th class="text-end">Tiền nhập</th>
+                            <th class="text-center">Xuất (SL)</th>
+                            <th class="text-end">Tiền xuất</th>
+                            <th class="text-center">Tồn cuối</th>
+                            <th class="text-end">Giá trị tồn</th>
+                            <th class="text-center pe-4">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (hasRows)
+                        {
+                            foreach (var row in rowsArray.EnumerateArray())
+                            {
+                                var stt = row.TryGetProperty("stt", out var p0) ? p0.GetInt32() : 0;
+                                var maSp = row.TryGetProperty("maSp", out var p1) ? p1.GetString() : "";
+                                var tenSp = row.TryGetProperty("tenSp", out var p2) ? p2.GetString() : "";
+                                var brand = row.TryGetProperty("tenNhanHieu", out var p3) ? p3.GetString() : "";
+                                var nhapSl = row.TryGetProperty("nhapSl", out var p4) ? p4.GetInt32() : 0;
+                                var nhapTien = row.TryGetProperty("nhapTien", out var p5) ? p5.GetDecimal() : 0m;
+                                var xuatSl = row.TryGetProperty("xuatSl", out var p6) ? p6.GetInt32() : 0;
+                                var xuatTien = row.TryGetProperty("xuatTien", out var p7) ? p7.GetDecimal() : 0m;
+                                var tonSl = row.TryGetProperty("tonCuoiSl", out var p8) ? p8.GetInt32() : 0;
+                                var tonTien = row.TryGetProperty("tonCuoiTien", out var p9) ? p9.GetDecimal() : 0m;
+                                var status = row.TryGetProperty("trangThai", out var p10) ? p10.GetString() : "";
+                                var statusCls = tonSl <= 0 ? "bg-danger-subtle text-danger" : (tonSl <= 5 ? "bg-warning-subtle text-warning" : "bg-success-subtle text-success");
+
+                                <tr>
+                                    <td class="ps-4 text-center text-secondary fw-bold">@stt</td>
+                                    <td class="fw-bold text-dark">@maSp</td>
+                                    <td class="fw-bold text-dark">@tenSp</td>
+                                    <td><span class="badge bg-light text-dark border">@brand</span></td>
+                                    <td class="text-center">@nhapSl</td>
+                                    <td class="text-end text-secondary">@nhapTien.ToString("N0") ₫</td>
+                                    <td class="text-center text-primary fw-semibold">@xuatSl</td>
+                                    <td class="text-end text-primary">@xuatTien.ToString("N0") ₫</td>
+                                    <td class="text-center fw-bolder">@tonSl</td>
+                                    <td class="text-end fw-bold text-danger">@tonTien.ToString("N0") ₫</td>
+                                    <td class="text-center pe-4"><span class="badge @statusCls">@status</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="11" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                                    Không có dữ liệu tồn kho cho <strong>Tháng @thang/@nam</strong>.
                                 </td>
                             </tr>
                         }

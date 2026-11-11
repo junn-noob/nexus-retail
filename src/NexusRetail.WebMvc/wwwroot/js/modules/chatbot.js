@@ -34,13 +34,29 @@
         }
     }
 
+    function escapeHtml(raw) {
+        return String(raw ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function formatChatText(raw) {
+        return escapeHtml(raw)
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\n/g, "<br/>");
+    }
+
     function addMessage(text, isUser = false, badgeHtml = "") {
         const container = chatMessages();
         if (!container) return null;
 
         const message = document.createElement("div");
         message.className = isUser ? "dm-msg dm-msg-me" : "dm-msg dm-msg-bot";
-        message.innerHTML = (badgeHtml ? badgeHtml : "") + text.replace(/\n/g, "<br/>");
+        const bodyHtml = isUser ? escapeHtml(text).replace(/\n/g, "<br/>") : formatChatText(text);
+        message.innerHTML = (badgeHtml || "") + bodyHtml;
 
         container.appendChild(message);
         container.scrollTop = container.scrollHeight;
@@ -66,10 +82,16 @@
         }
 
         try {
+            let chatSessionId = sessionStorage.getItem("dm_chat_session");
+            if (!chatSessionId) {
+                chatSessionId = "WEB_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+                sessionStorage.setItem("dm_chat_session", chatSessionId);
+            }
+
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: text })
+                body: JSON.stringify({ message: text, sessionId: chatSessionId })
             });
 
             typingEl.remove();
@@ -85,6 +107,8 @@
                 badgeHtml = `<div class="mb-1"><span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:10px;"><i class="bi bi-stars me-1"></i>Google Gemini AI</span></div>`;
             } else if (data.source === "local_smart_catalog") {
                 badgeHtml = `<div class="mb-1"><span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;" title="${data.note || ''}"><i class="bi bi-robot me-1"></i>Duy Mobile AI (Kho hàng)</span></div>`;
+            } else if (data.source === "local") {
+                badgeHtml = `<div class="mb-1"><span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size:10px;"><i class="bi bi-shield-check me-1"></i>Duy Mobile AI (Tra cứu đơn)</span></div>`;
             } else if (data.source === "mvc_fallback") {
                 badgeHtml = `<div class="mb-1"><span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size:10px;"><i class="bi bi-info-circle me-1"></i>Duy Mobile AI (Dự phòng)</span></div>`;
             }
@@ -101,8 +125,8 @@
                 data.items.forEach(product => {
                     const cardBtn = document.createElement("button");
                     cardBtn.type = "button";
-                    cardBtn.className = "btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center p-2 rounded-3";
-                    cardBtn.innerHTML = `<span class="fw-bold small text-dark"><i class="bi bi-phone text-primary me-1"></i> ${product.name}</span> <span class="badge bg-danger">${product.price}</span>`;
+                    cardBtn.className = "btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center p-2 rounded-3 gap-2";
+                    cardBtn.innerHTML = `<span class="fw-bold small text-dark"><i class="bi bi-phone text-primary me-1"></i> ${escapeHtml(product.name)}</span> <span class="badge bg-danger text-nowrap">${escapeHtml(product.price)}</span>`;
 
                     cardBtn.onclick = () => {
                         if (typeof window.openProduct === "function") {

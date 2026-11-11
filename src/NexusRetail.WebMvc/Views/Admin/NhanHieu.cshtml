@@ -31,9 +31,9 @@
                     <table class="table table-hover align-middle m-0">
                         <thead class="table-light small text-secondary">
                             <tr>
-                                <th class="ps-4" style="width: 140px;">Mã nhãn hiệu</th>
-                                <th>Tên nhãn hiệu</th>
-                                <th class="text-center pe-4" style="width: 140px;">Thao tác</th>
+                                <th class="ps-4" style="min-width: 120px;">Mã nhãn hiệu</th>
+                                <th style="min-width: 240px;">Tên nhãn hiệu</th>
+                                <th class="text-center pe-4" style="min-width: 110px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,12 +42,12 @@
                                 foreach (var b in Model)
                                 {
                                     <tr>
-                                        <td class="ps-4 fw-bold text-dark">@b.MaNhanHieu</td>
+                                        <td class="ps-4 fw-bold text-dark text-nowrap">@b.MaNhanHieu</td>
                                         <td>
                                             <form asp-action="SuaNhanHieu" method="post" class="d-flex gap-2 align-items-center">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="maNhanHieu" value="@b.MaNhanHieu" />
-                                                <input type="text" name="tenNhanHieu" value="@b.TenNhanHieu" class="form-control form-control-sm rounded-3" maxlength="100" required />
+                                                <input type="text" name="tenNhanHieu" value="@b.TenNhanHieu" class="form-control form-control-sm rounded-3" style="min-width: 170px;" maxlength="100" required />
                                                 <button type="submit" class="btn btn-sm btn-outline-primary rounded-3 text-nowrap">Lưu</button>
                                             </form>
                                         </td>
@@ -57,7 +57,7 @@
                                                 <form asp-action="XoaNhanHieu" method="post" onsubmit="return confirm('Xóa nhãn hiệu @b.TenNhanHieu?');">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@b.MaNhanHieu" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">Xóa</button>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 text-nowrap">Xóa</button>
                                                 </form>
                                             }
                                             else

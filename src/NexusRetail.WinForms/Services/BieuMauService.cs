@@ -50,7 +50,7 @@ namespace NexusRetail.WinForms.Services
     {
         private static readonly CultureInfo ViCulture = new("vi-VN");
 
-        #region 1. CHUYỂN ĐỔI SỐ TIỀN THÀNH CHỮ TIẾNG VIỆT
+        #region Chuyển đổi số tiền thành chữ tiếng Việt
         private static readonly string[] ChuSo = { "không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín" };
         private static readonly string[] Tien = { "", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ" };
 
@@ -124,7 +124,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 2. XUẤT VÀ HIỂN THỊ HÓA ĐƠN BÁN LẺ & PHIẾU BẢO HÀNH
+        #region Biểu mẫu Hóa đơn bán lẻ & Phiếu bảo hành
         public static string TaoHtmlHoaDonBan(
             string maHdb,
             string tenKhach,
@@ -334,7 +334,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 3. XUẤT VÀ HIỂN THỊ PHIẾU NHẬP KHO HÀNG HÓA
+        #region Biểu mẫu Phiếu nhập kho hàng hóa
         public static string TaoHtmlHoaDonNhap(
             string maHdn,
             string tenNcc,
@@ -545,7 +545,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 4. XUẤT VÀ HIỂN THỊ BÁO CÁO TỔNG HỢP XUẤT - NHẬP - TỒN KHO
+        #region Biểu mẫu Báo cáo tổng hợp Xuất - Nhập - Tồn kho
         public static string TaoHtmlBaoCaoKho(
             string maBc,
             int thang,
@@ -739,7 +739,7 @@ namespace NexusRetail.WinForms.Services
         }
         #endregion
 
-        #region 5. MỞ VÀ HIỂN THỊ BIỂU MẪU LÊN TRÌNH DUYỆT / IN ẤN
+        #region Mở biểu mẫu trên trình duyệt / in ấn
         public static void MoBieuMauTrenTrinhDuyet(string htmlContent, string tenFile)
         {
             try

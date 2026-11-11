@@ -42,7 +42,7 @@ namespace NexusRetail.Core.Api.Data
             return cmd;
         }
 
-        #region 1. TRUY VẤN TRỰC TIẾP TRÊN C# (SQL TEXT)
+        #region Truy vấn SQL trực tiếp (ADO.NET)
         /// <summary>
         /// Thực thi câu lệnh SQL Text trực tiếp trả về bảng dữ liệu DataTable sử dụng SqlDataAdapter.
         /// </summary>
@@ -97,7 +97,7 @@ namespace NexusRetail.Core.Api.Data
         }
         #endregion
 
-        #region 2. TRUY VẤN BẰNG THỦ TỤC LƯU TRỮ (STORED PROCEDURE)
+        #region Truy vấn Stored Procedure (ADO.NET)
         /// <summary>
         /// Thực thi Stored Procedure trả về bảng dữ liệu DataTable.
         /// </summary>

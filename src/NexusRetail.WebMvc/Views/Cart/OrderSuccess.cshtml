@@ -1,10 +1,20 @@
 @{
     ViewData["Title"] = "Đặt hàng thành công";
-    var maHdb = ViewBag.MaHdb ?? "HDB01";
+    string maHdb = ViewBag.MaHdb as string ?? "HDB01";
     decimal rawTongTien = ViewBag.TongTien != null ? (decimal)ViewBag.TongTien : 0m;
     var tongTien = rawTongTien.ToString("N0");
     var tenKhach = ViewBag.TenKhach ?? "Quý khách";
-    string qrUrl = $"https://img.vietqr.io/image/970422-09999999900-compact2.png?amount={(long)rawTongTien}&addInfo=DUYMOBILE%20{maHdb}&accountName=NGUYEN%20VAN%20HUNG";
+    string phuongThuc = ViewBag.PhuongThuc as string ?? "COD";
+    string diaChi = ViewBag.DiaChi as string ?? "";
+    bool initialPaid = ViewBag.InitialPaid != null && (bool)ViewBag.InitialPaid;
+    bool isVietQr = string.Equals(phuongThuc, "VietQR", StringComparison.OrdinalIgnoreCase);
+    string paymentLabel = phuongThuc switch
+    {
+        "VietQR" => "Chuyển khoản VietQR MBBank 24/7",
+        "Card" => "Thẻ tín dụng / Ghi nợ (Visa, Mastercard)",
+        _ => "Thanh toán tiền mặt khi nhận hàng (COD)"
+    };
+    string qrUrl = $"https://img.vietqr.io/image/970422-09999999900-compact2.png?amount={(long)rawTongTien}&addInfo=DUYMOBILE%20{Uri.EscapeDataString(maHdb)}&accountName=NGUYEN%20VAN%20HUNG";
 }
 
 <div class="container py-5" style="max-width: 680px;">
@@ -27,20 +37,33 @@
                 <span class="text-secondary">Thời gian đặt:</span>
                 <span class="fw-semibold text-dark">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
             </div>
+            @if (!string.IsNullOrWhiteSpace(diaChi))
+            {
+                <div class="d-flex justify-content-between mb-2 small">
+                    <span class="text-secondary">Địa chỉ nhận hàng:</span>
+                    <span class="fw-semibold text-dark text-end" style="max-width: 65%;">@diaChi</span>
+                </div>
+            }
             <div class="d-flex justify-content-between mb-2 small">
                 <span class="text-secondary">Phương thức thanh toán:</span>
-                <span class="fw-semibold text-dark">Tiền mặt (COD) hoặc Chuyển khoản VietQR</span>
+                <span class="fw-semibold text-dark">@paymentLabel</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-secondary">Trạng thái thanh toán:</span>
+                <span id="orderPaymentBadge" class="badge @(initialPaid ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning") fw-bold px-2 py-1">
+                    @(initialPaid ? "Đã thanh toán" : (isVietQr ? "Đang chờ chuyển khoản VietQR" : (phuongThuc == "Card" ? "Đã ghi nhận thanh toán thẻ" : "Thanh toán khi nhận hàng")))
+                </span>
             </div>
             <hr class="my-2">
             <div class="d-flex justify-content-between align-items-baseline">
-                <span class="fw-bold text-dark">Tổng tiền cần thanh toán:</span>
+                <span class="fw-bold text-dark">Tổng tiền đơn hàng:</span>
                 <span class="fw-bolder text-danger fs-5">@tongTien ₫</span>
             </div>
         </div>
 
-        @if (rawTongTien > 0)
+        @if (isVietQr && rawTongTien > 0)
         {
-            <div class="card border border-primary-subtle rounded-4 p-3 mb-4 bg-primary-subtle bg-opacity-10 text-center">
+            <div id="vietqrSection" class="card border border-primary-subtle rounded-4 p-3 mb-4 bg-primary-subtle bg-opacity-10 text-center">
                 <h6 class="fw-bold text-primary mb-2"><i class="bi bi-qr-code-scan me-1"></i> Quét mã VietQR chuyển khoản (MBBank 24/7)</h6>
                 <p class="small text-muted mb-3">Mở ứng dụng ngân hàng bất kỳ để quét mã thanh toán chính xác 100%:</p>
                 <div class="mx-auto bg-white p-2 rounded-3 shadow-sm d-inline-block mb-2">
@@ -50,6 +73,21 @@
                     Chủ tài khoản: <strong>NGUYEN VAN HUNG</strong> • STK: <strong>09999999900</strong> (MB Bank)<br>
                     Nội dung chuyển khoản: <span class="badge bg-primary fs-7">DUYMOBILE @maHdb</span>
                 </div>
+                <div id="qrPollingStatus" class="alert @(initialPaid ? "alert-success" : "alert-info") border-0 rounded-3 small fw-semibold mt-3 mb-0">
+                    @(initialPaid ? "✅ Hệ thống đã xác nhận thanh toán thành công!" : "⏳ Đang tự động kiểm tra trạng thái chuyển khoản từ ngân hàng...")
+                </div>
+
+                @if ((User.IsInRole("Admin") || User.IsInRole("Staff")) && !initialPaid)
+                {
+                    <div class="mt-3">
+                        <form id="sandboxSimulateForm" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="button" id="btnSimulateQr" class="btn btn-sm btn-outline-success rounded-3 fw-bold" onclick="simulateQrPaid()">
+                                <i class="bi bi-lightning-charge me-1"></i> Giả lập đối soát chuyển khoản (Admin/Staff)
+                            </button>
+                        </form>
+                    </div>
+                }
             </div>
         }
 
@@ -70,3 +108,64 @@
         </div>
     </div>
 </div>
+
+@if (isVietQr && rawTongTien > 0 && !initialPaid)
+{
+@section Scripts {
+<script>
+    (() => {
+        const maHdb = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(maHdb));
+        const expectedAmount = @((long)rawTongTien);
+        let pollingHandle = null;
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`/Cart/CheckPaymentStatus?maHdb=${encodeURIComponent(maHdb)}&expectedAmount=${expectedAmount}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const statusEl = document.getElementById("qrPollingStatus");
+                const badgeEl = document.getElementById("orderPaymentBadge");
+                if (data.isPaid) {
+                    if (statusEl) {
+                        statusEl.className = "alert alert-success border-0 rounded-3 small fw-bold mt-3 mb-0";
+                        statusEl.textContent = "✅ " + (data.message || "Đã xác nhận thanh toán thành công!");
+                    }
+                    if (badgeEl) {
+                        badgeEl.className = "badge bg-success-subtle text-success fw-bold px-2 py-1";
+                        badgeEl.textContent = "Đã thanh toán";
+                    }
+                    const simBtn = document.getElementById("btnSimulateQr");
+                    if (simBtn) simBtn.remove();
+                    if (pollingHandle) clearInterval(pollingHandle);
+                } else if (data.paidAmount > 0 && statusEl) {
+                    statusEl.className = "alert alert-warning border-0 rounded-3 small fw-semibold mt-3 mb-0";
+                    statusEl.textContent = "⚠️ " + (data.message || "Khách chuyển thiếu tiền.");
+                }
+            } catch (e) { }
+        }
+
+        window.simulateQrPaid = async function () {
+            const btn = document.getElementById("btnSimulateQr");
+            const token = document.querySelector("#sandboxSimulateForm input[name='__RequestVerificationToken']")?.value || "";
+            if (btn) btn.disabled = true;
+            try {
+                const form = new FormData();
+                form.append("maHdb", maHdb);
+                form.append("amount", expectedAmount.toString());
+                const res = await fetch("/Cart/SimulateVietQrPayment", {
+                    method: "POST",
+                    headers: { "RequestVerificationToken": token },
+                    body: form
+                });
+                await checkStatus();
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        pollingHandle = setInterval(checkStatus, 2000);
+        checkStatus();
+    })();
+</script>
+}
+}

@@ -7,6 +7,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 Write-Host "================================================================================" -ForegroundColor Cyan
 Write-Host "   NEXUS RETAIL POS - DATABASE SETUP & INITIALIZATION SUITE" -ForegroundColor Cyan
@@ -87,8 +89,8 @@ Write-Host "[BUOC 2] Dang thuc thi script khoi tao co so du lieu..." -Foreground
 Write-Host "  File script: $sqlFile" -ForegroundColor Gray
 Write-Host "  Muc tieu: NexusRetailDb + NexusRetailIdentityDb" -ForegroundColor Gray
 
-# Thuc thi file SQL qua sqlcmd (UTF-8)
-$sqlOutput = sqlcmd -S $targetInstance -i $sqlFile -b
+# Thuc thi file SQL qua sqlcmd (UTF-8 codepage 65001)
+$sqlOutput = sqlcmd -S $targetInstance -f 65001 -i $sqlFile -b
 Write-Host $sqlOutput -ForegroundColor Gray
 
 # 3. KIEM TRA SO LUONG BANG VA DU LIEU
@@ -122,7 +124,7 @@ Write-Host ""
 Write-Host "================================================================================" -ForegroundColor Cyan
 Write-Host "  [SUCCESS] CO SO DU LIEU DA DUOC THIET LAP THANH CONG 100%!" -ForegroundColor Green
 Write-Host "  SAN SANG CHAY TREN MAY MOI VOI CAC TAI KHOAN DANG NHAP MAU:" -ForegroundColor White
-Write-Host "    1. Quan tri vien (Admin):    admin    / admin123" -ForegroundColor Yellow
-Write-Host "    2. Thu ngan / Kho (Staff):   nhanvien / 123456" -ForegroundColor Yellow
-Write-Host "    3. Khach hang (Customer):    customer / 123456" -ForegroundColor Yellow
+Write-Host "    1. Quan tri vien (Admin):    admin     / admin123" -ForegroundColor Yellow
+Write-Host "    2. Thu ngan / Kho (Staff):   nhanvien  / 123456" -ForegroundColor Yellow
+Write-Host "    3. Khach hang (Customer):    khachhang / 123456" -ForegroundColor Yellow
 Write-Host "================================================================================" -ForegroundColor Cyan

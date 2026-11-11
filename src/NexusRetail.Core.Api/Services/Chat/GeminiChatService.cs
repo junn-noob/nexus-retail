@@ -29,7 +29,6 @@ namespace NexusRetail.Core.Api.Services.Chat
                 string systemPrompt,
                 string userMessage)
         {
-            // 1. Lấy API Key từ cấu hình hoặc biến môi trường.
             string apiKey = _config["Gemini:ApiKey"] ?? "";
 
             if (string.IsNullOrWhiteSpace(apiKey) ||
@@ -54,18 +53,16 @@ namespace NexusRetail.Core.Api.Services.Chat
                 );
             }
 
-            // 2. Chọn model từ appsettings.json.
             string configuredModel = _config["Gemini:Model"] ?? DefaultModel;
 
             configuredModel = configuredModel.Trim();
 
-            // Model chính được thử trước, sau đó là các model chính thức từ Google
             var modelsToTry = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(configuredModel))
                 modelsToTry.Add(configuredModel);
 
-            var officialModels = new[] { "gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite" };
+            var officialModels = new[] { "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite" };
             foreach (var m in officialModels)
             {
                 if (!modelsToTry.Contains(m, StringComparer.OrdinalIgnoreCase))
@@ -74,17 +71,17 @@ namespace NexusRetail.Core.Api.Services.Chat
                 }
             }
 
-            // 3. Tạo HTTP client.
+            // Timeout ngắn cho từng model để fallback nhanh sang model kế tiếp hoặc tư vấn nội bộ
             var client = _httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = TimeSpan.FromSeconds(15);
 
             string lastError = "Không nhận được phản hồi từ Gemini.";
 
-            // 4. Thử lần lượt các model.
             foreach (string model in modelsToTry)
             {
                 try
                 {
+                    using var perAttemptCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
                     var requestBody = new
                     {
                         systemInstruction = new
@@ -133,10 +130,10 @@ namespace NexusRetail.Core.Api.Services.Chat
                         "[GeminiChatService] Gọi Gemini model {Model}.",
                         model);
 
-                    using var response = await client.SendAsync(request);
+                    using var response = await client.SendAsync(request, perAttemptCts.Token);
 
                     string responseJson =
-                        await response.Content.ReadAsStringAsync();
+                        await response.Content.ReadAsStringAsync(perAttemptCts.Token);
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -150,17 +147,14 @@ namespace NexusRetail.Core.Api.Services.Chat
                             model,
                             (int)response.StatusCode);
 
-                        // Chỉ chuyển model khi có khả năng model hoặc
-                        // cấu hình request không hợp lệ.
-                        if (response.StatusCode == HttpStatusCode.NotFound ||
-                            response.StatusCode == HttpStatusCode.BadRequest)
+                        // Chỉ dừng ngay với lỗi xác thực API Key (401/403); các lỗi khác thử model dự phòng
+                        if (response.StatusCode == HttpStatusCode.Unauthorized ||
+                            response.StatusCode == HttpStatusCode.Forbidden)
                         {
-                            continue;
+                            break;
                         }
 
-                        // Ví dụ: API Key sai, hết quota hoặc lỗi máy chủ.
-                        // Thử model khác không chắc giải quyết được.
-                        break;
+                        continue;
                     }
 
                     using var document =
@@ -197,12 +191,10 @@ namespace NexusRetail.Core.Api.Services.Chat
 
                     _logger.LogWarning(
                         ex,
-                        "[GeminiChatService] Yêu cầu model {Model} bị " +
-                        "hủy hoặc hết thời gian chờ.",
+                        "[GeminiChatService] Yêu cầu model {Model} hết thời gian chờ (6s), thử model kế tiếp.",
                         model);
 
-                    // Không tiếp tục thử model khi request đã timeout.
-                    break;
+                    continue;
                 }
                 catch (HttpRequestException ex)
                 {
@@ -240,7 +232,6 @@ namespace NexusRetail.Core.Api.Services.Chat
                 }
             }
 
-            // 5. Fallback nếu Gemini không hoạt động.
             _logger.LogWarning(
                 "[GeminiChatService] Chuyển sang tư vấn nội bộ. " +
                 "Lý do: {Error}",

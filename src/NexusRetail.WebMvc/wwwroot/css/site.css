@@ -25,12 +25,16 @@
 }
 
 /* Global Reset & Typography */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background-color: var(--dm-bg);
     color: var(--dm-text-main);
     line-height: 1.6;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -695,4 +699,53 @@ a:hover {
     margin-top: 48px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     font-size: 13px;
+}
+
+@media (max-width: 575.98px) {
+    .dm-navbar {
+        padding: 10px 0;
+    }
+    .dm-logo {
+        gap: 6px;
+        font-size: 18px;
+    }
+    .dm-logo-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    .dm-nav-btn {
+        padding: 6px 9px;
+        gap: 4px;
+        font-size: 13px;
+    }
+    .dm-user-avatar {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+    }
+    .dm-auth-btn,
+    .dm-portal-btn {
+        font-size: 12.5px;
+        white-space: nowrap;
+    }
+    .dm-hero {
+        padding: 24px 18px;
+    }
+    .dm-chat-fab {
+        right: 16px;
+        bottom: 16px;
+        width: 52px;
+        height: 52px;
+    }
+    .dm-chat-panel {
+        right: 16px;
+        bottom: 80px;
+        max-width: calc(100vw - 32px);
+    }
+}
+
+#productModalDialog .tab-pane > .row {
+    margin-inline: 0;
 }

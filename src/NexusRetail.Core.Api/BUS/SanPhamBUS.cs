@@ -287,8 +287,22 @@ public class SanPhamBUS : ISanPhamBUS
         return CodeSequenceHelper.GenerateNextCode(allCodes, "SP");
     }
 
+    private async Task<string?> ValidateForeignKeysAsync(string maLoai, string maNhanHieu, string maManHinh)
+    {
+        if (!await _db.Loais.AnyAsync(x => x.MaLoai == maLoai))
+            return $"Không tìm thấy loại sản phẩm mã '{maLoai}'!";
+        if (!await _db.NhanHieus.AnyAsync(x => x.MaNhanHieu == maNhanHieu))
+            return $"Không tìm thấy nhãn hiệu mã '{maNhanHieu}'!";
+        if (!await _db.ManHinhs.AnyAsync(x => x.MaManHinh == maManHinh))
+            return $"Không tìm thấy loại màn hình mã '{maManHinh}'!";
+        return null;
+    }
+
     public async Task<BusResult<CreatedSanPhamResult>> ThemSanPhamAsync(ThemSanPhamDto dto)
     {
+        var fkError = await ValidateForeignKeysAsync(dto.MaLoai, dto.MaNhanHieu, dto.MaManHinh);
+        if (fkError != null) return BusResult<CreatedSanPhamResult>.BadRequest(fkError);
+
         decimal giaBan = CalculateSellingPrice(dto.GiaNhap, dto.GiaBan);
         string maSp = await SinhMaSanPhamAsync();
 
@@ -344,6 +358,12 @@ public class SanPhamBUS : ISanPhamBUS
 
     public async Task<BusResult<object?>> SuaSanPhamAsync(string maSp, SuaSanPhamDto dto)
     {
+        if (!await _db.SanPhams.AnyAsync(x => x.MaSp == maSp))
+            return BusResult<object?>.NotFound();
+
+        var fkError = await ValidateForeignKeysAsync(dto.MaLoai, dto.MaNhanHieu, dto.MaManHinh);
+        if (fkError != null) return BusResult<object?>.BadRequest(fkError);
+
         decimal giaBan = CalculateSellingPrice(dto.GiaNhap, dto.GiaBan);
 
         if (UseAdoNet)

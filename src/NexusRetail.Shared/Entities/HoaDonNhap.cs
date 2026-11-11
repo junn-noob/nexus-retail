@@ -7,7 +7,7 @@ public partial class HoaDonNhap : ChungTuBase
 {
     public string MaHdn { get; set; } = null!;
 
-    public override string MaNv { get; set; } = null!;
+    public override string? MaNv { get; set; } = null!;
 
     public DateTime NgayNhap { get; set; }
 

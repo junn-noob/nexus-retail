@@ -63,13 +63,12 @@ namespace NexusRetail.UnitTests
                 ReferenceCode = "FT_WEBHOOK_01"
             };
 
-            // Act: 1. Bắn webhook chuyển thiếu
+            // Gửi webhook chuyển thiếu và kiểm tra trạng thái đơn
             var actionResult = _webhookController.ReceiveBankWebhook(dto);
             var okResult = Assert.IsType<OkObjectResult>(actionResult);
             var success = (bool?)GetProp(okResult.Value, "success");
             Assert.False(success);
 
-            // Act: 2. Kiểm tra trạng thái đơn qua endpoint GET /api/webhook/bank/status/{maHdb}
             var statusResult = _webhookController.CheckPaymentStatus(maHdb, expected);
             var okStatus = Assert.IsType<OkObjectResult>(statusResult);
             var paymentStatus = Assert.IsType<PaymentStatusDto>(okStatus.Value);

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
@@ -19,7 +18,6 @@ Func<HttpMessageHandler> createBypassHandler = () => new HttpClientHandler
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 };
 
-// 1. Named HttpClients
 builder.Services.AddHttpClient("CoreApi", configureCoreClient)
     .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
     .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
@@ -32,7 +30,6 @@ builder.Services.AddHttpClient("IdentityApi", client =>
 })
 .ConfigurePrimaryHttpMessageHandler(createBypassHandler);
 
-// 2. Typed Modular Service Clients (Separation of Concerns)
 builder.Services.AddHttpClient<NexusRetail.WebMvc.Services.Catalog.ICatalogApiClient, NexusRetail.WebMvc.Services.Catalog.CatalogApiClient>(configureCoreClient)
     .ConfigurePrimaryHttpMessageHandler(createBypassHandler)
     .AddHttpMessageHandler<NexusRetail.WebMvc.Extensions.BearerTokenHandler>();
@@ -91,12 +88,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseStatusCodePagesWithReExecute("/Home/StatusCode", "?code={0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

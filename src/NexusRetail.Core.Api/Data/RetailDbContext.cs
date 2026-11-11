@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using NexusRetail.Shared.Entities;
@@ -78,6 +78,7 @@ public partial class RetailDbContext : DbContext
             entity.Property(e => e.MaSp)
                 .HasMaxLength(20)
                 .HasColumnName("MaSP");
+            entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.KhuyenMai).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ThanhTien).HasColumnType("decimal(18, 2)");
 
@@ -103,6 +104,7 @@ public partial class RetailDbContext : DbContext
             entity.Property(e => e.MaSp)
                 .HasMaxLength(20)
                 .HasColumnName("MaSP");
+            entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.KhuyenMai).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ThanhTien).HasColumnType("decimal(18, 2)");
@@ -134,6 +136,19 @@ public partial class RetailDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.TongTien).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PhuongThucThanhToan)
+                .HasMaxLength(30)
+                .HasDefaultValue("COD");
+            entity.Property(e => e.TrangThaiThanhToan)
+                .HasMaxLength(30)
+                .HasDefaultValue("DaThanhToan");
+            entity.Property(e => e.TrangThaiDonHang)
+                .HasMaxLength(30)
+                .HasDefaultValue("HoanThanh");
+            entity.Property(e => e.DiaChiGiaoHang).HasMaxLength(250);
+            entity.Property(e => e.GhiChu).HasMaxLength(300);
+            entity.Property(e => e.MaGiaoDich).HasMaxLength(60);
+            entity.Property(e => e.SoTienDaThanhToan).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.MaKhachNavigation).WithMany(p => p.HoaDonBans)
                 .HasForeignKey(d => d.MaKhach)
@@ -142,6 +157,7 @@ public partial class RetailDbContext : DbContext
 
             entity.HasOne(d => d.MaNvNavigation).WithMany(p => p.HoaDonBans)
                 .HasForeignKey(d => d.MaNv)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_HoaDonBan_NhanVien");
         });
@@ -337,6 +353,11 @@ public partial class RetailDbContext : DbContext
                 .HasColumnName("TenSP");
             entity.Property(e => e.ThanhTien).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.TongTienHoaDon).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PhuongThucThanhToan).HasMaxLength(30);
+            entity.Property(e => e.TrangThaiThanhToan).HasMaxLength(30);
+            entity.Property(e => e.TrangThaiDonHang).HasMaxLength(30);
+            entity.Property(e => e.DiaChiGiaoHang).HasMaxLength(250);
+            entity.Property(e => e.GhiChu).HasMaxLength(300);
         });
 
         modelBuilder.Entity<VwDanhSachSanPham>(entity =>

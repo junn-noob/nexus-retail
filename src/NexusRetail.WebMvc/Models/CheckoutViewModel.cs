@@ -18,6 +18,9 @@ namespace NexusRetail.WebMvc.Models
 
         public string? GhiChu { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán!")]
+        public string PhuongThucThanhToan { get; set; } = "COD";
+
         public List<CartItem> DanhSachMon { get; set; } = new();
 
         public decimal TongTien => DanhSachMon.Sum(x => x.ThanhTien);

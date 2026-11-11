@@ -68,7 +68,23 @@ namespace NexusRetail.WebMvc.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                StatusCode = Response.StatusCode >= 400 ? Response.StatusCode : 500
+            });
+        }
+
+        [Route("Home/StatusCode")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult HttpStatusCode(int code)
+        {
+            Response.StatusCode = code;
+            return View("Error", new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                StatusCode = code
+            });
         }
     }
 }

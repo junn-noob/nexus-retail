@@ -334,12 +334,11 @@ namespace NexusRetail.WinForms.Forms
             // 
             // txtGiaBan
             // 
-            this.txtGiaBan.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(248)))), ((int)(((byte)(238)))));
+            this.txtGiaBan.BackColor = System.Drawing.Color.White;
             this.txtGiaBan.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.txtGiaBan.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(136)))), ((int)(((byte)(46)))));
             this.txtGiaBan.Location = new System.Drawing.Point(905, 24);
             this.txtGiaBan.Name = "txtGiaBan";
-            this.txtGiaBan.ReadOnly = true;
             this.txtGiaBan.Size = new System.Drawing.Size(175, 25);
             this.txtGiaBan.TabIndex = 7;
             // 

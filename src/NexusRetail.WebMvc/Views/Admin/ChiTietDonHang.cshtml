@@ -2,6 +2,28 @@
 
 @{
     ViewData["Title"] = "Chi tiết hóa đơn " + Model.MaHdb;
+    var statusLabel = Model.TrangThaiDonHang switch
+    {
+        "ChoXacNhan" => "Chờ xác nhận",
+        "DangGiao" => "Đang giao",
+        "HoanThanh" => "Hoàn thành",
+        "DaHuy" => "Đã hủy",
+        _ => Model.TrangThaiDonHang
+    };
+    var statusBadgeClass = Model.TrangThaiDonHang switch
+    {
+        "ChoXacNhan" => "bg-warning-subtle text-warning",
+        "DangGiao" => "bg-info-subtle text-info",
+        "HoanThanh" => "bg-success-subtle text-success",
+        "DaHuy" => "bg-danger-subtle text-danger",
+        _ => "bg-primary-subtle text-primary"
+    };
+    var paymentStatusLabel = Model.TrangThaiThanhToan switch
+    {
+        "DaThanhToan" => "Đã thanh toán",
+        "ThanhToanMotPhan" => "Thanh toán 1 phần",
+        _ => "Chưa thanh toán"
+    };
 }
 
 <partial name="_AdminNav" />
@@ -25,17 +47,60 @@
                 <div class="small lh-lg text-secondary">
                     <div>Họ và tên: <strong class="text-dark">@Model.TenKhach</strong></div>
                     <div>Số điện thoại: <strong class="text-primary">@Model.DienThoai</strong></div>
+                    @if (!string.IsNullOrWhiteSpace(Model.DiaChiGiaoHang))
+                    {
+                        <div>Địa chỉ giao hàng: <strong class="text-dark">@Model.DiaChiGiaoHang</strong></div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+                    {
+                        <div>Ghi chú: <em class="text-dark">@Model.GhiChu</em></div>
+                    }
                 </div>
             </div>
         </div>
 
         <div class="col-md-6">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
-                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-building text-primary me-2"></i> Thông tin xử lý</h6>
-                <div class="small lh-lg text-secondary">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-building text-primary me-2"></i> Thông tin xử lý & Thanh toán</h6>
+                <div class="small lh-lg text-secondary mb-3">
                     <div>Nhân viên phụ trách: <strong class="text-dark">@(string.IsNullOrEmpty(Model.TenNv) ? "Khách Online" : Model.TenNv)</strong></div>
-                    <div>Trạng thái: <span class="badge bg-success-subtle text-success fw-bold px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i> Đã thanh toán & Xuất kho</span></div>
+                    <div>Phương thức thanh toán: <span class="badge bg-light text-dark border">@DisplayFormatExtensions.FormatPaymentMethod(Model.PhuongThucThanhToan)</span></div>
+                    <div>Thanh toán: <strong class="text-dark">@paymentStatusLabel</strong> (@Model.SoTienDaThanhToan.ToString("N0") ₫)</div>
+                    @if (!string.IsNullOrWhiteSpace(Model.MaGiaoDich))
+                    {
+                        <div>Mã giao dịch: <code>@Model.MaGiaoDich</code></div>
+                    }
+                    <div>Trạng thái đơn: <span class="badge @statusBadgeClass fw-bold px-2 py-1">@statusLabel</span></div>
                 </div>
+
+                @if (Model.TrangThaiDonHang != "DaHuy")
+                {
+                    <form method="post" asp-action="CapNhatTrangThaiDon" asp-route-id="@Model.MaHdb" class="border-top pt-3 row g-2 align-items-end">
+                        @Html.AntiForgeryToken()
+                        <div class="col-6">
+                            <label class="form-label small fw-bold mb-1">Trạng thái đơn</label>
+                            <select name="trangThaiDonHang" class="form-select form-select-sm rounded-3">
+                                <option value="ChoXacNhan" selected="@(Model.TrangThaiDonHang == "ChoXacNhan")">Chờ xác nhận</option>
+                                <option value="DangGiao" selected="@(Model.TrangThaiDonHang == "DangGiao")">Đang giao</option>
+                                <option value="HoanThanh" selected="@(Model.TrangThaiDonHang == "HoanThanh")">Hoàn thành</option>
+                                <option value="DaHuy" selected="@(Model.TrangThaiDonHang == "DaHuy")">Hủy đơn (Hoàn kho)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold mb-1">Thanh toán</label>
+                            <select name="trangThaiThanhToan" class="form-select form-select-sm rounded-3">
+                                <option value="ChuaThanhToan" selected="@(Model.TrangThaiThanhToan == "ChuaThanhToan")">Chưa thanh toán</option>
+                                <option value="ThanhToanMotPhan" selected="@(Model.TrangThaiThanhToan == "ThanhToanMotPhan")">Thanh toán 1 phần</option>
+                                <option value="DaThanhToan" selected="@(Model.TrangThaiThanhToan == "DaThanhToan")">Đã thanh toán</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" class="btn btn-sm btn-primary rounded-3 fw-bold w-100">
+                                <i class="bi bi-check2-circle me-1"></i> Cập nhật trạng thái đơn hàng
+                            </button>
+                        </div>
+                    </form>
+                }
             </div>
         </div>
     </div>

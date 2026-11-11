@@ -41,16 +41,15 @@ namespace NexusRetail.WinForms.Forms
             UiTheme.ApplySecondaryButton(btnBieuMauKho, "📄 Báo Cáo Xuất Nhập Tồn");
             UiTheme.ApplySecondaryButton(btnDong, "❌ Đóng (Esc)");
 
-            // Nút mở Báo cáo Trực quan mô phỏng SAP Crystal Reports Viewer
             var btnCrystal = new Button
             {
-                Text = "📊 Báo Cáo Trực Quan (Crystal)",
+                Text = "📊 Báo Cáo Trực Quan",
                 Size = new Size(210, 36),
                 Location = new Point(520, 50),
                 Cursor = Cursors.Hand,
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
             };
-            UiTheme.ApplyPrimaryButton(btnCrystal, "📊 Báo Cáo Trực Quan (Crystal)");
+            UiTheme.ApplyPrimaryButton(btnCrystal, "📊 Báo Cáo Trực Quan");
             btnCrystal.Click += (s, e) => MoVisualReportViewer();
             pnlControls.Controls.Add(btnCrystal);
 
@@ -408,7 +407,7 @@ namespace NexusRetail.WinForms.Forms
         {
             if (dgvBaoCao.Rows.Count == 0)
             {
-                MessageBox.Show("Vui lòng nhấn 'Xem Báo Cáo' để tải dữ liệu trước khi mở chế độ xem trực quan Crystal Report!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Vui lòng nhấn 'Xem Báo Cáo' để tải dữ liệu trước khi mở chế độ xem trực quan!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 

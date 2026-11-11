@@ -30,6 +30,14 @@ namespace NexusRetail.Core.Api.Controllers
         public class ChatRequestDto
         {
             public string Message { get; set; } = "";
+            public string? SessionId { get; set; }
+        }
+
+        private static string MaskPhone(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone) || phone.Length < 6)
+                return "***";
+            return $"{phone[..3]}****{phone[^3..]}";
         }
 
         // POST: api/chat
@@ -50,7 +58,6 @@ namespace NexusRetail.Core.Api.Controllers
             string originalMessage = request.Message.Trim();
             string text = originalMessage.ToLowerInvariant();
 
-            // 1. Tra cứu đơn hàng theo số điện thoại
             var phoneMatch = Regex.Match(text, @"(?<!\d)(?:\+?84|0)(?:3|5|7|8|9)\d{8}(?!\d)");
             if (phoneMatch.Success)
             {
@@ -71,7 +78,7 @@ namespace NexusRetail.Core.Api.Controllers
                 {
                     return Ok(new
                     {
-                        reply = $"Duy Mobile không tìm thấy đơn hàng nào gắn với số điện thoại {sdt}. Bạn vui lòng kiểm tra lại số điện thoại hoặc gọi tổng đài 1800.6868 để được nhân viên hỗ trợ ngay nhé!",
+                        reply = $"Duy Mobile không tìm thấy đơn hàng nào gắn với số điện thoại {MaskPhone(sdt)}. Bạn vui lòng kiểm tra lại số điện thoại hoặc gọi tổng đài 1800.6868 để được nhân viên hỗ trợ ngay nhé!",
                         items = Array.Empty<object>(),
                         source = "local",
                         note = (string?)null
@@ -79,10 +86,18 @@ namespace NexusRetail.Core.Api.Controllers
                 }
 
                 var sb = new StringBuilder();
-                sb.AppendLine($"📦 THÔNG TIN ĐƠN HÀNG CỦA SĐT {sdt}:");
+                sb.AppendLine($"📦 THÔNG TIN ĐƠN HÀNG CỦA SĐT {MaskPhone(sdt)}:");
                 foreach (var hd in hoaDons)
                 {
-                    sb.AppendLine($"\n• Mã HĐ: {hd.MaHdb} | Ngày lập: {hd.NgayBan:dd/MM/yyyy HH:mm} | Tổng tiền: {hd.TongTien:N0} ₫");
+                    var trangThaiVi = hd.TrangThaiDonHang switch
+                    {
+                        "ChoXacNhan" => "Chờ xác nhận",
+                        "DangGiao" => "Đang giao",
+                        "HoanThanh" => "Hoàn thành",
+                        "DaHuy" => "Đã hủy",
+                        _ => hd.TrangThaiDonHang
+                    };
+                    sb.AppendLine($"\n• Mã HĐ: {hd.MaHdb} | Ngày lập: {hd.NgayBan:dd/MM/yyyy HH:mm} | Trạng thái: {trangThaiVi} | Tổng tiền: {hd.TongTien:N0} ₫");
                     foreach (var ct in hd.ChiTietHdbs)
                     {
                         var thoiGianBh = ct.MaSpNavigation?.ThoiGianBaoHanh ?? 12;
@@ -90,7 +105,7 @@ namespace NexusRetail.Core.Api.Controllers
                         sb.AppendLine($"  - {ct.MaSpNavigation?.TenSp ?? ct.MaSp} (SL: {ct.SoLuong}) | Hạn BH: {hanBaoHanh:dd/MM/yyyy}");
                     }
                 }
-                sb.AppendLine("\nQuý khách khi cần bảo hành chỉ cần mang máy đến cửa hàng Duy Mobile gần nhất kèm SĐT trên là được phục vụ chu đáo!");
+                sb.AppendLine("\nQuý khách khi cần bảo hành chỉ cần mang máy đến cửa hàng Duy Mobile gần nhất kèm SĐT đặt hàng là được phục vụ chu đáo!");
 
                 return Ok(new
                 {
@@ -101,7 +116,6 @@ namespace NexusRetail.Core.Api.Controllers
                 });
             }
 
-            // 2. Phân tích ý định, thương hiệu & ngân sách của khách
             decimal? maxBudget = ExtractBudget(text);
 
             string? detectedBrand = null;
@@ -117,7 +131,6 @@ namespace NexusRetail.Core.Api.Controllers
             bool isFold = text.Contains("gập") || text.Contains("fold") || text.Contains("flip");
             bool isCheap = text.Contains("giá rẻ") || text.Contains("tiết kiệm") || text.Contains("học sinh") || text.Contains("sinh viên") || text.Contains("bình dân") || text.Contains("dưới 5") || text.Contains("dưới 4");
 
-            // 3. Truy vấn và chấm điểm sản phẩm phù hợp từ database
             var inStockProducts = await _db.SanPhams
                 .AsNoTracking()
                 .Include(sp => sp.MaNhanHieuNavigation)
@@ -239,7 +252,6 @@ namespace NexusRetail.Core.Api.Controllers
                 }
             }
 
-            // 4. Xây dựng danh mục context & system prompt cho AI
             var topCandidateProducts = relevantProducts.Take(8).ToList();
             string catalogText = string.Join("\n", topCandidateProducts.Select(p =>
                 $"- Mã SP: {p.MaSp} | Tên: {p.TenSp} | Hãng: {p.MaNhanHieuNavigation?.TenNhanHieu ?? ""} | Giá bán: {p.GiaBan:N0} ₫ | Tồn kho: {p.SoLuong} | Đặc điểm: {p.GhiChu ?? "Chính hãng VN/A"}"
@@ -259,10 +271,8 @@ namespace NexusRetail.Core.Api.Controllers
                 5. Cam kết chính hãng 100%, bảo hành 12-18 tháng, hỗ trợ trả góp 0% và thu cũ đổi mới trợ giá cao.
                 """;
 
-            // 5. Gọi Gemini hoặc dùng smart catalog fallback
             var (geminiReply, source, note) = await _geminiService.GenerateConsultationAsync(systemPrompt, originalMessage);
 
-            // 6. Khớp sản phẩm trả về frontend (matched cards)
             var matchedItems = new List<object>();
             var selectedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -306,12 +316,15 @@ namespace NexusRetail.Core.Api.Controllers
                 }
             }
 
-            // 7. Ghi log tư vấn vào cơ sở dữ liệu
             try
             {
                 string? topMaSp = topCandidateProducts.FirstOrDefault()?.MaSp;
+                string? sid = string.IsNullOrWhiteSpace(request.SessionId)
+                    ? null
+                    : request.SessionId.Trim()[..Math.Min(request.SessionId.Trim().Length, 100)];
                 _db.ChatbotTuVanLogs.Add(new ChatbotTuVanLog
                 {
+                    SessionId = sid,
                     NhuCauKhach = originalMessage,
                     NganSachToiDa = maxBudget,
                     MaSpGoiY = topMaSp,

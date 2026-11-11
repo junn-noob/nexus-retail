@@ -92,7 +92,7 @@ public class NhapHangBUS : INhapHangBUS
         var result = new HoaDonNhapResponseDto
         {
             MaHdn = hdn.MaHdn,
-            MaNv = hdn.MaNv,
+            MaNv = hdn.MaNv ?? "",
             TenNv = hdn.MaNvNavigation?.TenNv ?? "",
             MaNcc = hdn.MaNcc,
             TenNcc = hdn.MaNccNavigation?.TenNcc ?? "",
@@ -146,6 +146,26 @@ public class NhapHangBUS : INhapHangBUS
             return BusResult<HoaDonNhapResponseDto>.BadRequest($"Không tìm thấy nhà cung cấp mã '{dto.MaNcc}'!");
         }
 
+        // Gộp dòng trùng MaSP nếu cùng đơn giá & chiết khấu, hoặc báo lỗi 400 nếu xung đột giá/chiết khấu
+        var mergedItems = new List<ChiTietHdnDto>();
+        foreach (var group in dto.DanhSachMon.GroupBy(x => x.MaSp.Trim(), StringComparer.OrdinalIgnoreCase))
+        {
+            var first = group.First();
+            bool conflictingTerms = group.Any(x => x.DonGia != first.DonGia || x.KhuyenMai != first.KhuyenMai);
+            if (conflictingTerms)
+            {
+                return BusResult<HoaDonNhapResponseDto>.BadRequest($"Sản phẩm '{group.Key}' bị trùng dòng với đơn giá hoặc chiết khấu khác nhau!");
+            }
+
+            mergedItems.Add(new ChiTietHdnDto
+            {
+                MaSp = first.MaSp.Trim(),
+                SoLuong = group.Sum(x => x.SoLuong),
+                DonGia = first.DonGia,
+                KhuyenMai = first.KhuyenMai
+            });
+        }
+
         using var tx = await _db.Database.BeginTransactionAsync();
         try
         {
@@ -153,7 +173,7 @@ public class NhapHangBUS : INhapHangBUS
             decimal tongTienHoaDon = 0m;
             var chiTietList = new List<ChiTietHdnDto>();
 
-            foreach (var item in dto.DanhSachMon)
+            foreach (var item in mergedItems)
             {
                 var sp = await _db.SanPhams.FirstOrDefaultAsync(x => x.MaSp == item.MaSp);
                 if (sp == null)
@@ -165,9 +185,15 @@ public class NhapHangBUS : INhapHangBUS
                 // InMemory database does not execute SQL Server trigger trg_ChiTietHDN_Change.
                 if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
                 {
+                    decimal netUnitCost = item.DonGia * (1m - item.KhuyenMai / 100m);
+                    int oldQty = Math.Max(0, sp.SoLuong);
+                    decimal weightedCost = oldQty > 0
+                        ? Math.Round((oldQty * sp.GiaNhap + item.SoLuong * netUnitCost) / (oldQty + item.SoLuong), 0)
+                        : Math.Round(netUnitCost, 0);
+
                     sp.SoLuong += item.SoLuong;
-                    sp.GiaNhap = item.DonGia;
-                    sp.GiaBan = SanPhamBUS.CalculateSellingPrice(item.DonGia);
+                    sp.GiaNhap = weightedCost;
+                    sp.GiaBan = Math.Max(sp.GiaBan, SanPhamBUS.CalculateSellingPrice(weightedCost));
                 }
 
                 decimal thanhTien = item.SoLuong * item.DonGia * (1 - item.KhuyenMai / 100m);

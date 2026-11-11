@@ -68,13 +68,25 @@
                     var maHdb = hd.GetProperty("maHdb").GetString();
                     var ngayBan = DateTime.Parse(hd.GetProperty("ngayBan").GetString() ?? DateTime.Now.ToString());
                     var tongTien = hd.GetProperty("tongTien").GetDecimal();
+                    var trangThaiDon = hd.TryGetProperty("trangThaiDonHang", out var stProp) ? stProp.GetString() : "ChoXacNhan";
+                    var trangThaiPay = hd.TryGetProperty("trangThaiThanhToan", out var payProp) ? payProp.GetString() : "ChuaThanhToan";
+                    var pttt = hd.TryGetProperty("phuongThucThanhToan", out var pmProp) ? pmProp.GetString() : "COD";
+                    var orderBadge = trangThaiDon switch
+                    {
+                        "HoanThanh" => ("bg-success-subtle text-success", "Hoàn thành"),
+                        "DangGiao" => ("bg-info-subtle text-info", "Đang giao"),
+                        "DaHuy" => ("bg-danger-subtle text-danger", "Đã hủy"),
+                        _ => ("bg-warning-subtle text-warning", "Chờ xác nhận")
+                    };
                     var danhSachMon = hd.GetProperty("danhSachMon");
 
                     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div>
                                 <span class="fw-bold text-primary fs-6">Hóa đơn: @maHdb</span>
                                 <span class="text-secondary small ms-2">• Ngày mua: @ngayBan.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span class="badge @orderBadge.Item1 ms-2">@orderBadge.Item2</span>
+                                <span class="badge bg-light text-dark border ms-1">@DisplayFormatExtensions.FormatPaymentMethod(pttt) • @(trangThaiPay == "DaThanhToan" ? "Đã thanh toán" : "Chưa thanh toán")</span>
                             </div>
                             <div class="fw-bolder text-danger fs-5">
                                 @tongTien.ToString("N0") ₫

@@ -69,41 +69,43 @@ namespace NexusRetail.Core.Api.Services.Payment
                 };
             }
 
-            // 1. Xác định số tiền cần thanh toán của đơn hàng (ExpectedAmount)
-            decimal exp = 0;
+            // Tra cứu đơn hàng thực tế từ DB để đồng bộ số tiền kỳ vọng và số tiền đã nhận trước đó
+            decimal exp = 0m;
+            decimal persistedPaid = 0m;
             if (_expectedAmounts.TryGetValue(maHdb, out var registeredExp) && registeredExp > 0)
             {
                 exp = registeredExp;
             }
-            else
+
+            try
             {
-                // Tra cứu trực tiếp từ Database HoaDonBan nếu đơn hàng đã được lưu DB
-                try
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<RetailDbContext>();
+                var hdb = db.HoaDonBans.FirstOrDefault(h => h.MaHdb == maHdb);
+                if (hdb != null)
                 {
-                    using var scope = _scopeFactory.CreateScope();
-                    var db = scope.ServiceProvider.GetRequiredService<RetailDbContext>();
-                    var hdb = db.HoaDonBans.AsNoTracking().FirstOrDefault(h => h.MaHdb == maHdb);
-                    if (hdb != null && hdb.TongTien > 0)
+                    if (exp <= 0 && hdb.TongTien > 0)
                     {
                         exp = hdb.TongTien;
                         _expectedAmounts[maHdb] = exp;
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("[Webhook] Không thể tra cứu DB cho đơn {MaHdb}: {Error}", maHdb, ex.Message);
+                    persistedPaid = hdb.SoTienDaThanhToan;
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("[Webhook] Không thể tra cứu DB cho đơn {MaHdb}: {Error}", maHdb, ex.Message);
+            }
 
-            // 2. Tính lũy kế số tiền đã thanh toán (hỗ trợ trường hợp khách chuyển làm nhiều lần)
+            // Tính lũy kế nhằm hỗ trợ khách hàng chuyển khoản nhiều lần
             decimal previousPaid = 0m;
             if (_payments.TryGetValue(maHdb, out var existingStatus))
             {
                 previousPaid = existingStatus.PaidAmount;
             }
+            previousPaid = Math.Max(previousPaid, persistedPaid);
             decimal totalPaid = previousPaid + dto.TransferAmount;
 
-            // 3. SO SÁNH SỐ TIỀN CHUYỂN KHOẢN VỚI SỐ TIỀN CẦN THANH TOÁN
             bool isPaid = false;
             string message;
 
@@ -111,7 +113,6 @@ namespace NexusRetail.Core.Api.Services.Payment
             {
                 if (totalPaid < exp)
                 {
-                    // Chuyển thiếu tiền -> Chưa xác nhận hoàn tất thanh toán
                     isPaid = false;
                     message = $"Khách chuyển thiếu tiền: Đã nhận {totalPaid:N0}đ / Cần thanh toán {exp:N0}đ (Còn thiếu {(exp - totalPaid):N0}đ)";
                     _logger.LogWarning("[Webhook] ⚠️ ĐƠN {MaHdb} CHUYỂN THIẾU TIỀN: Đã nhận {Paid:N0}đ / Cần {Exp:N0}đ (Thiếu {Missing:N0}đ)",
@@ -119,7 +120,6 @@ namespace NexusRetail.Core.Api.Services.Payment
                 }
                 else
                 {
-                    // Chuyển đủ hoặc thừa tiền -> Xác nhận thanh toán thành công
                     isPaid = true;
                     message = $"Thanh toán thành công qua {dto.Gateway} cho đơn {maHdb}! (Đã nhận {totalPaid:N0}đ / Cần {exp:N0}đ)";
                     _logger.LogInformation("[Webhook] ✅ ĐÃ XÁC NHẬN THANH TOÁN ĐỦ cho đơn {MaHdb} ({Paid:N0}đ / {Exp:N0}đ)",
@@ -128,10 +128,44 @@ namespace NexusRetail.Core.Api.Services.Payment
             }
             else
             {
-                // Chưa có số tiền dự kiến trong hệ thống: Ghi nhận số tiền nhận được, Client POS sẽ so khớp tiếp
-                isPaid = true;
-                message = $"Đã nhận {totalPaid:N0}đ qua {dto.Gateway} cho đơn {maHdb}!";
-                _logger.LogInformation("[Webhook] Đã nhận {Paid:N0}đ cho đơn {MaHdb} (Đang chờ client xác thực số tiền)", totalPaid, maHdb);
+                // Không tự động xác nhận IsPaid=true cho đơn chưa đăng ký hoặc chưa tìm thấy trong DB
+                isPaid = false;
+                message = $"Đã nhận {totalPaid:N0}đ qua {dto.Gateway} cho đơn {maHdb} (đang chờ đối soát số tiền hợp lệ).";
+                _logger.LogInformation("[Webhook] Đã nhận {Paid:N0}đ cho đơn {MaHdb} (chưa có ExpectedAmount hợp lệ để xác nhận đủ)", totalPaid, maHdb);
+            }
+
+            string txCode = string.IsNullOrWhiteSpace(dto.ReferenceCode)
+                ? $"MB_{DateTime.UtcNow.Ticks}"
+                : dto.ReferenceCode.Trim();
+
+            // Lưu vết giao dịch xuống DB để không mất trạng thái khi khởi động lại dịch vụ
+            try
+            {
+                using var persistScope = _scopeFactory.CreateScope();
+                var db = persistScope.ServiceProvider.GetRequiredService<RetailDbContext>();
+                var hdb = db.HoaDonBans.FirstOrDefault(h => h.MaHdb == maHdb);
+                if (hdb != null)
+                {
+                    hdb.SoTienDaThanhToan = totalPaid;
+                    hdb.MaGiaoDich = txCode;
+                    if (isPaid)
+                    {
+                        hdb.TrangThaiThanhToan = "DaThanhToan";
+                        if (string.Equals(hdb.TrangThaiDonHang, "ChoXacNhan", StringComparison.OrdinalIgnoreCase))
+                        {
+                            hdb.TrangThaiDonHang = "DangGiao";
+                        }
+                    }
+                    else if (totalPaid > 0 && !string.Equals(hdb.TrangThaiThanhToan, "DaThanhToan", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hdb.TrangThaiThanhToan = "ThanhToanMotPhan";
+                    }
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("[Webhook] Không thể cập nhật DB cho đơn {MaHdb}: {Error}", maHdb, ex.Message);
             }
 
             var status = new PaymentStatusDto
@@ -140,7 +174,7 @@ namespace NexusRetail.Core.Api.Services.Payment
                 IsPaid = isPaid,
                 PaidAmount = totalPaid,
                 ExpectedAmount = exp,
-                TransactionCode = dto.ReferenceCode ?? $"MB_{DateTime.UtcNow.Ticks}",
+                TransactionCode = txCode,
                 PaidAt = DateTime.Now,
                 Message = message
             };
@@ -156,9 +190,8 @@ namespace NexusRetail.Core.Api.Services.Payment
                 return new PaymentStatusDto { IsPaid = false, Message = "Mã đơn hàng không hợp lệ" };
             }
 
-            maHdb = maHdb.Trim();
+            maHdb = maHdb.Trim().ToUpperInvariant();
 
-            // Nếu caller truyền expectedAmount vào, cập nhật kỳ vọng
             if (expectedAmount.HasValue && expectedAmount.Value > 0)
             {
                 _expectedAmounts[maHdb] = expectedAmount.Value;
@@ -166,14 +199,18 @@ namespace NexusRetail.Core.Api.Services.Payment
 
             if (_payments.TryGetValue(maHdb, out var status))
             {
-                // Nếu caller truyền expectedAmount và trước đó chưa kiểm tra hoặc cần đánh giá lại
-                if (expectedAmount.HasValue && expectedAmount.Value > 0)
+                decimal evalExpected = expectedAmount.HasValue && expectedAmount.Value > 0
+                    ? expectedAmount.Value
+                    : (status.ExpectedAmount > 0 ? status.ExpectedAmount
+                        : (_expectedAmounts.TryGetValue(maHdb, out var cachedExp) ? cachedExp : 0m));
+
+                if (evalExpected > 0)
                 {
-                    status.ExpectedAmount = expectedAmount.Value;
-                    if (status.PaidAmount < expectedAmount.Value)
+                    status.ExpectedAmount = evalExpected;
+                    if (status.PaidAmount < evalExpected)
                     {
                         status.IsPaid = false;
-                        status.Message = $"Khách chuyển thiếu tiền: Đã nhận {status.PaidAmount:N0}đ / Cần {expectedAmount.Value:N0}đ (Còn thiếu {(expectedAmount.Value - status.PaidAmount):N0}đ)";
+                        status.Message = $"Khách chuyển thiếu tiền: Đã nhận {status.PaidAmount:N0}đ / Cần {evalExpected:N0}đ (Còn thiếu {(evalExpected - status.PaidAmount):N0}đ)";
                     }
                     else
                     {
@@ -181,7 +218,48 @@ namespace NexusRetail.Core.Api.Services.Payment
                         status.Message = $"Thanh toán đủ {status.PaidAmount:N0}đ cho đơn {maHdb}!";
                     }
                 }
+                else
+                {
+                    status.IsPaid = false;
+                }
                 return status;
+            }
+
+            // Fallback đọc từ DB nếu service vừa khởi động lại hoặc đơn đã thanh toán trước đó
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<RetailDbContext>();
+                var hdb = db.HoaDonBans.AsNoTracking().FirstOrDefault(h => h.MaHdb == maHdb);
+                if (hdb != null)
+                {
+                    decimal expDb = expectedAmount.HasValue && expectedAmount.Value > 0
+                        ? expectedAmount.Value
+                        : hdb.TongTien;
+                    decimal paidDb = hdb.SoTienDaThanhToan;
+                    bool dbPaid = string.Equals(hdb.TrangThaiThanhToan, "DaThanhToan", StringComparison.OrdinalIgnoreCase)
+                        || (expDb > 0 && paidDb >= expDb);
+
+                    string dbMsg = dbPaid
+                        ? $"Đơn {maHdb} đã thanh toán {Math.Max(paidDb, expDb):N0}đ!"
+                        : (paidDb > 0 && expDb > 0
+                            ? $"Khách chuyển thiếu tiền: Đã nhận {paidDb:N0}đ / Cần {expDb:N0}đ (Còn thiếu {(expDb - paidDb):N0}đ)"
+                            : "Đang chờ thanh toán...");
+
+                    return new PaymentStatusDto
+                    {
+                        MaHdb = maHdb,
+                        IsPaid = dbPaid,
+                        PaidAmount = paidDb > 0 ? paidDb : (dbPaid ? expDb : 0m),
+                        ExpectedAmount = expDb,
+                        TransactionCode = hdb.MaGiaoDich,
+                        Message = dbMsg
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("[Webhook] Không thể đọc trạng thái DB cho đơn {MaHdb}: {Error}", maHdb, ex.Message);
             }
 
             return new PaymentStatusDto

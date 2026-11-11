@@ -6,7 +6,7 @@ namespace NexusRetail.Shared.Entities;
 /// </summary>
 public abstract class ChungTuBase
 {
-    public virtual string MaNv { get; set; } = null!;
+    public virtual string? MaNv { get; set; }
 
     public virtual decimal TongTien { get; set; }
 

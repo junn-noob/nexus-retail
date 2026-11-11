@@ -111,27 +111,18 @@
             <div class="dm-filter-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold m-0 text-dark"><i class="bi bi-funnel-fill text-primary me-2"></i> Bộ lọc</h5>
-                    @if (hasActiveFilters)
-                    {
-                        <a asp-action="Index" asp-fragment="productCatalog" class="badge bg-danger-subtle text-danger text-decoration-none py-2 px-2 fw-bold" data-reset-filter="true">
-                            Xóa lọc ✕
-                        </a>
-                    }
+                    <a id="btnResetFilters" asp-action="Index" asp-fragment="productCatalog" class="badge bg-danger-subtle text-danger text-decoration-none py-2 px-2 fw-bold @(hasActiveFilters ? "" : "d-none")" data-reset-filter="true">
+                        Xóa lọc ✕
+                    </a>
                 </div>
 
-                @if (!string.IsNullOrEmpty(currentQuery))
-                {
-                    <div class="p-2 bg-light rounded-3 mb-3 small text-secondary">
-                        Từ khóa: <strong class="text-dark">"@currentQuery"</strong>
-                    </div>
-                }
+                <div id="activeQueryBox" class="p-2 bg-light rounded-3 mb-3 small text-secondary @(string.IsNullOrEmpty(currentQuery) ? "d-none" : "")">
+                    Từ khóa: <strong class="text-dark" id="activeQueryText">"@currentQuery"</strong>
+                </div>
 
-                @if (!string.IsNullOrEmpty(currentBrand))
-                {
-                    <div class="p-2 bg-light rounded-3 mb-3 small text-secondary">
-                        Thương hiệu: <strong class="text-primary">@currentBrand</strong>
-                    </div>
-                }
+                <div id="activeBrandBox" class="p-2 bg-light rounded-3 mb-3 small text-secondary @(string.IsNullOrEmpty(currentBrand) ? "d-none" : "")">
+                    Thương hiệu: <strong class="text-primary" id="activeBrandText">@currentBrand</strong>
+                </div>
 
                 <!-- Khoảng giá -->
                 <div class="mb-4">
@@ -149,10 +140,7 @@
                                asp-route-brand="@currentBrand"
                                asp-fragment="productCatalog">
                                 <span><i class="bi bi-circle-fill me-2 fs-6 opacity-50"></i> @t</span>
-                                @if (isSelected)
-                                {
-                                    <i class="bi bi-check2 text-primary fw-bold"></i>
-                                }
+                                <i class="bi bi-check2 text-primary fw-bold dm-price-check @(isSelected ? "" : "d-none")"></i>
                             </a>
                         }
                     </div>

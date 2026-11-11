@@ -85,6 +85,7 @@
     }
 
     function buyNowFromModal(maSp) {
+        if (!maSp) return;
         const formData = new FormData();
         formData.append("maSp", maSp);
         formData.append("quantity", 1);
@@ -92,11 +93,16 @@
             method: "POST",
             body: formData
         })
-        .then(() => {
-            window.location.href = "/Cart/Index";
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "/Cart/Index";
+            } else {
+                showCartToast(data.message || "Không thể thêm sản phẩm vào giỏ!", false);
+            }
         })
         .catch(() => {
-            window.location.href = "/Cart/Index";
+            showCartToast("Lỗi kết nối máy chủ!", false);
         });
     }
 

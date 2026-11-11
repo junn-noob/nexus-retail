@@ -2,6 +2,9 @@
     var signedIn = User.Identity?.IsAuthenticated == true;
     var userName = User.Identity?.Name ?? "";
     var currentRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Customer";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isHomeController = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase);
+    var headerSearchQuery = isHomeController ? Context.Request.Query["q"].ToString() : "";
 }
 
 <!DOCTYPE html>
@@ -10,6 +13,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@ViewData["Title"] — Duy Mobile • Hệ Thống Bán Lẻ Công Nghệ</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232563eb'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial,sans-serif' font-size='34' font-weight='bold'%3ED%3C/text%3E%3C/svg%3E" />
     
     <!-- Google Fonts & Modern Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +39,6 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
-    <!-- 1. Top Announcement Bar -->
     <div class="dm-topbar d-none d-md-block">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
@@ -55,10 +58,9 @@
         </div>
     </div>
 
-    <!-- 2. Main Navigation Header -->
     <header class="dm-navbar sticky-top">
         <div class="container">
-            <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 gap-md-3">
                 <!-- Brand Logo -->
                 <a class="dm-logo text-decoration-none" asp-controller="Home" asp-action="Index">
                     <span class="dm-logo-icon">D</span>
@@ -67,14 +69,14 @@
 
                 <!-- Search Bar -->
                 <form class="dm-search-form d-none d-lg-block" method="get" asp-controller="Home" asp-action="Index" asp-fragment="productCatalog">
-                    <input name="q" type="search" class="form-control dm-search-input" placeholder="Tìm kiếm điện thoại, cấu hình, mức giá..." value="@Context.Request.Query["q"]" aria-label="Tìm sản phẩm">
+                    <input name="q" type="search" class="form-control dm-search-input" placeholder="Tìm kiếm điện thoại, cấu hình, mức giá..." value="@headerSearchQuery" aria-label="Tìm sản phẩm">
                     <button type="submit" class="dm-search-btn" title="Tìm kiếm">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
 
                 <!-- Navigation Actions -->
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-1 gap-sm-2 flex-wrap justify-content-end">
                     <!-- Tra cứu đơn hàng -->
                     <a asp-controller="Home" asp-action="TraCuu" class="dm-nav-btn text-decoration-none" title="Tra cứu bảo hành & hóa đơn">
                         <i class="bi bi-receipt text-primary fs-5"></i>
@@ -91,17 +93,17 @@
                     <!-- User Account / Role Authorization -->
                     @if (signedIn)
                     {
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-1 gap-sm-2">
                             @if (User.IsInRole("Admin"))
                             {
-                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-dark rounded-pill fw-bold px-3 py-1.5 shadow-sm" title="Vào trang quản trị">
-                                    <i class="bi bi-shield-check text-danger me-1"></i> Quản trị
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-dark rounded-pill fw-bold px-2 px-sm-3 py-1 shadow-sm dm-portal-btn" title="Vào trang quản trị">
+                                    <i class="bi bi-shield-check text-danger me-1"></i>Quản trị
                                 </a>
                             }
                             else if (User.IsInRole("Staff"))
                             {
-                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-dark rounded-pill fw-bold px-3 py-1.5 shadow-sm" title="Vào cổng nghiệp vụ bán hàng">
-                                    <i class="bi bi-briefcase text-warning me-1"></i> Nghiệp vụ
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-dark rounded-pill fw-bold px-2 px-sm-3 py-1 shadow-sm dm-portal-btn" title="Vào cổng nghiệp vụ bán hàng">
+                                    <i class="bi bi-briefcase text-warning me-1"></i>Nghiệp vụ
                                 </a>
                             }
 
@@ -111,15 +113,15 @@
                                     <span class="d-none d-md-inline fw-bold text-truncate" style="max-width: 100px;">@userName</span>
                                     @if (User.IsInRole("Admin"))
                                     {
-                                        <span class="badge bg-danger rounded-pill ms-1" style="font-size: 10.5px;">Admin</span>
+                                        <span class="badge bg-danger rounded-pill ms-1 d-none d-sm-inline" style="font-size: 10.5px;">Admin</span>
                                     }
                                     else if (User.IsInRole("Staff"))
                                     {
-                                        <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 10.5px;">Nhân viên</span>
+                                        <span class="badge bg-warning text-dark rounded-pill ms-1 d-none d-sm-inline" style="font-size: 10.5px;">Nhân viên</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-primary-subtle text-primary rounded-pill ms-1" style="font-size: 10.5px;">Khách hàng</span>
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill ms-1 d-none d-sm-inline" style="font-size: 10.5px;">Khách hàng</span>
                                     }
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 240px;">
@@ -148,9 +150,9 @@
                     }
                     else
                     {
-                        <div class="d-flex align-items-center gap-2">
-                            <a class="btn btn-light fw-bold text-dark rounded-3 px-3 py-1.5 border" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            <a class="btn btn-primary fw-bold rounded-3 px-3 py-1.5 shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                        <div class="d-flex align-items-center gap-1 gap-sm-2">
+                            <a class="btn btn-light fw-bold text-dark rounded-3 px-2 px-sm-3 py-1 border dm-auth-btn" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            <a class="btn btn-primary fw-bold rounded-3 px-2 px-sm-3 py-1 shadow-sm dm-auth-btn" asp-controller="Account" asp-action="Register">Đăng ký</a>
                         </div>
                     }
                 </div>
@@ -159,7 +161,7 @@
             <!-- Mobile Search Bar -->
             <div class="d-block d-lg-none mt-2">
                 <form class="dm-search-form" method="get" asp-controller="Home" asp-action="Index" asp-fragment="productCatalog">
-                    <input name="q" type="search" class="form-control dm-search-input" placeholder="Tìm kiếm điện thoại..." value="@Context.Request.Query["q"]">
+                    <input name="q" type="search" class="form-control dm-search-input" placeholder="Tìm kiếm điện thoại..." value="@headerSearchQuery">
                     <button type="submit" class="dm-search-btn">
                         <i class="bi bi-search"></i>
                     </button>
@@ -173,10 +175,12 @@
         </div>
     </header>
 
-    <!-- Global Toast / Alert -->
-    @if (TempData["SuccessMessage"] != null)
+    <!-- Global Toast / Alert (hidden on Admin/Account pages that already render inline alert banners) -->
+    @if (TempData["SuccessMessage"] != null
+        && !string.Equals(currentController, "Admin", StringComparison.OrdinalIgnoreCase)
+        && !string.Equals(currentController, "Account", StringComparison.OrdinalIgnoreCase))
     {
-        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+        <div class="position-fixed bottom-0 start-0 p-3" style="z-index: 1045; max-width: calc(100vw - 88px);">
             <div class="toast show align-items-center text-bg-success border-0 shadow-lg rounded-4" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body fw-bold">
@@ -193,7 +197,6 @@
         @RenderBody()
     </main>
 
-    <!-- 3. Modern Minimalist Footer -->
     <footer class="dm-footer">
         <div class="container pb-5">
             <div class="row g-4">
@@ -258,7 +261,7 @@
         <div class="dm-footer-bottom">
             <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>© 2026 Duy Mobile • Hệ Thống Bán Lẻ Thiết Bị Di Động & Phụ Kiện Chính Hãng.</div>
-                <div class="d-flex gap-2 text-secondary small">
+                <div class="d-flex flex-wrap gap-2 text-secondary small">
                     <span class="badge bg-dark border text-secondary px-2 py-1">Tiền mặt COD</span>
                     <span class="badge bg-dark border text-secondary px-2 py-1">Chuyển khoản QR</span>
                     <span class="badge bg-dark border text-secondary px-2 py-1">Thẻ ATM / Visa</span>

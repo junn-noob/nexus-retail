@@ -169,5 +169,24 @@ namespace NexusRetail.UnitTests
             Assert.Equal(0, status.PaidAmount);
             Assert.Contains("Đang chờ thanh toán", status.Message);
         }
+
+        [Fact]
+        public void ProcessWebhook_UnknownUnregisteredOrder_DoesNotMarkIsPaidTrue()
+        {
+            // Act: Receive transfer for an order with no registered ExpectedAmount and no DB row
+            var processed = _paymentService.ProcessWebhook(new BankWebhookDto
+            {
+                Gateway = "MBBank",
+                TransferAmount = 5000000m,
+                Content = "DUYMOBILE HDBUNKNOWN99 CHUYEN KHOAN",
+                ReferenceCode = "FT_UNKNOWN"
+            });
+            var queried = _paymentService.GetPaymentStatus("HDBUNKNOWN99");
+
+            // Assert: Must NOT falsely report IsPaid = true without verified order amount
+            Assert.False(processed.IsPaid);
+            Assert.False(queried.IsPaid);
+            Assert.Equal(5000000m, queried.PaidAmount);
+        }
     }
 }

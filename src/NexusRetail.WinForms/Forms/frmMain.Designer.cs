@@ -441,7 +441,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblRecentSub.AutoSize = true;
             this.lblRecentSub.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.lblRecentSub.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.lblRecentSub.Location = new System.Drawing.Point(340, 11);
+            this.lblRecentSub.Location = new System.Drawing.Point(412, 11);
             this.lblRecentSub.Name = "lblRecentSub";
             this.lblRecentSub.Size = new System.Drawing.Size(350, 17);
             this.lblRecentSub.TabIndex = 1;

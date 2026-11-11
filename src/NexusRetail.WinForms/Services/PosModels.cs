@@ -99,6 +99,9 @@ public class InvoiceSearchItem
     public string TenKhach { get; set; } = "";
     public string DienThoai { get; set; } = "";
     public string TenNv { get; set; } = "";
+    public string PhuongThucThanhToan { get; set; } = "Cash";
+    public string TrangThaiThanhToan { get; set; } = "DaThanhToan";
+    public string TrangThaiDonHang { get; set; } = "HoanThanh";
 }
 
 public class InboundInvoiceSearchItem

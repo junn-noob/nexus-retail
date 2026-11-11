@@ -72,28 +72,24 @@ namespace NexusRetail.WinForms.Forms
         {
             try
             {
-                // 1. Tải danh sách nhà cung cấp
                 _supplierList = await _inboundClient.GetSuppliersAsync();
                 if (IsDisposed || Disposing) return;
                 cboNhaCungCap.DataSource = _supplierList;
                 cboNhaCungCap.DisplayMember = "TenNcc";
                 cboNhaCungCap.ValueMember = "MaNcc";
 
-                // 2. Tải danh sách nhân viên
                 _employeeList = await _inboundClient.GetEmployeesAsync();
                 if (IsDisposed || Disposing) return;
                 cboNhanVien.DataSource = _employeeList;
                 cboNhanVien.DisplayMember = "TenNv";
                 cboNhanVien.ValueMember = "MaNv";
 
-                // Tự động chọn nhân viên đang đăng nhập nếu khớp mã
                 var matchedNv = _employeeList.FirstOrDefault(x => x.MaNv.Equals(_currentUser, StringComparison.OrdinalIgnoreCase) || x.TenNv.Contains(_currentUser));
                 if (matchedNv != null)
                 {
                     cboNhanVien.SelectedItem = matchedNv;
                 }
 
-                // 3. Tải danh mục sản phẩm
                 _productList = await _catalogClient.GetProductsAsync();
                 if (IsDisposed || Disposing) return;
                 cboSanPham.DataSource = _productList;

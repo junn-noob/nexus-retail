@@ -1,25 +1,62 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    var code = Model.StatusCode;
+    ViewData["Title"] = code switch
+    {
+        404 => "Không tìm thấy trang (404)",
+        403 => "Không có quyền truy cập (403)",
+        _ => "Đã xảy ra sự cố"
+    };
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="container py-5 my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4 p-md-5 bg-white">
+                <div class="mb-3">
+                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-bold fs-6">
+                        Mã trạng thái: @code
+                    </span>
+                </div>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+                @if (code == 404)
+                {
+                    <h1 class="h3 fw-bolder text-dark mb-2">Không tìm thấy trang bạn yêu cầu</h1>
+                    <p class="text-secondary mb-4">
+                        Đường dẫn có thể đã thay đổi, sản phẩm ngừng kinh doanh hoặc địa chỉ nhập chưa chính xác.
+                    </p>
+                }
+                else if (code == 403)
+                {
+                    <h1 class="h3 fw-bolder text-dark mb-2">Bạn không có quyền truy cập mục này</h1>
+                    <p class="text-secondary mb-4">
+                        Vui lòng đăng nhập bằng tài khoản có quyền phù hợp hoặc quay lại trang cửa hàng.
+                    </p>
+                }
+                else
+                {
+                    <h1 class="h3 fw-bolder text-dark mb-2">Hệ thống đang gặp gián đoạn tạm thời</h1>
+                    <p class="text-secondary mb-4">
+                        Yêu cầu chưa thể xử lý ngay lúc này. Vui lòng thử lại sau ít phút hoặc liên hệ tổng đài hỗ trợ <strong>1800.6868</strong>.
+                    </p>
+                }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+                @if (Model.ShowRequestId)
+                {
+                    <div class="small text-muted mb-4">
+                        Mã tra cứu kỹ thuật: <code>@Model.RequestId</code>
+                    </div>
+                }
+
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary fw-bold rounded-3 px-4">
+                        <i class="bi bi-house-door me-1"></i> Về trang chủ
+                    </a>
+                    <a asp-controller="Home" asp-action="TraCuu" class="btn btn-outline-secondary fw-semibold rounded-3 px-4">
+                        <i class="bi bi-receipt me-1"></i> Tra cứu đơn hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

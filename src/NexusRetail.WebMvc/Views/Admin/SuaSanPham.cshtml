@@ -77,7 +77,7 @@
                 <div class="col-md-6">
                     <label asp-for="ThoiGianBaoHanh" class="form-label small fw-bold text-dark"></label>
                     <div class="input-group">
-                        <input asp-for="ThoiGianBaoHanh" type="number" class="form-control rounded-start-3 py-2" />
+                        <input asp-for="ThoiGianBaoHanh" type="number" min="0" class="form-control rounded-start-3 py-2" />
                         <span class="input-group-text rounded-end-3">tháng</span>
                     </div>
                 </div>
@@ -85,21 +85,23 @@
                 <div class="col-md-6">
                     <label asp-for="GiaNhap" class="form-label small fw-bold text-dark"></label>
                     <div class="input-group">
-                        <input asp-for="GiaNhap" type="number" step="1000" id="txtGiaNhap" class="form-control rounded-start-3 py-2" oninput="calculateGiaBan(this.value)" required />
+                        <input asp-for="GiaNhap" type="number" min="0" step="1000" id="txtGiaNhap" class="form-control rounded-start-3 py-2" oninput="calculateGiaBan(this.value)" required />
                         <span class="input-group-text rounded-end-3">₫</span>
                     </div>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-dark">Giá bán niêm yết (Dự kiến):</label>
-                    <div class="form-control bg-light py-2 fw-bolder text-danger fs-5 rounded-3 d-flex align-items-center" id="txtGiaBanPreview">
-                        @Model.GiaBan.ToString("N0") ₫
+                    <label asp-for="GiaBan" class="form-label small fw-bold text-dark"></label>
+                    <div class="input-group">
+                        <input asp-for="GiaBan" type="number" min="0" step="1000" id="txtGiaBan" class="form-control rounded-start-3 py-2 fw-bold text-danger" oninput="this.dataset.manual='true'" required />
+                        <button type="button" class="btn btn-outline-secondary rounded-end-3 small" onclick="applyMargin10()" title="Gợi ý giá bán +10% trên giá nhập">+10%</button>
                     </div>
+                    <span asp-validation-for="GiaBan" class="text-danger small"></span>
                 </div>
 
                 <div class="col-md-6">
                     <label asp-for="SoLuong" class="form-label small fw-bold text-dark"></label>
-                    <input asp-for="SoLuong" type="number" class="form-control rounded-3 py-2" required />
+                    <input asp-for="SoLuong" type="number" min="0" class="form-control rounded-3 py-2" required />
                 </div>
 
                 <div class="col-md-6">
@@ -141,13 +143,28 @@
     <script>
         function calculateGiaBan(giaNhap) {
             const val = parseFloat(giaNhap) || 0;
-            const giaBan = Math.round(val * 1.1);
-            const el = document.getElementById("txtGiaBanPreview");
-            if (el) el.textContent = giaBan.toLocaleString('vi-VN') + " ₫";
+            const gbEl = document.getElementById("txtGiaBan");
+            if (gbEl && gbEl.dataset.manual !== "true") {
+                const minRecommended = Math.round(val * 1.1);
+                const current = parseFloat(gbEl.value) || 0;
+                if (current < minRecommended) {
+                    gbEl.value = minRecommended;
+                }
+            }
+        }
+        function applyMargin10() {
+            const gn = parseFloat(document.getElementById("txtGiaNhap")?.value) || 0;
+            const gb = document.getElementById("txtGiaBan");
+            if (gb && gn > 0) {
+                gb.dataset.manual = "false";
+                gb.value = Math.round(gn * 1.1);
+            }
         }
         document.addEventListener('DOMContentLoaded', () => {
-            const inp = document.getElementById("txtGiaNhap");
-            if (inp) calculateGiaBan(inp.value);
+            const gb = document.getElementById("txtGiaBan");
+            if (gb && parseFloat(gb.value) > 0) {
+                gb.dataset.manual = "true";
+            }
         });
     </script>
 }

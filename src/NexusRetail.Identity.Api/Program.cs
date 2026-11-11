@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NexusRetail.Identity.Api.Data;
+using Scalar.AspNetCore;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +65,7 @@ app.UseStatusCodePages();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 else
 {
@@ -95,61 +97,9 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // 1. Quản trị viên (Admin)
-        var adminUser = await userManager.FindByNameAsync("admin");
-        if (adminUser == null)
-        {
-            adminUser = new IdentityUser
-            {
-                UserName = "admin",
-                Email = "admin@duymobile.vn",
-                EmailConfirmed = true
-            };
-            var res = await userManager.CreateAsync(adminUser, "admin123");
-            if (res.Succeeded)
-            {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
-            }
-        }
-        else if (!await userManager.CheckPasswordAsync(adminUser, "admin123"))
-        {
-            var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
-            await userManager.ResetPasswordAsync(adminUser, resetToken, "admin123");
-        }
-
-        // 2. Nhân viên bán hàng & kho (Staff)
-        var staffUser = await userManager.FindByNameAsync("nhanvien");
-        if (staffUser == null)
-        {
-            staffUser = new IdentityUser
-            {
-                UserName = "nhanvien",
-                Email = "nhanvien@duymobile.vn",
-                EmailConfirmed = true
-            };
-            var res = await userManager.CreateAsync(staffUser, "123456");
-            if (res.Succeeded)
-            {
-                await userManager.AddToRoleAsync(staffUser, "Staff");
-            }
-        }
-
-        // 3. Khách hàng mẫu (Customer)
-        var custUser = await userManager.FindByNameAsync("khachhang");
-        if (custUser == null)
-        {
-            custUser = new IdentityUser
-            {
-                UserName = "khachhang",
-                Email = "khachhang@duymobile.vn",
-                EmailConfirmed = true
-            };
-            var res = await userManager.CreateAsync(custUser, "123456");
-            if (res.Succeeded)
-            {
-                await userManager.AddToRoleAsync(custUser, "Customer");
-            }
-        }
+        await EnsureSeedUserAsync(userManager, "admin", "admin@duymobile.vn", "0981234567", "admin123", "Admin", app.Environment.IsDevelopment());
+        await EnsureSeedUserAsync(userManager, "nhanvien", "nhanvien@duymobile.vn", "0978999888", "123456", "Staff", app.Environment.IsDevelopment());
+        await EnsureSeedUserAsync(userManager, "khachhang", "khachhang@duymobile.vn", "0966554433", "123456", "Customer", app.Environment.IsDevelopment());
     }
     catch (Exception ex)
     {
@@ -159,3 +109,40 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+static async Task EnsureSeedUserAsync(
+    UserManager<IdentityUser> userManager,
+    string username,
+    string email,
+    string phoneNumber,
+    string password,
+    string role,
+    bool resetMismatchedPasswordInDev)
+{
+    var user = await userManager.FindByNameAsync(username);
+    if (user == null)
+    {
+        user = new IdentityUser
+        {
+            UserName = username,
+            Email = email,
+            PhoneNumber = phoneNumber,
+            EmailConfirmed = true
+        };
+        var createRes = await userManager.CreateAsync(user, password);
+        if (!createRes.Succeeded)
+        {
+            return;
+        }
+    }
+    else if (resetMismatchedPasswordInDev && !await userManager.CheckPasswordAsync(user, password))
+    {
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        await userManager.ResetPasswordAsync(user, resetToken, password);
+    }
+
+    if (!await userManager.IsInRoleAsync(user, role))
+    {
+        await userManager.AddToRoleAsync(user, role);
+    }
+}

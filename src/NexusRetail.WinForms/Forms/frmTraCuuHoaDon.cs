@@ -83,6 +83,8 @@ namespace NexusRetail.WinForms.Forms
             dgvHoaDonBan.Columns.Add("colKhach", "Khách Hàng");
             dgvHoaDonBan.Columns.Add("colSdt", "Số Điện Thoại");
             dgvHoaDonBan.Columns.Add("colNv", "Nhân Viên Thu Ngân");
+            dgvHoaDonBan.Columns.Add("colPttt", "Thanh Toán");
+            dgvHoaDonBan.Columns.Add("colTrangThaiDon", "Trạng Thái Đơn");
             dgvHoaDonBan.Columns.Add("colTongTien", "Tổng Tiền HĐ");
 
             // Cấu hình bảng Chi tiết bán
@@ -129,6 +131,8 @@ namespace NexusRetail.WinForms.Forms
                     item.TenKhach,
                     item.DienThoai,
                     item.TenNv,
+                    $"{item.PhuongThucThanhToan} ({item.TrangThaiThanhToan})",
+                    item.TrangThaiDonHang,
                     item.TongTien.ToString("N0", culture) + " đ"
                 );
             }

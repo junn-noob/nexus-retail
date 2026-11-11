@@ -34,7 +34,7 @@ namespace NexusRetail.WinForms.Forms
                 {
                     e.Handled = true;
                     btnLamMoi_Click(this, EventArgs.Empty);
-                    LoadProductsAsync();
+                    _ = LoadProductsAsync();
                 }
                 else if (e.KeyCode == Keys.Escape)
                 {
@@ -53,7 +53,7 @@ namespace NexusRetail.WinForms.Forms
             };
 
             LoadFiltersAsync();
-            LoadProductsAsync();
+            _ = LoadProductsAsync();
         }
 
         private async void LoadFiltersAsync()
@@ -90,7 +90,7 @@ namespace NexusRetail.WinForms.Forms
             UiTheme.ApplyPrimaryButton(btnTimKiem, "🔍 Tìm Kiếm");
         }
 
-        private async void LoadProductsAsync(string? q = null)
+        private async Task LoadProductsAsync(string? q = null, string? selectMaSp = null)
         {
             try
             {
@@ -100,6 +100,19 @@ namespace NexusRetail.WinForms.Forms
                 dgvSanPham.DataSource = _products;
 
                 FormatGrid();
+                if (!string.IsNullOrEmpty(selectMaSp))
+                {
+                    foreach (DataGridViewRow row in dgvSanPham.Rows)
+                    {
+                        if (row.DataBoundItem is SanPhamDto sp && string.Equals(sp.MaSp, selectMaSp, StringComparison.OrdinalIgnoreCase))
+                        {
+                            dgvSanPham.ClearSelection();
+                            row.Selected = true;
+                            dgvSanPham.CurrentCell = row.Cells[0];
+                            break;
+                        }
+                    }
+                }
                 lblFooterInfo.Text = $"Tổng số mặt hàng trong danh mục: {_products.Count} | Trạng thái: Sẵn sàng";
             }
             catch { }
@@ -182,12 +195,39 @@ namespace NexusRetail.WinForms.Forms
 
         private void btnTimKiem_Click(object sender, EventArgs e)
         {
-            LoadProductsAsync(txtTimKiem.Text.Trim());
+            _ = LoadProductsAsync(txtTimKiem.Text.Trim());
+        }
+
+        private bool TryParsePricingInputs(out decimal giaNhap, out decimal? giaBanInput)
+        {
+            giaNhap = 0m;
+            giaBanInput = null;
+
+            string cleanGia = txtGiaNhap.Text.Replace(",", "").Replace(".", "").Trim();
+            if (!decimal.TryParse(cleanGia, out giaNhap) || giaNhap <= 0)
+            {
+                MessageBox.Show("Giá nhập phải là số hợp lệ lớn hơn 0!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtGiaNhap.Focus();
+                return false;
+            }
+
+            string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
+            if (!string.IsNullOrEmpty(cleanGiaBan))
+            {
+                if (!decimal.TryParse(cleanGiaBan, out decimal parsedGb) || parsedGb < Math.Round(giaNhap * 1.10m, 0))
+                {
+                    MessageBox.Show($"Giá bán phải tối thiểu >= 110% Giá nhập ({Math.Round(giaNhap * 1.10m, 0):N0} ₫)!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtGiaBan.Focus();
+                    return false;
+                }
+                giaBanInput = parsedGb;
+            }
+
+            return true;
         }
 
         private async void btnThem_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra dữ liệu đầu vào
             string tenSp = txtTenSp.Text.Trim();
             if (string.IsNullOrEmpty(tenSp))
             {
@@ -196,23 +236,15 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
-            string cleanGia = txtGiaNhap.Text.Replace(",", "").Replace(".", "").Trim();
-            if (!decimal.TryParse(cleanGia, out decimal giaNhap) || giaNhap <= 0)
+            if (!TryParsePricingInputs(out decimal giaNhap, out decimal? giaBanInput))
             {
-                MessageBox.Show("Giá nhập phải là số hợp lệ lớn hơn 0!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtGiaNhap.Focus();
                 return;
             }
 
-            // 2. Lấy phân loại, nhãn hiệu, màn hình từ ComboBox (đã tải từ API)
             string maLoai = cboLoai.SelectedValue?.ToString() ?? "L01";
             string maNhanHieu = cboNhanHieu.SelectedValue?.ToString() ?? "NH01";
             string maManHinh = cboManHinh.SelectedValue?.ToString() ?? "MH01";
 
-            string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
-            decimal? giaBanInput = decimal.TryParse(cleanGiaBan, out decimal parsedGb) && parsedGb >= giaNhap * 1.10m ? parsedGb : null;
-
-            // 3. Chuẩn bị DTO thêm mới
             var dto = new ThemSanPhamDto
             {
                 TenSp = tenSp,
@@ -236,9 +268,9 @@ namespace NexusRetail.WinForms.Forms
                 if (success)
                 {
                     decimal giaBan = giaBanInput ?? Math.Round(giaNhap * 1.1m, 0);
-                    MessageBox.Show($"✔ Thêm mới sản phẩm '{tenSp}' thành công!\n• Mã sản phẩm: {maSp}\n• Giá nhập: {giaNhap:N0} ₫\n• Giá bán niêm yết (+10%): {giaBan:N0} ₫", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadProductsAsync();
-                    btnLamMoi_Click(sender, e);
+                    MessageBox.Show($"✔ Thêm mới sản phẩm '{tenSp}' thành công!\n• Mã sản phẩm: {maSp}\n• Giá nhập: {giaNhap:N0} ₫\n• Giá bán: {giaBan:N0} ₫", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    txtTimKiem.Clear();
+                    await LoadProductsAsync(null, maSp);
                 }
                 else
                 {
@@ -268,11 +300,8 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
-            string cleanGia = txtGiaNhap.Text.Replace(",", "").Replace(".", "").Trim();
-            if (!decimal.TryParse(cleanGia, out decimal giaNhap) || giaNhap <= 0)
+            if (!TryParsePricingInputs(out decimal giaNhap, out decimal? giaBanInput))
             {
-                MessageBox.Show("Giá nhập phải là số hợp lệ và lớn hơn 0!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtGiaNhap.Focus();
                 return;
             }
 
@@ -280,9 +309,6 @@ namespace NexusRetail.WinForms.Forms
             string maLoai = cboLoai.SelectedValue?.ToString() ?? current?.MaLoai ?? "L01";
             string maNhanHieu = cboNhanHieu.SelectedValue?.ToString() ?? current?.MaNhanHieu ?? "NH01";
             string maManHinh = cboManHinh.SelectedValue?.ToString() ?? current?.MaManHinh ?? "MH01";
-
-            string cleanGiaBan = txtGiaBan.Text.Replace(",", "").Replace(".", "").Trim();
-            decimal? giaBanInput = decimal.TryParse(cleanGiaBan, out decimal parsedGb) && parsedGb >= giaNhap * 1.10m ? parsedGb : null;
 
             var dto = new SuaSanPhamDto
             {
@@ -308,7 +334,7 @@ namespace NexusRetail.WinForms.Forms
                 {
                     decimal giaBan = giaBanInput ?? Math.Round(giaNhap * 1.1m, 0);
                     MessageBox.Show($"✔ Cập nhật thông tin sản phẩm '{tenSp}' ({maSp}) thành công!\n• Giá bán mới: {giaBan:N0} ₫\n• Tồn kho: {numSoLuong.Value}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadProductsAsync();
+                    await LoadProductsAsync(txtTimKiem.Text.Trim(), maSp);
                 }
                 else
                 {
@@ -346,8 +372,8 @@ namespace NexusRetail.WinForms.Forms
                 if (success)
                 {
                     MessageBox.Show($"✔ Đã xóa thành công sản phẩm {maSp}!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadProductsAsync();
-                    btnLamMoi_Click(sender, e);
+                    await LoadProductsAsync(txtTimKiem.Text.Trim());
+                    if (_products.Count == 0) btnLamMoi_Click(sender, e);
                 }
                 else
                 {

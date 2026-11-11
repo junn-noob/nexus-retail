@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace NexusRetail.Shared.Entities;
@@ -10,6 +10,8 @@ public partial class ChiTietHdb
     public string MaSp { get; set; } = null!;
 
     public int SoLuong { get; set; }
+
+    public decimal DonGia { get; set; }
 
     public decimal KhuyenMai { get; set; }
 

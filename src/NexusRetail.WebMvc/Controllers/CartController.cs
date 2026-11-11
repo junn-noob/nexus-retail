@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NexusRetail.Shared.DTOs.BanHang;
 using NexusRetail.WebMvc.Extensions;
@@ -44,25 +45,42 @@ namespace NexusRetail.WebMvc.Controllers
             if (string.IsNullOrWhiteSpace(maSp))
                 return Json(new { success = false, message = "Mã sản phẩm không hợp lệ!" });
 
+            int addQty = Math.Max(1, quantity);
+            var sp = await _catalogClient.GetProductByIdAsync(maSp);
+            if (sp == null)
+                return Json(new { success = false, message = "Không tìm thấy thông tin sản phẩm trên hệ thống!" });
+
+            if (sp.SoLuong <= 0)
+                return Json(new { success = false, message = $"Sản phẩm '{sp.TenSp}' hiện đã tạm hết hàng!" });
+
             var cart = GetCartFromSession();
             var existingItem = cart.FirstOrDefault(x => x.MaSp == maSp);
+            int nextQty = (existingItem?.SoLuong ?? 0) + addQty;
+
+            if (nextQty > sp.SoLuong)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"Kho chỉ còn {sp.SoLuong} chiếc '{sp.TenSp}' (trong giỏ đã có {existingItem?.SoLuong ?? 0} chiếc)!"
+                });
+            }
 
             if (existingItem != null)
             {
-                existingItem.SoLuong += Math.Max(1, quantity);
+                existingItem.SoLuong = nextQty;
+                existingItem.GiaBan = sp.GiaBan;
+                existingItem.TenSp = sp.TenSp;
+                existingItem.Anh = sp.Anh;
             }
             else
             {
-                var sp = await _catalogClient.GetProductByIdAsync(maSp);
-                if (sp == null)
-                    return Json(new { success = false, message = "Không tìm thấy thông tin sản phẩm trên hệ thống!" });
-
                 cart.Add(new CartItem
                 {
                     MaSp = sp.MaSp,
                     TenSp = sp.TenSp,
                     GiaBan = sp.GiaBan,
-                    SoLuong = Math.Max(1, quantity),
+                    SoLuong = addQty,
                     Anh = sp.Anh
                 });
             }
@@ -77,14 +95,31 @@ namespace NexusRetail.WebMvc.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateQuantity(string maSp, int delta)
+        public async Task<IActionResult> UpdateQuantity(string maSp, int delta = 0, int? quantity = null)
         {
             var cart = GetCartFromSession();
             var item = cart.FirstOrDefault(x => x.MaSp == maSp);
 
             if (item != null)
             {
-                item.SoLuong += delta;
+                int targetQty = quantity ?? (item.SoLuong + delta);
+
+                if (targetQty > item.SoLuong)
+                {
+                    var sp = await _catalogClient.GetProductByIdAsync(maSp);
+                    if (sp != null && targetQty > sp.SoLuong)
+                    {
+                        string limitMsg = $"Sản phẩm '{sp.TenSp}' chỉ còn tối đa {sp.SoLuong} chiếc trong kho!";
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new { success = false, message = limitMsg, quantity = item.SoLuong });
+                        }
+                        TempData["CartError"] = limitMsg;
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
+                item.SoLuong = targetQty;
                 if (item.SoLuong <= 0)
                 {
                     cart.Remove(item);
@@ -176,9 +211,12 @@ namespace NexusRetail.WebMvc.Controllers
 
             var dto = new HoaDonBanDto
             {
-                MaNv = "NV01",
+                MaNv = null,
                 TenKhachVangLai = model.TenKhach,
                 DienThoai = model.DienThoai,
+                DiaChiGiaoHang = model.DiaChi,
+                GhiChu = model.GhiChu,
+                PhuongThucThanhToan = model.PhuongThucThanhToan,
                 DanhSachMon = cart.Select(c => new ChiTietHdbDto
                 {
                     MaSp = c.MaSp,
@@ -192,14 +230,17 @@ namespace NexusRetail.WebMvc.Controllers
             if (success)
             {
                 HttpContext.Session.Remove(CART_KEY);
-                _logger.LogInformation("Khách {TenKhach} ({Phone}) đặt hàng thành công: {MaHdb}", model.TenKhach, model.DienThoai, maHdb);
+                _logger.LogInformation("Khách {TenKhach} ({Phone}) đặt hàng thành công: {MaHdb} ({Method})",
+                    model.TenKhach, model.DienThoai, maHdb, model.PhuongThucThanhToan);
 
                 return RedirectToAction(nameof(OrderSuccess), new
                 {
                     maHdb = maHdb ?? string.Empty,
                     tongTien = tongTien > 0 ? tongTien : model.TongTien,
                     tenKhach = model.TenKhach,
-                    dienThoai = model.DienThoai
+                    dienThoai = model.DienThoai,
+                    phuongThuc = model.PhuongThucThanhToan,
+                    diaChi = model.DiaChi
                 });
             }
 
@@ -208,13 +249,55 @@ namespace NexusRetail.WebMvc.Controllers
         }
 
         [HttpGet]
-        public IActionResult OrderSuccess(string maHdb, decimal tongTien, string tenKhach, string? dienThoai = null)
+        public async Task<IActionResult> OrderSuccess(
+            string maHdb,
+            decimal tongTien,
+            string tenKhach,
+            string? dienThoai = null,
+            string? phuongThuc = "COD",
+            string? diaChi = null)
         {
             ViewBag.MaHdb = maHdb;
             ViewBag.TongTien = tongTien;
             ViewBag.TenKhach = tenKhach;
             ViewBag.DienThoai = dienThoai;
+            ViewBag.PhuongThuc = phuongThuc ?? "COD";
+            ViewBag.DiaChi = diaChi ?? "";
+
+            if (string.Equals(phuongThuc, "VietQR", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(maHdb))
+            {
+                var payState = await _orderClient.GetBankPaymentStatusAsync(maHdb, tongTien > 0 ? tongTien : null);
+                ViewBag.InitialPaid = payState.IsPaid;
+            }
+            else
+            {
+                ViewBag.InitialPaid = string.Equals(phuongThuc, "Card", StringComparison.OrdinalIgnoreCase);
+            }
+
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckPaymentStatus(string maHdb, decimal? expectedAmount = null)
+        {
+            var status = await _orderClient.GetBankPaymentStatusAsync(maHdb, expectedAmount);
+            return Json(new
+            {
+                isPaid = status.IsPaid,
+                paidAmount = status.PaidAmount,
+                expectedAmount = status.ExpectedAmount,
+                message = status.Message,
+                transactionCode = status.TransactionCode
+            });
+        }
+
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SimulateVietQrPayment(string maHdb, decimal amount)
+        {
+            var (success, message) = await _orderClient.SimulateBankPaymentAsync(maHdb, amount);
+            return Json(new { success, message });
         }
     }
 }

@@ -215,6 +215,12 @@ namespace NexusRetail.WinForms.Forms
                 return;
             }
 
+            if (sp.SoLuong <= 0)
+            {
+                MessageBox.Show($"Sản phẩm '{sp.TenSp}' hiện đã hết hàng trong kho!", "Hết hàng", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (sp.SoLuong < sl)
             {
                 MessageBox.Show($"Sản phẩm '{sp.TenSp}' chỉ còn {sp.SoLuong} máy trong kho!", "Không đủ tồn kho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -282,13 +288,11 @@ namespace NexusRetail.WinForms.Forms
             lblTongTien.Text = $"{total:N0} ₫";
         }
 
-        // 1. THANH TOÁN TIỀN MẶT
         private async void btnThanhToanTienMat_Click(object sender, EventArgs e)
         {
             await ProcessPaymentAsync(isBankTransfer: false);
         }
 
-        // 2. THANH TOÁN CHUYỂN KHOẢN VIETQR (MBBANK WEBHOOK TỰ ĐỘNG)
         private async void btnThanhToanQR_Click(object sender, EventArgs e)
         {
             decimal total = CalculateTotal();
@@ -336,6 +340,8 @@ namespace NexusRetail.WinForms.Forms
                 MaNv = _nhanVien,
                 TenKhachVangLai = string.IsNullOrWhiteSpace(txtTenKhach.Text) ? "Khách Mua Tại Quầy" : txtTenKhach.Text.Trim(),
                 DienThoai = string.IsNullOrWhiteSpace(txtDienThoai.Text) ? "0900000000" : txtDienThoai.Text.Trim(),
+                DiaChiGiaoHang = "Tại quầy Duy Mobile",
+                PhuongThucThanhToan = isBankTransfer ? "VietQR" : "Cash",
                 DanhSachMon = _cartTable.AsEnumerable().Select(r => new ChiTietHdbDto
                 {
                     MaSp = r.Field<string>("MaSp") ?? "",
@@ -387,7 +393,7 @@ namespace NexusRetail.WinForms.Forms
                     maHdb: effectiveMaHdb,
                     tenKhach: dto.TenKhachVangLai,
                     dienThoai: dto.DienThoai,
-                    diaChi: "TP. Hà Nội",
+                    diaChi: "Tại quầy Duy Mobile",
                     tenNv: _nhanVien,
                     danhSachSp: bieuMauItems,
                     tongTien: tongTienHang,

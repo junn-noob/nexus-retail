@@ -13,7 +13,6 @@
         <h3 class="fw-bolder text-dark mb-1">Truy cập bị từ chối (403 Forbidden)</h3>
         <p class="text-secondary small mb-3">Bạn không có đủ quyền hạn để thực hiện tác vụ này.</p>
 
-        <!-- Role Diagnostic for Lecturer -->
         <div class="p-3 bg-light rounded-4 border text-start mb-4">
             <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
                 <span class="small text-secondary">Tài khoản hiện tại:</span>
@@ -25,25 +24,16 @@
             </div>
             <div class="d-flex justify-content-between align-items-center">
                 <span class="small text-secondary">Yêu cầu quyền hạn:</span>
-                <span class="badge bg-danger">Admin hoặc Staff</span>
+                <span class="badge bg-danger">@(userRole == "Staff" ? "Quản trị viên (Admin)" : "Admin hoặc Staff")</span>
             </div>
         </div>
 
-        <div class="mb-4 d-flex justify-content-center gap-3">
-            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-3 px-4 py-2 fw-bold">
-                <i class="bi bi-house me-1"></i> Trang chủ
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-3 px-4 py-2 fw-bold text-nowrap">
+                <i class="bi bi-house me-1"></i> Trang chủ mua sắm
             </a>
-            <a asp-action="Login" class="btn btn-primary rounded-3 px-4 py-2 fw-bold shadow-sm">
+            <a asp-action="Login" class="btn btn-primary rounded-3 px-4 py-2 fw-bold shadow-sm text-nowrap">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập tài khoản khác
-            </a>
-        </div>
-
-        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
-            <a asp-controller="Home" asp-action="Index" class="btn btn-link text-decoration-none small text-secondary p-0">
-                ← Về trang chủ mua sắm
-            </a>
-            <a asp-action="Login" class="btn btn-link text-decoration-none small text-primary p-0 fw-bold">
-                Trang đăng nhập chi tiết →
             </a>
         </div>
     </div>

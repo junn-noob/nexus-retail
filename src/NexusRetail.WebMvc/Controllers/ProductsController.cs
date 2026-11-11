@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using NexusRetail.Shared.DTOs.SanPham;
 using NexusRetail.WebMvc.Services.Catalog;
 
 namespace NexusRetail.WebMvc.Controllers
@@ -50,7 +51,7 @@ namespace NexusRetail.WebMvc.Controllers
             if (a == null || b == null)
                 return NotFound();
 
-            return PartialView("_Compare", (a, b));
+            return PartialView("_Compare", new List<SanPhamDto> { a, b });
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -19,5 +19,9 @@ namespace NexusRetail.Shared.DTOs.BanHang
 
         [Range(0, 100, ErrorMessage = "Khuyến mãi phải trong khoảng 0% - 100%")]
         public decimal KhuyenMai { get; set; } = 0;
+
+        public decimal DonGia { get; set; }
+
+        public decimal ThanhTien { get; set; }
     }
 }

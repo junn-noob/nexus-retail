@@ -58,11 +58,34 @@ namespace NexusRetail.WebMvc.Services.Reports
             return new DashboardStats(totalProducts, totalOrders, totalRevenue, totalCustomers);
         }
 
+        public async Task<DashboardChartsData> GetDashboardChartsAsync()
+        {
+            try
+            {
+                var data = await _client.GetFromJsonAsync<DashboardChartsData>("api/bao-cao/dashboard-charts");
+                if (data != null && data.MonthlyLabels.Count > 0)
+                {
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[ReportApiClient] Không thể lấy dữ liệu biểu đồ Dashboard.");
+            }
+
+            return new DashboardChartsData(
+                new List<string> { $"T{DateTime.Now.Month}/{DateTime.Now.Year}" },
+                new List<decimal> { 0m },
+                new List<string> { "Chưa có dữ liệu" },
+                new List<decimal> { 100m });
+        }
+
         public async Task<JsonElement?> GetReportDataAsync(string loai, int? thang = null, int? nam = null, int? quy = null)
         {
-            nam ??= 2026;
-            thang ??= 9;
-            quy ??= 3;
+            var now = DateTime.Now;
+            nam ??= now.Year;
+            thang ??= now.Month;
+            quy ??= (now.Month - 1) / 3 + 1;
 
             string apiUrl = loai switch
             {
@@ -70,6 +93,7 @@ namespace NexusRetail.WebMvc.Services.Reports
                 "nhap-lon-nhat-quy" => $"api/bao-cao/nhap-lon-nhat-quy?quy={quy}&year={nam}",
                 "doanh-so-nam" => $"api/bao-cao/doanh-so-nam?year={nam}",
                 "nv-ban-it-nhat" => $"api/bao-cao/nv-ban-it-nhat?month={thang}&year={nam}",
+                "ton-kho" => $"api/bao-cao/ton-kho?month={thang}&year={nam}",
                 _ => $"api/bao-cao/sp-ban-chay?month={thang}&year={nam}"
             };
 
@@ -86,9 +110,10 @@ namespace NexusRetail.WebMvc.Services.Reports
 
         public async Task<byte[]?> DownloadExcelReportAsync(string loai, int? thang = null, int? nam = null, int? quy = null)
         {
-            nam ??= 2026;
-            thang ??= 9;
-            quy ??= 3;
+            var now = DateTime.Now;
+            nam ??= now.Year;
+            thang ??= now.Month;
+            quy ??= (now.Month - 1) / 3 + 1;
 
             string excelUrl = loai switch
             {
@@ -96,6 +121,7 @@ namespace NexusRetail.WebMvc.Services.Reports
                 "nhap-lon-nhat-quy" => $"api/bao-cao/nhap-lon-nhat-quy/excel?quy={quy}&year={nam}",
                 "doanh-so-nam" => $"api/bao-cao/doanh-so-nam/excel?year={nam}",
                 "nv-ban-it-nhat" => $"api/bao-cao/nv-ban-it-nhat/excel?month={thang}&year={nam}",
+                "ton-kho" => $"api/bao-cao/ton-kho/excel?month={thang}&year={nam}",
                 _ => $"api/bao-cao/sp-ban-chay/excel?month={thang}&year={nam}"
             };
 

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NexusRetail.Core.Api.DTOs;
 using NexusRetail.Core.Api.Services.Payment;
@@ -10,19 +11,42 @@ namespace NexusRetail.Core.Api.Controllers
     {
         private readonly IBankPaymentService _paymentService;
         private readonly ILogger<WebhookController> _logger;
+        private readonly IConfiguration? _configuration;
 
         public WebhookController(IBankPaymentService paymentService, ILogger<WebhookController> logger)
+            : this(paymentService, logger, null)
+        {
+        }
+
+        [ActivatorUtilitiesConstructor]
+        public WebhookController(
+            IBankPaymentService paymentService,
+            ILogger<WebhookController> logger,
+            IConfiguration? configuration)
         {
             _paymentService = paymentService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         /// <summary>
         /// Endpoint đón Webhook biến động số dư từ script bot MBBank (hoặc SePay / Casso / PayOS)
         /// </summary>
+        [AllowAnonymous]
         [HttpPost("bank")]
         public IActionResult ReceiveBankWebhook([FromBody] BankWebhookDto dto)
         {
+            string? expectedSecret = _configuration?["Webhook:Secret"];
+            if (!string.IsNullOrWhiteSpace(expectedSecret) && HttpContext != null)
+            {
+                string? providedSecret = Request.Headers["X-Webhook-Secret"].FirstOrDefault();
+                if (!string.Equals(providedSecret, expectedSecret, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("[Webhook] Từ chối request webhook vì thiếu hoặc sai X-Webhook-Secret.");
+                    return Unauthorized(new { success = false, message = "Webhook secret không hợp lệ!" });
+                }
+            }
+
             if (dto == null || dto.TransferAmount <= 0)
             {
                 return BadRequest(new { success = false, message = "Dữ liệu webhook không hợp lệ hoặc số tiền <= 0" });
@@ -39,6 +63,7 @@ namespace NexusRetail.Core.Api.Controllers
         /// <summary>
         /// Endpoint cho WinForms POS hoặc Web kiểm tra trạng thái thanh toán của hóa đơn (có thể truyền expectedAmount để so khớp số tiền)
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("bank/status/{maHdb}")]
         public IActionResult CheckPaymentStatus(string maHdb, [FromQuery] decimal? expectedAmount = null)
         {
@@ -47,8 +72,9 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         /// <summary>
-        /// Endpoint Sandbox / Mock kiểm thử tích hợp cổng ngân hàng (Hỗ trợ Automated Testing & CI/CD)
+        /// Endpoint Sandbox / Mock kiểm thử tích hợp cổng ngân hàng (chỉ dành cho Admin / Staff)
         /// </summary>
+        [Authorize(Roles = "Admin,Staff")]
         [HttpPost("bank/simulate")]
         public IActionResult SimulateWebhookPayment([FromBody] SimulatePaymentRequest req)
         {
@@ -67,8 +93,9 @@ namespace NexusRetail.Core.Api.Controllers
         }
 
         /// <summary>
-        /// Xem lịch sử các Webhook ngân hàng đã nhận
+        /// Xem lịch sử các Webhook ngân hàng đã nhận (chỉ dành cho Admin / Staff)
         /// </summary>
+        [Authorize(Roles = "Admin,Staff")]
         [HttpGet("bank/history")]
         public IActionResult GetWebhookHistory()
         {

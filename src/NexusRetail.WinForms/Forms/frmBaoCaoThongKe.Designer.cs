@@ -361,14 +361,16 @@ namespace NexusRetail.WinForms.Forms
             // 
             // lblTongKet
             // 
-            this.lblTongKet.AutoSize = true;
+            this.lblTongKet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblTongKet.AutoSize = false;
             this.lblTongKet.Font = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Bold);
             this.lblTongKet.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(161)))), ((int)(((byte)(55)))));
-            this.lblTongKet.Location = new System.Drawing.Point(220, 16);
+            this.lblTongKet.Location = new System.Drawing.Point(685, 14);
             this.lblTongKet.Name = "lblTongKet";
-            this.lblTongKet.Size = new System.Drawing.Size(124, 21);
+            this.lblTongKet.Size = new System.Drawing.Size(440, 26);
             this.lblTongKet.TabIndex = 1;
             this.lblTongKet.Text = "Tổng giá trị: 0 ₫";
+            this.lblTongKet.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // lblSoDong
             // 

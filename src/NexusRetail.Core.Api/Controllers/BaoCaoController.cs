@@ -167,6 +167,15 @@ public class BaoCaoController : ControllerBase
     }
 
     /// <summary>
+    /// Dữ liệu thực tế cho biểu đồ Dashboard (doanh thu 6 tháng gần nhất & tỷ trọng hãng).
+    /// </summary>
+    [HttpGet("dashboard-charts")]
+    public async Task<IActionResult> layDuLieuBieuDoDashboard()
+    {
+        return Ok(await _bus.LayDuLieuBieuDoDashboardAsync());
+    }
+
+    /// <summary>
     /// Truy vấn cảnh báo tồn kho thấp trực tiếp bằng câu lệnh SQL Text trên ADO.NET.
     /// </summary>
     [HttpGet("canh-bao-ton-kho-adonet")]
