@@ -10,6 +10,8 @@ public class SanPhamMauSacDto
     public decimal GiaBan { get; set; }
     public int SoLuong { get; set; }
     public string? HinhAnh { get; set; }
+
+    public override string ToString() => TenMau;
 }
 
 public class MauSacDto
@@ -17,4 +19,7 @@ public class MauSacDto
     public string MaMau { get; set; } = null!;
     public string TenMau { get; set; } = null!;
     public string? MaHex { get; set; }
+
+    public override string ToString() => TenMau;
 }
+

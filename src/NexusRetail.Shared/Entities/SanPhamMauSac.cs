@@ -21,3 +21,4 @@ public partial class SanPhamMauSac
 
     public virtual MauSac MaMauNavigation { get; set; } = null!;
 }
+

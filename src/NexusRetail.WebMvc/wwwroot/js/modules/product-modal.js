@@ -16,7 +16,7 @@
         if (modal) modal.hide();
     }
 
-    async function openProduct(id) {
+    async function openProduct(id, preselectedColor = null) {
         if (!id) return;
         const dialog = document.getElementById("productModalDialog");
         if (!dialog) return;
@@ -51,6 +51,13 @@
             }
 
             dialog.innerHTML = await response.text();
+
+            if (preselectedColor) {
+                const targetBtn = dialog.querySelector(`.dm-color-btn[data-mamau="${preselectedColor}"]`);
+                if (targetBtn) {
+                    onModalColorChange(targetBtn);
+                }
+            }
         } catch (error) {
             console.error("[ProductModal] Lỗi khi tải Quick View:", error);
             dialog.innerHTML = `
@@ -136,9 +143,57 @@
         }
     }
 
+    function onModalColorChange(btn) {
+        if (!btn) return;
+        const parent = btn.closest('#modalColorList') || document.getElementById('modalColorList');
+        if (parent) {
+            parent.querySelectorAll('.dm-color-btn').forEach(b => {
+                b.classList.remove('btn-outline-primary', 'active', 'shadow-sm');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('btn-outline-primary', 'active', 'shadow-sm');
+        }
+
+        const maMau = btn.getAttribute('data-mamau');
+        const tenMau = btn.getAttribute('data-tenmau');
+        const giaBanFmt = btn.getAttribute('data-giaban-fmt');
+        const soLuong = parseInt(btn.getAttribute('data-soluong') || '0', 10);
+        const anh = btn.getAttribute('data-anh');
+
+        const input = document.getElementById('modalSelectedMaMau');
+        if (input) input.value = maMau;
+
+        const lblName = document.getElementById('modalSelectedColorName');
+        if (lblName) lblName.textContent = tenMau;
+
+        const lblHint = document.getElementById('modalColorStockHint');
+        if (lblHint) lblHint.textContent = `(Kho: ${soLuong} máy)`;
+
+        const priceEl = document.getElementById('modalProductPrice');
+        if (priceEl && giaBanFmt) priceEl.textContent = giaBanFmt;
+
+        const badgeEl = document.getElementById('modalStockBadge');
+        if (badgeEl) {
+            if (soLuong > 0) {
+                badgeEl.className = 'badge bg-success-subtle text-success fw-bold px-2 py-1';
+                badgeEl.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Sẵn hàng (Còn ${soLuong} máy)`;
+            } else {
+                badgeEl.className = 'badge bg-danger-subtle text-danger fw-bold px-2 py-1';
+                badgeEl.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> Tạm hết hàng`;
+            }
+        }
+
+        const imgEl = document.getElementById('modalProductImg');
+        if (imgEl && anh) {
+            imgEl.src = `/images/products/${anh}`;
+        }
+    }
+
     // Expose to window for global access
     window.openProduct = openProduct;
     window.closeModal = closeModal;
     window.loadCompareProducts = loadCompareProducts;
     window.loadCompare = loadCompare;
+    window.onModalColorChange = onModalColorChange;
 })();

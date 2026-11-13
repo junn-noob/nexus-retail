@@ -137,6 +137,8 @@ namespace NexusRetail.WinForms.Forms
         {
             _cartTable.Columns.Add("MaSp", typeof(string));
             _cartTable.Columns.Add("TenSp", typeof(string));
+            _cartTable.Columns.Add("MaMau", typeof(string));
+            _cartTable.Columns.Add("TenMau", typeof(string));
             _cartTable.Columns.Add("SoLuong", typeof(int));
             _cartTable.Columns.Add("DonGia", typeof(decimal));
             _cartTable.Columns.Add("KhuyenMai", typeof(decimal));
@@ -146,47 +148,150 @@ namespace NexusRetail.WinForms.Forms
 
             if (dgvChiTiet.Columns["MaSp"] is { } colMa) colMa.HeaderText = "Mã SP";
             if (dgvChiTiet.Columns["TenSp"] is { } colTen) colTen.HeaderText = "Tên Sản Phẩm";
+            if (dgvChiTiet.Columns["TenMau"] is { } colMau) colMau.HeaderText = "Màu Sắc";
+            if (dgvChiTiet.Columns["MaMau"] is { } colMaMau) colMaMau.Visible = false;
             if (dgvChiTiet.Columns["SoLuong"] is { } colSl) colSl.HeaderText = "Số Lượng";
-
-
-
-
-
-
-
-
-
-
-
-                return;
-            }
-
-            if (sp.SoLuong < sl)
+            if (dgvChiTiet.Columns["DonGia"] is { } colDg)
             {
-                MessageBox.Show($"Sản phẩm '{sp.TenSp}' chỉ còn {sp.SoLuong} máy trong kho!", "Không đủ tồn kho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                colDg.HeaderText = "Đơn Giá";
+                colDg.DefaultCellStyle.Format = "#,##0 ₫";
+            }
+            if (dgvChiTiet.Columns["KhuyenMai"] is { } colKm)
+            {
+                colKm.HeaderText = "Chiết Khấu";
+                colKm.DefaultCellStyle.Format = "0'%'";
+            }
+            if (dgvChiTiet.Columns["ThanhTien"] is { } colTt)
+            {
+                colTt.HeaderText = "Thành Tiền";
+                colTt.DefaultCellStyle.Format = "#,##0 ₫";
+            }
+
+            dgvChiTiet.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        }
+
+        private async void LoadProductsAsync()
+        {
+            try
+            {
+                _products = await _catalogClient.GetProductsAsync();
+                if (IsDisposed || Disposing) return;
+                cboSanPham.DataSource = _products;
+                cboSanPham.DisplayMember = "TenSp";
+                cboSanPham.ValueMember = "MaSp";
+                cboSanPham.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                cboSanPham.AutoCompleteSource = AutoCompleteSource.ListItems;
+
+                if (_products.Count > 0)
+                {
+                    cboSanPham_SelectedIndexChanged(this, EventArgs.Empty);
+                }
+            }
+            catch { }
+        }
+
+        private void cboSanPham_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (cboSanPham.SelectedItem is SanPhamDto sp)
+            {
+                if (sp.DanhSachMauSac != null && sp.DanhSachMauSac.Count > 0)
+                {
+                    cboMauSac.DisplayMember = "TenMau";
+                    cboMauSac.ValueMember = "MaMau";
+                    cboMauSac.DataSource = sp.DanhSachMauSac.ToList();
+                    cboMauSac.Enabled = true;
+                    cboMauSac_SelectedIndexChanged(this, EventArgs.Empty);
+                }
+                else
+                {
+                    cboMauSac.DisplayMember = "TenMau";
+                    cboMauSac.ValueMember = "MaMau";
+                    cboMauSac.DataSource = new List<SanPhamMauSacDto>
+                    {
+                        new() { MaMau = "DEFAULT", TenMau = "Mặc định", GiaBan = sp.GiaBan, SoLuong = sp.SoLuong }
+                    };
+                    cboMauSac.Enabled = false;
+                    cboMauSac_SelectedIndexChanged(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        private void cboMauSac_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (cboSanPham.SelectedItem is not SanPhamDto sp) return;
+
+            if (cboMauSac.SelectedItem is SanPhamMauSacDto variant)
+            {
+                txtDonGia.Text = $"{variant.GiaBan:N0} ₫";
+                lblTonKho.Text = $"Tồn kho ({variant.TenMau}): {variant.SoLuong} máy";
+                lblTonKho.ForeColor = variant.SoLuong > 0 ? Color.FromArgb(16, 185, 129) : Color.Red;
+            }
+            else
+            {
+                txtDonGia.Text = $"{sp.GiaBan:N0} ₫";
+                lblTonKho.Text = $"Tồn kho: {sp.SoLuong} máy";
+                lblTonKho.ForeColor = sp.SoLuong > 0 ? Color.FromArgb(16, 185, 129) : Color.Red;
+            }
+        }
+
+        private void btnThemMon_Click(object sender, EventArgs e)
+        {
+            if (cboSanPham.SelectedItem is not SanPhamDto sp) return;
+
+            var variant = cboMauSac.SelectedItem as SanPhamMauSacDto;
+            string maMau = variant?.MaMau ?? "DEFAULT";
+            string tenMau = variant?.TenMau ?? "Mặc định";
+            decimal donGia = variant != null && variant.GiaBan > 0 ? variant.GiaBan : sp.GiaBan;
+            int tonKho = variant?.SoLuong ?? sp.SoLuong;
+
+            int sl = (int)numSoLuong.Value;
+            decimal km = numKhuyenMai.Value;
+
+            if (sl <= 0)
+            {
+                MessageBox.Show("Số lượng mua phải lớn hơn 0!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Kiểm tra xem sản phẩm đã có trong bảng chưa
-            DataRow? existing = _cartTable.AsEnumerable().FirstOrDefault(r => r.Field<string>("MaSp") == sp.MaSp);
+            if (km < 0 || km > 100)
+            {
+                MessageBox.Show("Mức chiết khấu phải từ 0% đến 100%!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (tonKho <= 0)
+            {
+                MessageBox.Show($"Sản phẩm '{sp.TenSp} ({tenMau})' hiện đã hết hàng trong kho!", "Hết hàng", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (tonKho < sl)
+            {
+                MessageBox.Show($"Sản phẩm '{sp.TenSp} ({tenMau})' chỉ còn {tonKho} máy trong kho!", "Không đủ tồn kho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Kiểm tra xem sản phẩm + màu đã có trong bảng chưa
+            DataRow? existing = _cartTable.AsEnumerable().FirstOrDefault(r => 
+                r.Field<string>("MaSp") == sp.MaSp && r.Field<string>("MaMau") == maMau);
             if (existing != null)
             {
                 int currentSl = existing.Field<int>("SoLuong");
                 int newSl = currentSl + sl;
-                if (newSl > sp.SoLuong)
+                if (newSl > tonKho)
                 {
-                    MessageBox.Show($"Tổng số lượng đặt ({newSl}) vượt quá tồn kho ({sp.SoLuong})!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"Tổng số lượng đặt ({newSl}) vượt quá tồn kho ({tonKho}) của màu {tenMau}!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 decimal newKm = km > 0 ? km : existing.Field<decimal>("KhuyenMai");
                 existing["SoLuong"] = newSl;
                 existing["KhuyenMai"] = newKm;
-                existing["ThanhTien"] = Math.Round(newSl * sp.GiaBan * (1m - (newKm / 100m)), 0);
+                existing["ThanhTien"] = Math.Round(newSl * donGia * (1m - (newKm / 100m)), 0);
             }
             else
             {
-                decimal thanhTien = Math.Round(sl * sp.GiaBan * (1m - (km / 100m)), 0);
-                _cartTable.Rows.Add(sp.MaSp, sp.TenSp, sl, sp.GiaBan, km, Math.Max(0, thanhTien));
+                decimal thanhTien = Math.Round(sl * donGia * (1m - (km / 100m)), 0);
+                _cartTable.Rows.Add(sp.MaSp, sp.TenSp, maMau, tenMau, sl, donGia, km, Math.Max(0, thanhTien));
             }
 
             UpdateTotalAmount();

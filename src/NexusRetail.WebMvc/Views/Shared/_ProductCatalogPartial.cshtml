@@ -74,9 +74,11 @@
                             <span class="text-muted" style="font-size: 11px;">Màu:</span>
                             @foreach (var c in p.DanhSachMauSac.Take(4))
                             {
-                                <span class="rounded-circle d-inline-block border shadow-sm"
-                                      title="@c.TenMau: @c.GiaBan.ToString("N0") ₫"
-                                      style="width: 13px; height: 13px; background-color: @(c.MaHex ?? "#6B7280");"></span>
+                                <span class="rounded-circle d-inline-block border shadow-sm dm-color-dot"
+                                      role="button"
+                                      onclick="openProduct('@p.MaSp', '@c.MaMau'); event.stopPropagation();"
+                                      title="@c.TenMau: @c.GiaBan.ToString("N0") ₫ (Bấm để chọn màu này)"
+                                      style="width: 14px; height: 14px; background-color: @(c.MaHex ?? "#6B7280"); cursor: pointer;"></span>
                             }
                             @if (p.DanhSachMauSac.Count > 4)
                             {

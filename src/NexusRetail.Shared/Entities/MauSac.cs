@@ -17,3 +17,4 @@ public partial class MauSac
 
     public virtual ICollection<ChiTietHdn> ChiTietHdns { get; set; } = new List<ChiTietHdn>();
 }
+
