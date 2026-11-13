@@ -9,6 +9,8 @@ public partial class ChiTietHdb
 
     public string MaSp { get; set; } = null!;
 
+    public string MaMau { get; set; } = "DEFAULT";
+
     public int SoLuong { get; set; }
 
     public decimal DonGia { get; set; }
@@ -20,4 +22,6 @@ public partial class ChiTietHdb
     public virtual HoaDonBan MaHdbNavigation { get; set; } = null!;
 
     public virtual SanPham MaSpNavigation { get; set; } = null!;
+
+    public virtual MauSac? MaMauNavigation { get; set; }
 }

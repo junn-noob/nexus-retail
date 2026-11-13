@@ -40,7 +40,7 @@ namespace NexusRetail.WebMvc.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddToCart(string maSp, int quantity = 1)
+        public async Task<IActionResult> AddToCart(string maSp, int quantity = 1, string? maMau = null)
         {
             if (string.IsNullOrWhiteSpace(maSp))
                 return Json(new { success = false, message = "Mã sản phẩm không hợp lệ!" });
@@ -50,28 +50,50 @@ namespace NexusRetail.WebMvc.Controllers
             if (sp == null)
                 return Json(new { success = false, message = "Không tìm thấy thông tin sản phẩm trên hệ thống!" });
 
-            if (sp.SoLuong <= 0)
-                return Json(new { success = false, message = $"Sản phẩm '{sp.TenSp}' hiện đã tạm hết hàng!" });
+            // Tìm biến thể màu sắc tương ứng
+            var variant = sp.DanhSachMauSac?.FirstOrDefault(x =>
+                !string.IsNullOrWhiteSpace(maMau) && x.MaMau.Equals(maMau.Trim(), StringComparison.OrdinalIgnoreCase))
+                ?? (string.IsNullOrWhiteSpace(maMau) ? sp.DanhSachMauSac?.FirstOrDefault() : null);
+
+            string effectiveMaMau = variant?.MaMau ?? (string.IsNullOrWhiteSpace(maMau) ? "DEFAULT" : maMau.Trim());
+            string? effectiveTenMau = variant?.TenMau;
+            string? effectiveMaHex = variant?.MaHex;
+            decimal effectiveGiaBan = variant?.GiaBan ?? sp.GiaBan;
+            int effectiveSoLuong = variant?.SoLuong ?? sp.SoLuong;
+            string? effectiveAnh = !string.IsNullOrWhiteSpace(variant?.HinhAnh) ? variant.HinhAnh : sp.Anh;
+
+            if (effectiveSoLuong <= 0)
+            {
+                string outOfStockName = !string.IsNullOrWhiteSpace(effectiveTenMau)
+                    ? $"Sản phẩm '{sp.TenSp}' màu {effectiveTenMau}"
+                    : $"Sản phẩm '{sp.TenSp}'";
+                return Json(new { success = false, message = $"{outOfStockName} hiện đã tạm hết hàng!" });
+            }
 
             var cart = GetCartFromSession();
-            var existingItem = cart.FirstOrDefault(x => x.MaSp == maSp);
+            string targetKey = $"{sp.MaSp}_{effectiveMaMau}";
+            var existingItem = cart.FirstOrDefault(x => x.CartKey == targetKey || (x.MaSp == sp.MaSp && (x.MaMau ?? "DEFAULT") == effectiveMaMau));
             int nextQty = (existingItem?.SoLuong ?? 0) + addQty;
 
-            if (nextQty > sp.SoLuong)
+            if (nextQty > effectiveSoLuong)
             {
+                string variantLabel = !string.IsNullOrWhiteSpace(effectiveTenMau) ? $" màu '{effectiveTenMau}'" : "";
                 return Json(new
                 {
                     success = false,
-                    message = $"Kho chỉ còn {sp.SoLuong} chiếc '{sp.TenSp}' (trong giỏ đã có {existingItem?.SoLuong ?? 0} chiếc)!"
+                    message = $"Kho chỉ còn {effectiveSoLuong} chiếc '{sp.TenSp}'{variantLabel} (trong giỏ đã có {existingItem?.SoLuong ?? 0} chiếc)!"
                 });
             }
 
             if (existingItem != null)
             {
                 existingItem.SoLuong = nextQty;
-                existingItem.GiaBan = sp.GiaBan;
+                existingItem.GiaBan = effectiveGiaBan;
                 existingItem.TenSp = sp.TenSp;
-                existingItem.Anh = sp.Anh;
+                existingItem.MaMau = effectiveMaMau;
+                existingItem.TenMau = effectiveTenMau;
+                existingItem.MaHex = effectiveMaHex;
+                existingItem.Anh = effectiveAnh;
             }
             else
             {
@@ -79,26 +101,34 @@ namespace NexusRetail.WebMvc.Controllers
                 {
                     MaSp = sp.MaSp,
                     TenSp = sp.TenSp,
-                    GiaBan = sp.GiaBan,
+                    MaMau = effectiveMaMau,
+                    TenMau = effectiveTenMau,
+                    MaHex = effectiveMaHex,
+                    GiaBan = effectiveGiaBan,
                     SoLuong = addQty,
-                    Anh = sp.Anh
+                    Anh = effectiveAnh
                 });
             }
 
             SaveCartToSession(cart);
+            string successMsg = !string.IsNullOrWhiteSpace(effectiveTenMau)
+                ? $"Đã thêm '{sp.TenSp}' ({effectiveTenMau}) vào giỏ hàng!"
+                : $"Đã thêm '{sp.TenSp}' vào giỏ hàng!";
+
             return Json(new
             {
                 success = true,
-                message = "Đã thêm sản phẩm vào giỏ hàng thành công!",
+                message = successMsg,
                 totalItems = cart.Sum(x => x.SoLuong)
             });
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateQuantity(string maSp, int delta = 0, int? quantity = null)
+        public async Task<IActionResult> UpdateQuantity(string? cartKey, string? maSp = null, int delta = 0, int? quantity = null)
         {
             var cart = GetCartFromSession();
-            var item = cart.FirstOrDefault(x => x.MaSp == maSp);
+            var item = (!string.IsNullOrWhiteSpace(cartKey) ? cart.FirstOrDefault(x => x.CartKey == cartKey) : null)
+                    ?? (!string.IsNullOrWhiteSpace(maSp) ? cart.FirstOrDefault(x => x.MaSp == maSp) : null);
 
             if (item != null)
             {
@@ -106,16 +136,24 @@ namespace NexusRetail.WebMvc.Controllers
 
                 if (targetQty > item.SoLuong)
                 {
-                    var sp = await _catalogClient.GetProductByIdAsync(maSp);
-                    if (sp != null && targetQty > sp.SoLuong)
+                    var sp = await _catalogClient.GetProductByIdAsync(item.MaSp);
+                    if (sp != null)
                     {
-                        string limitMsg = $"Sản phẩm '{sp.TenSp}' chỉ còn tối đa {sp.SoLuong} chiếc trong kho!";
-                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        var variant = sp.DanhSachMauSac?.FirstOrDefault(x =>
+                            !string.IsNullOrWhiteSpace(item.MaMau) && x.MaMau.Equals(item.MaMau, StringComparison.OrdinalIgnoreCase));
+                        int maxAvailable = variant?.SoLuong ?? sp.SoLuong;
+
+                        if (targetQty > maxAvailable)
                         {
-                            return Json(new { success = false, message = limitMsg, quantity = item.SoLuong });
+                            string variantLabel = !string.IsNullOrWhiteSpace(item.TenMau) ? $" màu '{item.TenMau}'" : "";
+                            string limitMsg = $"Sản phẩm '{sp.TenSp}'{variantLabel} chỉ còn tối đa {maxAvailable} chiếc trong kho!";
+                            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                            {
+                                return Json(new { success = false, message = limitMsg, quantity = item.SoLuong });
+                            }
+                            TempData["CartError"] = limitMsg;
+                            return RedirectToAction(nameof(Index));
                         }
-                        TempData["CartError"] = limitMsg;
-                        return RedirectToAction(nameof(Index));
                     }
                 }
 
@@ -144,10 +182,11 @@ namespace NexusRetail.WebMvc.Controllers
         }
 
         [HttpPost]
-        public IActionResult RemoveItem(string maSp)
+        public IActionResult RemoveItem(string? cartKey, string? maSp = null)
         {
             var cart = GetCartFromSession();
-            var item = cart.FirstOrDefault(x => x.MaSp == maSp);
+            var item = (!string.IsNullOrWhiteSpace(cartKey) ? cart.FirstOrDefault(x => x.CartKey == cartKey) : null)
+                    ?? (!string.IsNullOrWhiteSpace(maSp) ? cart.FirstOrDefault(x => x.MaSp == maSp) : null);
             if (item != null)
             {
                 cart.Remove(item);
@@ -221,6 +260,10 @@ namespace NexusRetail.WebMvc.Controllers
                 {
                     MaSp = c.MaSp,
                     TenSp = c.TenSp,
+                    MaMau = c.MaMau,
+                    TenMau = c.TenMau,
+                    MaHex = c.MaHex,
+                    DonGia = c.GiaBan,
                     SoLuong = c.SoLuong,
                     KhuyenMai = 0
                 }).ToList()

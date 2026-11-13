@@ -34,6 +34,8 @@ namespace NexusRetail.WinForms.Forms
             this.txtDonGia = new System.Windows.Forms.TextBox();
             this.lblDonGia = new System.Windows.Forms.Label();
             this.cboSanPham = new System.Windows.Forms.ComboBox();
+            this.lblMauSac = new System.Windows.Forms.Label();
+            this.cboMauSac = new System.Windows.Forms.ComboBox();
             this.lblChonSp = new System.Windows.Forms.Label();
             this.pnlRight = new System.Windows.Forms.Panel();
             this.pnlPaymentActions = new System.Windows.Forms.Panel();
@@ -157,6 +159,8 @@ namespace NexusRetail.WinForms.Forms
             this.pnlProductPicker.BackColor = System.Drawing.Color.White;
             this.pnlProductPicker.Controls.Add(this.btnXoaMon);
             this.pnlProductPicker.Controls.Add(this.btnThemMon);
+            this.pnlProductPicker.Controls.Add(this.cboMauSac);
+            this.pnlProductPicker.Controls.Add(this.lblMauSac);
             this.pnlProductPicker.Controls.Add(this.lblTonKho);
             this.pnlProductPicker.Controls.Add(this.numKhuyenMai);
             this.pnlProductPicker.Controls.Add(this.lblKhuyenMai);
@@ -212,7 +216,7 @@ namespace NexusRetail.WinForms.Forms
             this.lblTonKho.AutoSize = true;
             this.lblTonKho.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblTonKho.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(161)))), ((int)(((byte)(55)))));
-            this.lblTonKho.Location = new System.Drawing.Point(92, 60);
+            this.lblTonKho.Location = new System.Drawing.Point(275, 54);
             this.lblTonKho.Name = "lblTonKho";
             this.lblTonKho.Size = new System.Drawing.Size(112, 17);
             this.lblTonKho.TabIndex = 8;
@@ -302,6 +306,28 @@ namespace NexusRetail.WinForms.Forms
             this.lblChonSp.Size = new System.Drawing.Size(76, 17);
             this.lblChonSp.TabIndex = 0;
             this.lblChonSp.Text = "Chọn máy:";
+            // 
+            // lblMauSac
+            // 
+            this.lblMauSac.AutoSize = true;
+            this.lblMauSac.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblMauSac.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
+            this.lblMauSac.Location = new System.Drawing.Point(12, 54);
+            this.lblMauSac.Name = "lblMauSac";
+            this.lblMauSac.Size = new System.Drawing.Size(65, 17);
+            this.lblMauSac.TabIndex = 11;
+            this.lblMauSac.Text = "Màu sắc:";
+            // 
+            // cboMauSac
+            // 
+            this.cboMauSac.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboMauSac.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.cboMauSac.FormattingEnabled = true;
+            this.cboMauSac.Location = new System.Drawing.Point(92, 50);
+            this.cboMauSac.Name = "cboMauSac";
+            this.cboMauSac.Size = new System.Drawing.Size(170, 25);
+            this.cboMauSac.TabIndex = 12;
+            this.cboMauSac.SelectedIndexChanged += new System.EventHandler(this.cboMauSac_SelectedIndexChanged);
             // 
             // pnlRight
             // 
@@ -542,6 +568,8 @@ namespace NexusRetail.WinForms.Forms
         private System.Windows.Forms.Panel pnlProductPicker;
         private System.Windows.Forms.Label lblChonSp;
         private System.Windows.Forms.ComboBox cboSanPham;
+        private System.Windows.Forms.Label lblMauSac;
+        private System.Windows.Forms.ComboBox cboMauSac;
         private System.Windows.Forms.Label lblDonGia;
         private System.Windows.Forms.TextBox txtDonGia;
         private System.Windows.Forms.Label lblSoLuong;

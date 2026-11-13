@@ -23,6 +23,12 @@ public partial class VwChiTietHoaDonBan
 
     public string TenSp { get; set; } = null!;
 
+    public string? MaMau { get; set; }
+
+    public string? TenMau { get; set; }
+
+    public string? MaHex { get; set; }
+
     public int SoLuong { get; set; }
 
     public decimal DonGiaNiemYet { get; set; }

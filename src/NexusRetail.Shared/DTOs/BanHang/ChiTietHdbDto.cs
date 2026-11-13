@@ -13,6 +13,12 @@ namespace NexusRetail.Shared.DTOs.BanHang
 
         public string? TenSp { get; set; } = null!;
 
+        public string? MaMau { get; set; }
+
+        public string? TenMau { get; set; }
+
+        public string? MaHex { get; set; }
+
         [Required(ErrorMessage = "Số lượng bán không được để trống!")]
         [Range(1, int.MaxValue, ErrorMessage = "Số lượng bán phải lớn hơn 0 và tối thiểu 1 sản phẩm!")]        
         public int SoLuong { get; set; }

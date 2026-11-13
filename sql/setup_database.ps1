@@ -98,6 +98,8 @@ Write-Host ""
 Write-Host "[BUOC 3] KIEM TRA KET QUA KHOI TAO..." -ForegroundColor Yellow
 
 $cntSanPham = (sqlcmd -S $targetInstance -d "NexusRetailDb" -h -1 -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM SanPham;").Trim()
+$cntMauSac  = (sqlcmd -S $targetInstance -d "NexusRetailDb" -h -1 -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM MauSac;").Trim()
+$cntSpMauSac= (sqlcmd -S $targetInstance -d "NexusRetailDb" -h -1 -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM SanPham_MauSac;").Trim()
 $cntLoai    = (sqlcmd -S $targetInstance -d "NexusRetailDb" -h -1 -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM Loai;").Trim()
 $cntNhanHieu= (sqlcmd -S $targetInstance -d "NexusRetailDb" -h -1 -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM NhanHieu;").Trim()
 $cntNhanVien= (sqlcmd -S $targetInstance -d "NexusRetailDb" -h -1 -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM NhanVien;").Trim()
@@ -109,6 +111,8 @@ $cntRoles   = (sqlcmd -S $targetInstance -d "NexusRetailIdentityDb" -h -1 -Q "SE
 
 Write-Host "  [NexusRetailDb]" -ForegroundColor Cyan
 Write-Host "    - Danh muc san pham (SanPham):     $cntSanPham mat hang smartphone" -ForegroundColor Green
+Write-Host "    - Bien the mau sac (SanPham_MauSac): $cntSpMauSac phien ban mau kem don gia rieng" -ForegroundColor Green
+Write-Host "    - Bang mau sac (MauSac):           $cntMauSac mau sac nhan dien" -ForegroundColor Green
 Write-Host "    - Phan loai (Loai):                $cntLoai danh muc" -ForegroundColor Green
 Write-Host "    - Thuong hieu (NhanHieu):          $cntNhanHieu hang" -ForegroundColor Green
 Write-Host "    - Nhan vien ban hang (NhanVien):   $cntNhanVien nhan su" -ForegroundColor Green

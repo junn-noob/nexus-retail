@@ -46,6 +46,22 @@ public class SanPhamController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("{maSP}/mau-sac")]
+    public async Task<IActionResult> layMauSacSanPham(string maSP)
+    {
+        var list = await _bus.LayDanhSachMauSacTheoSpAsync(maSP);
+        return Ok(list);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("mau-sac")]
+    public async Task<IActionResult> layTatCaMauSac()
+    {
+        var list = await _bus.LayTatCaMauSacAsync();
+        return Ok(list);
+    }
+
+    [AllowAnonymous]
     [HttpGet("nhan-hieu/{maNhanHieu}")]
     public async Task<IActionResult> laySanPhamTheoNhanHieu(
         string maNhanHieu,

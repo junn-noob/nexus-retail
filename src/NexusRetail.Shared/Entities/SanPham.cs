@@ -37,6 +37,8 @@ public partial class SanPham
 
     public virtual ICollection<ChiTietHdn> ChiTietHdns { get; set; } = new List<ChiTietHdn>();
 
+    public virtual ICollection<SanPhamMauSac> SanPhamMauSacs { get; set; } = new List<SanPhamMauSac>();
+
     public virtual Loai MaLoaiNavigation { get; set; } = null!;
 
     public virtual ManHinh MaManHinhNavigation { get; set; } = null!;

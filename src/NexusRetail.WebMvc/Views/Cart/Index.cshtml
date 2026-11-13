@@ -71,6 +71,15 @@
                                                     <img src="@imgSrc" alt="@item.TenSp" class="rounded-3 border p-1 d-none d-sm-block flex-shrink-0" style="width: 56px; height: 56px; object-fit: contain; background: #fafafa;" onerror="this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
                                                     <div class="min-w-0">
                                                         <h6 class="fw-bold text-dark m-0 small">@item.TenSp</h6>
+                                                        @if (!string.IsNullOrEmpty(item.TenMau))
+                                                        {
+                                                            <div class="mt-1">
+                                                                <span class="badge rounded-pill border text-dark fw-semibold" style="font-size: 0.72rem; background-color: #f8f9fa;">
+                                                                    <span class="d-inline-block rounded-circle me-1 border" style="width: 8px; height: 8px; background-color: @(item.MaHex ?? "#ccc"); vertical-align: middle;"></span>
+                                                                    Màu: @item.TenMau
+                                                                </span>
+                                                            </div>
+                                                        }
                                                         <small class="text-secondary d-block">Mã: @item.MaSp</small>
                                                         <small class="text-secondary d-md-none">@item.GiaBan.ToString("N0") ₫</small>
                                                     </div>
@@ -82,19 +91,22 @@
                                             <td class="text-center">
                                                 <div class="d-inline-flex align-items-center border rounded-3 overflow-hidden bg-light">
                                                     <form asp-action="UpdateQuantity" method="post" class="m-0">
+                                                        <input type="hidden" name="cartKey" value="@item.CartKey" />
                                                         <input type="hidden" name="maSp" value="@item.MaSp" />
                                                         <input type="hidden" name="delta" value="-1" />
                                                         <button type="submit" class="btn btn-sm btn-light border-0 fw-bold px-2 py-1" aria-label="Giảm số lượng">−</button>
                                                     </form>
                                                     <form asp-action="UpdateQuantity" method="post" class="m-0">
+                                                        <input type="hidden" name="cartKey" value="@item.CartKey" />
                                                         <input type="hidden" name="maSp" value="@item.MaSp" />
                                                         <input type="number" name="quantity" min="1" max="99" value="@item.SoLuong"
-                                                               onchange="this.form.submit()"
                                                                aria-label="Số lượng @item.TenSp"
+                                                               onchange="this.form.submit()"
                                                                class="form-control form-control-sm border-0 text-center fw-bold p-0 bg-transparent shadow-none"
                                                                style="width: 36px;" />
                                                     </form>
                                                     <form asp-action="UpdateQuantity" method="post" class="m-0">
+                                                        <input type="hidden" name="cartKey" value="@item.CartKey" />
                                                         <input type="hidden" name="maSp" value="@item.MaSp" />
                                                         <input type="hidden" name="delta" value="1" />
                                                         <button type="submit" class="btn btn-sm btn-light border-0 fw-bold px-2 py-1" aria-label="Tăng số lượng">+</button>
@@ -106,6 +118,7 @@
                                             </td>
                                             <td class="text-center pe-2 pe-sm-4">
                                                 <form asp-action="RemoveItem" method="post" class="m-0">
+                                                    <input type="hidden" name="cartKey" value="@item.CartKey" />
                                                     <input type="hidden" name="maSp" value="@item.MaSp" />
                                                     <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle p-1" title="Xóa">
                                                         <i class="bi bi-x-lg"></i>

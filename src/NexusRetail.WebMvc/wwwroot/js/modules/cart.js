@@ -49,7 +49,7 @@
         }, 2600);
     }
 
-    function quickAddToCart(e, maSp) {
+    function quickAddToCart(e, maSp, maMau = null) {
         if (e) {
             e.stopPropagation();
             e.preventDefault();
@@ -59,6 +59,9 @@
         const formData = new FormData();
         formData.append("maSp", maSp);
         formData.append("quantity", 1);
+        if (maMau) {
+            formData.append("maMau", maMau);
+        }
 
         fetch("/Cart/AddToCart", {
             method: "POST",
@@ -81,14 +84,19 @@
     }
 
     function addToCartFromModal(maSp) {
-        quickAddToCart(null, maSp);
+        const maMau = document.getElementById("modalSelectedMaMau")?.value || null;
+        quickAddToCart(null, maSp, maMau);
     }
 
     function buyNowFromModal(maSp) {
         if (!maSp) return;
+        const maMau = document.getElementById("modalSelectedMaMau")?.value || null;
         const formData = new FormData();
         formData.append("maSp", maSp);
         formData.append("quantity", 1);
+        if (maMau) {
+            formData.append("maMau", maMau);
+        }
         fetch("/Cart/AddToCart", {
             method: "POST",
             body: formData

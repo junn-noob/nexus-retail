@@ -82,6 +82,8 @@ public class NhapHangBUS : INhapHangBUS
             .Include(x => x.MaNccNavigation)
             .Include(x => x.ChiTietHdns)
                 .ThenInclude(ct => ct.MaSpNavigation)
+            .Include(x => x.ChiTietHdns)
+                .ThenInclude(ct => ct.MaMauNavigation)
             .FirstOrDefaultAsync(x => x.MaHdn == maHdn);
 
         if (hdn == null)
@@ -102,6 +104,8 @@ public class NhapHangBUS : INhapHangBUS
             {
                 MaSp = ct.MaSp,
                 TenSp = ct.MaSpNavigation?.TenSp ?? "",
+                MaMau = ct.MaMau,
+                TenMau = ct.MaMauNavigation?.TenMau ?? "Tiêu chuẩn",
                 SoLuong = ct.SoLuong,
                 DonGia = ct.DonGia,
                 KhuyenMai = ct.KhuyenMai,
@@ -146,20 +150,21 @@ public class NhapHangBUS : INhapHangBUS
             return BusResult<HoaDonNhapResponseDto>.BadRequest($"Không tìm thấy nhà cung cấp mã '{dto.MaNcc}'!");
         }
 
-        // Gộp dòng trùng MaSP nếu cùng đơn giá & chiết khấu, hoặc báo lỗi 400 nếu xung đột giá/chiết khấu
+        // Gộp dòng trùng (MaSP, MaMau) nếu cùng đơn giá & chiết khấu, hoặc báo lỗi 400 nếu xung đột giá/chiết khấu
         var mergedItems = new List<ChiTietHdnDto>();
-        foreach (var group in dto.DanhSachMon.GroupBy(x => x.MaSp.Trim(), StringComparer.OrdinalIgnoreCase))
+        foreach (var group in dto.DanhSachMon.GroupBy(x => (MaSp: x.MaSp.Trim().ToUpperInvariant(), MaMau: string.IsNullOrWhiteSpace(x.MaMau) ? "DEFAULT" : x.MaMau.Trim().ToUpperInvariant())))
         {
             var first = group.First();
             bool conflictingTerms = group.Any(x => x.DonGia != first.DonGia || x.KhuyenMai != first.KhuyenMai);
             if (conflictingTerms)
             {
-                return BusResult<HoaDonNhapResponseDto>.BadRequest($"Sản phẩm '{group.Key}' bị trùng dòng với đơn giá hoặc chiết khấu khác nhau!");
+                return BusResult<HoaDonNhapResponseDto>.BadRequest($"Sản phẩm '{first.MaSp}' màu '{first.MaMau}' bị trùng dòng với đơn giá hoặc chiết khấu khác nhau!");
             }
 
             mergedItems.Add(new ChiTietHdnDto
             {
                 MaSp = first.MaSp.Trim(),
+                MaMau = string.IsNullOrWhiteSpace(first.MaMau) ? "DEFAULT" : first.MaMau.Trim(),
                 SoLuong = group.Sum(x => x.SoLuong),
                 DonGia = first.DonGia,
                 KhuyenMai = first.KhuyenMai
@@ -182,6 +187,11 @@ public class NhapHangBUS : INhapHangBUS
                     return BusResult<HoaDonNhapResponseDto>.BadRequest($"Không tìm thấy sản phẩm mã '{item.MaSp}' để nhập hàng!");
                 }
 
+                string maMau = string.IsNullOrWhiteSpace(item.MaMau) ? "DEFAULT" : item.MaMau.Trim();
+                var spMau = await _db.SanPhamMauSacs
+                    .Include(sm => sm.MaMauNavigation)
+                    .FirstOrDefaultAsync(x => x.MaSp == item.MaSp && x.MaMau == maMau);
+
                 // InMemory database does not execute SQL Server trigger trg_ChiTietHDN_Change.
                 if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
                 {
@@ -194,6 +204,17 @@ public class NhapHangBUS : INhapHangBUS
                     sp.SoLuong += item.SoLuong;
                     sp.GiaNhap = weightedCost;
                     sp.GiaBan = Math.Max(sp.GiaBan, SanPhamBUS.CalculateSellingPrice(weightedCost));
+
+                    if (spMau != null)
+                    {
+                        int oldMauQty = Math.Max(0, spMau.SoLuong);
+                        decimal weightedMauCost = oldMauQty > 0
+                            ? Math.Round((oldMauQty * spMau.GiaNhap + item.SoLuong * netUnitCost) / (oldMauQty + item.SoLuong), 0)
+                            : Math.Round(netUnitCost, 0);
+                        spMau.SoLuong += item.SoLuong;
+                        spMau.GiaNhap = weightedMauCost;
+                        spMau.GiaBan = Math.Max(spMau.GiaBan, SanPhamBUS.CalculateSellingPrice(weightedMauCost));
+                    }
                 }
 
                 decimal thanhTien = item.SoLuong * item.DonGia * (1 - item.KhuyenMai / 100m);
@@ -203,6 +224,7 @@ public class NhapHangBUS : INhapHangBUS
                 {
                     MaHdn = maHdn,
                     MaSp = item.MaSp,
+                    MaMau = maMau,
                     SoLuong = item.SoLuong,
                     DonGia = item.DonGia,
                     KhuyenMai = item.KhuyenMai,
@@ -214,6 +236,8 @@ public class NhapHangBUS : INhapHangBUS
                 {
                     MaSp = item.MaSp,
                     TenSp = sp.TenSp,
+                    MaMau = maMau,
+                    TenMau = spMau?.MaMauNavigation?.TenMau ?? "Tiêu chuẩn",
                     SoLuong = item.SoLuong,
                     DonGia = item.DonGia,
                     KhuyenMai = item.KhuyenMai,

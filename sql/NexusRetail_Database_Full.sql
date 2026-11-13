@@ -57,6 +57,8 @@ IF OBJECT_ID('dbo.ChiTietHDB', 'U') IS NOT NULL DROP TABLE dbo.ChiTietHDB;
 IF OBJECT_ID('dbo.HoaDonBan', 'U') IS NOT NULL DROP TABLE dbo.HoaDonBan;
 IF OBJECT_ID('dbo.ChiTietHDN', 'U') IS NOT NULL DROP TABLE dbo.ChiTietHDN;
 IF OBJECT_ID('dbo.HoaDonNhap', 'U') IS NOT NULL DROP TABLE dbo.HoaDonNhap;
+IF OBJECT_ID('dbo.SanPham_MauSac', 'U') IS NOT NULL DROP TABLE dbo.SanPham_MauSac;
+IF OBJECT_ID('dbo.MauSac', 'U') IS NOT NULL DROP TABLE dbo.MauSac;
 IF OBJECT_ID('dbo.SanPham', 'U') IS NOT NULL DROP TABLE dbo.SanPham;
 IF OBJECT_ID('dbo.NhaCungCap', 'U') IS NOT NULL DROP TABLE dbo.NhaCungCap;
 IF OBJECT_ID('dbo.KhachHang', 'U') IS NOT NULL DROP TABLE dbo.KhachHang;
@@ -94,6 +96,17 @@ CREATE TABLE ManHinh (
     MaManHinh NVARCHAR(20) NOT NULL,
     TenManHinh NVARCHAR(100) NOT NULL,
     CONSTRAINT PK_ManHinh PRIMARY KEY (MaManHinh)
+);
+GO
+
+-- ------------------------------------------------------------------------------------
+-- 3b. BẢNG MÀU SẮC (Bảng danh mục màu sắc: Titan Tự Nhiên, Titan Đen, Titan Xanh...)
+-- ------------------------------------------------------------------------------------
+CREATE TABLE MauSac (
+    MaMau NVARCHAR(20) NOT NULL,
+    TenMau NVARCHAR(50) NOT NULL,
+    MaHex NVARCHAR(10) NULL,
+    CONSTRAINT PK_MauSac PRIMARY KEY (MaMau)
 );
 GO
 
@@ -172,6 +185,22 @@ CREATE TABLE SanPham (
 GO
 
 -- ------------------------------------------------------------------------------------
+-- 8b. BẢNG BIẾN THỂ MÀU SẮC SẢN PHẨM (Mỗi mẫu máy có nhiều màu, mỗi màu có giá và tồn kho riêng)
+-- ------------------------------------------------------------------------------------
+CREATE TABLE SanPham_MauSac (
+    MaSP NVARCHAR(20) NOT NULL,
+    MaMau NVARCHAR(20) NOT NULL,
+    GiaNhap DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (GiaNhap >= 0),
+    GiaBan DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (GiaBan >= 0),
+    SoLuong INT NOT NULL DEFAULT 0 CHECK (SoLuong >= 0),
+    HinhAnh NVARCHAR(250) NULL,
+    CONSTRAINT PK_SanPham_MauSac PRIMARY KEY (MaSP, MaMau),
+    CONSTRAINT FK_SanPham_MauSac_SanPham FOREIGN KEY (MaSP) REFERENCES SanPham(MaSP) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT FK_SanPham_MauSac_MauSac FOREIGN KEY (MaMau) REFERENCES MauSac(MaMau) ON UPDATE CASCADE
+);
+GO
+
+-- ------------------------------------------------------------------------------------
 -- 9. BẢNG HÓA ĐƠN NHẬP (Phiếu nhập kho từ Nhà cung cấp)
 -- ------------------------------------------------------------------------------------
 CREATE TABLE HoaDonNhap (
@@ -192,13 +221,15 @@ GO
 CREATE TABLE ChiTietHDN (
     MaHDN NVARCHAR(20) NOT NULL,
     MaSP NVARCHAR(20) NOT NULL,
+    MaMau NVARCHAR(20) NOT NULL CONSTRAINT DF_ChiTietHDN_MaMau DEFAULT 'DEFAULT',
     SoLuong INT NOT NULL CHECK (SoLuong > 0),
     DonGia DECIMAL(18,2) NOT NULL CHECK (DonGia >= 0),
     KhuyenMai DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (KhuyenMai >= 0 AND KhuyenMai <= 100),
     ThanhTien DECIMAL(18,2) NOT NULL CHECK (ThanhTien >= 0),
-    CONSTRAINT PK_ChiTietHDN PRIMARY KEY (MaHDN, MaSP),
+    CONSTRAINT PK_ChiTietHDN PRIMARY KEY (MaHDN, MaSP, MaMau),
     CONSTRAINT FK_ChiTietHDN_HoaDonNhap FOREIGN KEY (MaHDN) REFERENCES HoaDonNhap(MaHDN) ON DELETE CASCADE,
-    CONSTRAINT FK_ChiTietHDN_SanPham FOREIGN KEY (MaSP) REFERENCES SanPham(MaSP) ON UPDATE CASCADE
+    CONSTRAINT FK_ChiTietHDN_SanPham FOREIGN KEY (MaSP) REFERENCES SanPham(MaSP) ON UPDATE CASCADE,
+    CONSTRAINT FK_ChiTietHDN_MauSac FOREIGN KEY (MaMau) REFERENCES MauSac(MaMau) ON UPDATE CASCADE
 );
 GO
 
@@ -230,13 +261,15 @@ GO
 CREATE TABLE ChiTietHDB (
     MaHDB NVARCHAR(20) NOT NULL,
     MaSP NVARCHAR(20) NOT NULL,
+    MaMau NVARCHAR(20) NOT NULL CONSTRAINT DF_ChiTietHDB_MaMau DEFAULT 'DEFAULT',
     SoLuong INT NOT NULL CHECK (SoLuong > 0),
     DonGia DECIMAL(18,2) NOT NULL CONSTRAINT DF_ChiTietHDB_DonGia DEFAULT 0 CHECK (DonGia >= 0),
     KhuyenMai DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (KhuyenMai >= 0 AND KhuyenMai <= 100),
     ThanhTien DECIMAL(18,2) NOT NULL CHECK (ThanhTien >= 0),
-    CONSTRAINT PK_ChiTietHDB PRIMARY KEY (MaHDB, MaSP),
+    CONSTRAINT PK_ChiTietHDB PRIMARY KEY (MaHDB, MaSP, MaMau),
     CONSTRAINT FK_ChiTietHDB_HoaDonBan FOREIGN KEY (MaHDB) REFERENCES HoaDonBan(MaHDB) ON DELETE CASCADE,
-    CONSTRAINT FK_ChiTietHDB_SanPham FOREIGN KEY (MaSP) REFERENCES SanPham(MaSP) ON UPDATE CASCADE
+    CONSTRAINT FK_ChiTietHDB_SanPham FOREIGN KEY (MaSP) REFERENCES SanPham(MaSP) ON UPDATE CASCADE,
+    CONSTRAINT FK_ChiTietHDB_MauSac FOREIGN KEY (MaMau) REFERENCES MauSac(MaMau) ON UPDATE CASCADE
 );
 GO
 
@@ -274,9 +307,33 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Cộng tồn kho, tính bình quân gia quyền giá vốn thực (sau chiết khấu) và bảo vệ biên lợi nhuận tối thiểu 10%
+    -- 1. Cập nhật tồn kho và định giá biến thể màu sắc (SanPham_MauSac)
     IF EXISTS (SELECT 1 FROM inserted)
     BEGIN
+        UPDATE spm
+        SET 
+            spm.SoLuong = spm.SoLuong + ins.TongNhap,
+            spm.GiaNhap = calc.NewGiaNhap,
+            spm.GiaBan = CASE
+                WHEN spm.GiaBan < ROUND(calc.NewGiaNhap * 1.10, 0) THEN ROUND(calc.NewGiaNhap * 1.10, 0)
+                ELSE spm.GiaBan
+            END
+        FROM SanPham_MauSac spm
+        INNER JOIN (
+            SELECT MaSP, MaMau,
+                   SUM(SoLuong) AS TongNhap,
+                   SUM(CAST(SoLuong AS DECIMAL(18,2)) * DonGia * (1.0 - KhuyenMai / 100.0)) AS TongTienThucNhap
+            FROM inserted
+            GROUP BY MaSP, MaMau
+        ) ins ON spm.MaSP = ins.MaSP AND spm.MaMau = ins.MaMau
+        CROSS APPLY (
+            SELECT CASE
+                WHEN spm.SoLuong > 0 THEN ROUND((CAST(spm.SoLuong AS DECIMAL(18,2)) * spm.GiaNhap + ins.TongTienThucNhap) / NULLIF(spm.SoLuong + ins.TongNhap, 0), 0)
+                ELSE ROUND(ins.TongTienThucNhap / NULLIF(ins.TongNhap, 0), 0)
+            END AS NewGiaNhap
+        ) calc;
+
+        -- Cập nhật tổng tồn kho và giá cơ sở bảng SanPham (khớp 100% quy tắc môn học)
         UPDATE sp
         SET 
             sp.SoLuong = sp.SoLuong + ins.TongNhap,
@@ -304,6 +361,15 @@ BEGIN
     -- Trừ tồn kho nếu xóa hoặc sửa chi tiết nhập cũ
     IF EXISTS (SELECT 1 FROM deleted)
     BEGIN
+        UPDATE spm
+        SET spm.SoLuong = spm.SoLuong - del.TongXoa
+        FROM SanPham_MauSac spm
+        INNER JOIN (
+            SELECT MaSP, MaMau, SUM(SoLuong) AS TongXoa
+            FROM deleted
+            GROUP BY MaSP, MaMau
+        ) del ON spm.MaSP = del.MaSP AND spm.MaMau = del.MaMau;
+
         UPDATE sp
         SET sp.SoLuong = sp.SoLuong - del.TongXoa
         FROM SanPham sp
@@ -344,7 +410,29 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Kiểm tra ràng buộc tồn kho khả dụng trước khi xuất bán
+    -- 1. Kiểm tra ràng buộc tồn kho khả dụng theo biến thể màu sắc (nếu có bản ghi trong SanPham_MauSac)
+    IF EXISTS (
+        SELECT 1
+        FROM (
+            SELECT ins.MaSP, ins.MaMau, SUM(ins.SoLuong) AS TongBanMoi
+            FROM inserted ins
+            GROUP BY ins.MaSP, ins.MaMau
+        ) ins
+        INNER JOIN SanPham_MauSac spm ON ins.MaSP = spm.MaSP AND ins.MaMau = spm.MaMau
+        LEFT JOIN (
+            SELECT del.MaSP, del.MaMau, SUM(del.SoLuong) AS TongBanCu
+            FROM deleted del
+            GROUP BY del.MaSP, del.MaMau
+        ) del ON ins.MaSP = del.MaSP AND ins.MaMau = del.MaMau
+        WHERE (spm.SoLuong + ISNULL(del.TongBanCu, 0) - ins.TongBanMoi) < 0
+    )
+    BEGIN
+        RAISERROR (N'Lỗi giao dịch: Số lượng sản phẩm theo màu sắc đã chọn trong kho không đủ để xuất bán!', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+
+    -- Kiểm tra ràng buộc tổng tồn kho bảng SanPham
     IF EXISTS (
         SELECT 1
         FROM (
@@ -366,9 +454,18 @@ BEGIN
         RETURN;
     END;
 
-    -- Trừ tồn kho khi xuất bán mới
+    -- 2. Trừ tồn kho khi xuất bán mới
     IF EXISTS (SELECT 1 FROM inserted)
     BEGIN
+        UPDATE spm
+        SET spm.SoLuong = spm.SoLuong - ins.TongBan
+        FROM SanPham_MauSac spm
+        INNER JOIN (
+            SELECT MaSP, MaMau, SUM(SoLuong) AS TongBan
+            FROM inserted
+            GROUP BY MaSP, MaMau
+        ) ins ON spm.MaSP = ins.MaSP AND spm.MaMau = ins.MaMau;
+
         UPDATE sp
         SET sp.SoLuong = sp.SoLuong - ins.TongBan
         FROM SanPham sp
@@ -379,11 +476,20 @@ BEGIN
         ) ins ON sp.MaSP = ins.MaSP;
     END;
 
-    -- Hoàn lại tồn kho nếu xóa hoặc giảm số lượng bán
+    -- 3. Hoàn lại tồn kho nếu xóa hoặc giảm số lượng bán
     IF EXISTS (SELECT 1 FROM deleted)
     BEGIN
+        UPDATE spm
+        SET spm.SoLuong = spm.SoLuong + del.TongHoan
+        FROM SanPham_MauSac spm
+        INNER JOIN (
+            SELECT MaSP, MaMau, SUM(SoLuong) AS TongHoan
+            FROM deleted
+            GROUP BY MaSP, MaMau
+        ) del ON spm.MaSP = del.MaSP AND spm.MaMau = del.MaMau;
+
         UPDATE sp
-        SET sp.SoLuong = sp.SoLuong + del.TongHoan
+        SET sp.SoLuong = sp.SoLuong - del.TongHoan
         FROM SanPham sp
         INNER JOIN (
             SELECT MaSP, SUM(SoLuong) AS TongHoan
@@ -392,7 +498,7 @@ BEGIN
         ) del ON sp.MaSP = del.MaSP;
     END;
 
-    -- Cập nhật tổng tiền hóa đơn bán
+    -- 4. Cập nhật tổng tiền hóa đơn bán
     UPDATE hdb
     SET hdb.TongTien = ISNULL((
         SELECT SUM(ct.ThanhTien)
@@ -404,6 +510,29 @@ BEGIN
         SELECT MaHDB FROM inserted
         UNION
         SELECT MaHDB FROM deleted
+    );
+END;
+GO
+
+-- ------------------------------------------------------------------------------------
+-- Trigger 3: Tự động khởi tạo biến thể màu mặc định (DEFAULT) khi thêm sản phẩm mới
+-- ------------------------------------------------------------------------------------
+IF OBJECT_ID('dbo.trg_SanPham_DefaultMauSac', 'TR') IS NOT NULL
+    DROP TRIGGER dbo.trg_SanPham_DefaultMauSac;
+GO
+
+CREATE TRIGGER trg_SanPham_DefaultMauSac
+ON SanPham
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO SanPham_MauSac (MaSP, MaMau, GiaNhap, GiaBan, SoLuong, HinhAnh)
+    SELECT i.MaSP, 'DEFAULT', i.GiaNhap, i.GiaBan, i.SoLuong, i.Anh
+    FROM inserted i
+    WHERE NOT EXISTS (
+        SELECT 1 FROM SanPham_MauSac spm WHERE spm.MaSP = i.MaSP AND spm.MaMau = 'DEFAULT'
     );
 END;
 GO
@@ -434,11 +563,18 @@ SELECT
     sp.AmThanh,
     sp.ChupAnh,
     sp.Anh,
-    sp.GhiChu
+    sp.GhiChu,
+    ISNULL(priceRange.MinGiaBan, sp.GiaBan) AS GiaBanThapNhat,
+    ISNULL(priceRange.MaxGiaBan, sp.GiaBan) AS GiaBanCaoNhat
 FROM SanPham sp
 INNER JOIN Loai l ON sp.MaLoai = l.MaLoai
 INNER JOIN NhanHieu nh ON sp.MaNhanHieu = nh.MaNhanHieu
-INNER JOIN ManHinh mh ON sp.MaManHinh = mh.MaManHinh;
+INNER JOIN ManHinh mh ON sp.MaManHinh = mh.MaManHinh
+OUTER APPLY (
+    SELECT MIN(GiaBan) AS MinGiaBan, MAX(GiaBan) AS MaxGiaBan
+    FROM SanPham_MauSac spm
+    WHERE spm.MaSP = sp.MaSP
+) priceRange;
 GO
 
 IF OBJECT_ID('dbo.vw_ChiTietHoaDonBan', 'V') IS NOT NULL
@@ -457,6 +593,9 @@ SELECT
     kh.DienThoai AS SDT_Khach,
     ctb.MaSP,
     sp.TenSP,
+    ctb.MaMau,
+    ISNULL(m.TenMau, N'Tiêu chuẩn') AS TenMau,
+    ISNULL(m.MaHex, N'#6B7280') AS MaHex,
     ctb.SoLuong,
     CASE WHEN ctb.DonGia > 0 THEN ctb.DonGia ELSE sp.GiaBan END AS DonGiaNiemYet,
     ctb.KhuyenMai,
@@ -470,6 +609,7 @@ SELECT
 FROM HoaDonBan hdb
 INNER JOIN ChiTietHDB ctb ON hdb.MaHDB = ctb.MaHDB
 INNER JOIN SanPham sp ON ctb.MaSP = sp.MaSP
+LEFT JOIN MauSac m ON ctb.MaMau = m.MaMau
 LEFT JOIN NhanVien nv ON hdb.MaNV = nv.MaNV
 INNER JOIN KhachHang kh ON hdb.MaKhach = kh.MaKhach;
 GO
@@ -629,6 +769,22 @@ INSERT INTO ManHinh (MaManHinh, TenManHinh) VALUES
 ('MH04', N'IPS LCD 90Hz FHD+'),
 ('MH05', N'LTPO AMOLED 1-120Hz 3000 nits');
 
+-- 3b. MÀU SẮC
+INSERT INTO MauSac (MaMau, TenMau, MaHex) VALUES 
+('DEFAULT', N'Tiêu chuẩn', '#6B7280'),
+('MAU_TITAN_TN', N'Titan Tự Nhiên', '#9E988F'),
+('MAU_TITAN_DEN', N'Titan Đen', '#242526'),
+('MAU_TITAN_TRANG', N'Titan Trắng', '#F8FAFC'),
+('MAU_TITAN_XANH', N'Titan Xanh', '#2B3A4A'),
+('MAU_TITAN_VANG', N'Titan Sa Mạc', '#D4AF37'),
+('MAU_DEN', N'Đen Huyền Bí', '#1A1A1A'),
+('MAU_TRANG', N'Trắng Tinh Khôi', '#F3F4F6'),
+('MAU_XANH_DUONG', N'Xanh Đại Dương', '#2563EB'),
+('MAU_XANH_LA', N'Xanh Rừng Sâu', '#15803D'),
+('MAU_VANG', N'Vàng Hoàng Kim', '#F59E0B'),
+('MAU_TIM', N'Tím Pastel', '#8B5CF6'),
+('MAU_BAC', N'Bạc Ánh Kim', '#CBD5E1');
+
 -- 4. QUÊ
 INSERT INTO Que (MaQue, TenQue) VALUES 
 ('Q01', N'Hà Nội'),
@@ -701,18 +857,161 @@ INSERT INTO SanPham (MaSP, TenSP, MaLoai, MaNhanHieu, MaManHinh, GiaNhap, GiaBan
 ('SP29', N'Vivo V30e 5G 8GB/256GB', 'L03', 'NH05', 'MH03', 8400000, 9240000, 18, 12, N'Loa kép Stereo Hi-Res Audio', N'50MP Sony IMX882 OIS + 8MP Ultra-wide, Vòng sáng Aura AI', 'sp29.jpg', N'Vòng sáng Aura thế hệ mới tự điều chỉnh nhiệt độ màu, thiết kế đồng hồ cổ điển siêu mỏng'),
 ('SP30', N'Vivo Y100 8GB/128GB', 'L04', 'NH05', 'MH04', 6200000, 6820000, 25, 12, N'Loa kép âm lượng 300% Audio Booster', N'50MP Camera chính + Cảm biến Flicker chống nháy', 'sp30.jpg', N'Mặt lưng chuyển màu kim cương lấp lánh dưới ánh nắng, sạc siêu tốc 80W nạp 45% trong 15 phút');
 
+-- 8b. BIẾN THỂ MÀU SẮC VÀ ĐƠN GIÁ THEO TỪNG MÀU CHO 30 MẪU SMARTPHONE
+INSERT INTO SanPham_MauSac (MaSP, MaMau, GiaNhap, GiaBan, SoLuong, HinhAnh) VALUES
+-- SP01: iPhone 15 Pro Max 256GB (Base: 26tr / 28.6tr / 15 máy)
+('SP01', 'MAU_TITAN_TN', 26500000, 29150000, 8, 'sp01.jpg'),
+('SP01', 'MAU_TITAN_DEN', 26000000, 28600000, 4, 'sp01.jpg'),
+('SP01', 'MAU_TITAN_XANH', 26200000, 28820000, 3, 'sp01.jpg'),
+
+-- SP06: iPhone 16 Pro Max 256GB (Base: 31.8tr / 34.98tr / 20 máy)
+('SP06', 'MAU_TITAN_VANG', 32500000, 35750000, 10, 'sp06.jpg'),
+('SP06', 'MAU_TITAN_TN', 32000000, 35200000, 6, 'sp06.jpg'),
+('SP06', 'MAU_TITAN_DEN', 31800000, 34980000, 4, 'sp06.jpg'),
+
+-- SP07: iPhone 16 Pro 128GB (Base: 26tr / 28.6tr / 14 máy)
+('SP07', 'MAU_TITAN_TN', 26500000, 29150000, 8, 'sp07.png'),
+('SP07', 'MAU_TITAN_TRANG', 26200000, 28820000, 3, 'sp07.png'),
+('SP07', 'MAU_TITAN_DEN', 26000000, 28600000, 3, 'sp07.png'),
+
+-- SP08: iPhone 16 Plus 128GB (Base: 23.5tr / 25.85tr / 18 máy)
+('SP08', 'MAU_XANH_LA', 23800000, 26180000, 8, 'sp08.png'),
+('SP08', 'MAU_TIM', 23700000, 26070000, 6, 'sp08.png'),
+('SP08', 'MAU_DEN', 23500000, 25850000, 4, 'sp08.png'),
+
+-- SP09: iPhone 16 128GB (Base: 20.8tr / 22.88tr / 22 máy)
+('SP09', 'MAU_TIM', 21000000, 23100000, 10, 'sp09.png'),
+('SP09', 'MAU_TRANG', 20900000, 22990000, 7, 'sp09.png'),
+('SP09', 'MAU_DEN', 20800000, 22880000, 5, 'sp09.png'),
+
+-- SP10: iPhone 15 128GB (Base: 17.5tr / 19.25tr / 25 máy)
+('SP10', 'MAU_TIM', 17800000, 19580000, 12, 'sp10.jpg'),
+('SP10', 'MAU_TRANG', 17600000, 19360000, 8, 'sp10.jpg'),
+('SP10', 'MAU_DEN', 17500000, 19250000, 5, 'sp10.jpg'),
+
+-- SP11: iPhone 13 128GB (Base: 12tr / 13.2tr / 30 máy)
+('SP11', 'MAU_TRANG', 12200000, 13420000, 15, 'sp11.jpg'),
+('SP11', 'MAU_DEN', 12000000, 13200000, 10, 'sp11.jpg'),
+('SP11', 'MAU_XANH_DUONG', 12100000, 13310000, 5, 'sp11.jpg'),
+
+-- SP02: Samsung Galaxy S24 Ultra 256GB (Base: 24tr / 26.4tr / 16 máy)
+('SP02', 'MAU_TITAN_XANH', 24500000, 26950000, 6, 'sp02.jpg'),
+('SP02', 'MAU_TITAN_VANG', 24200000, 26620000, 5, 'sp02.jpg'),
+('SP02', 'MAU_TITAN_DEN', 24000000, 26400000, 5, 'sp02.jpg'),
+
+-- SP12: Samsung Galaxy S24+ 256GB (Base: 20tr / 22tr / 18 máy)
+('SP12', 'MAU_TIM', 20300000, 22330000, 8, 'sp12.jpg'),
+('SP12', 'MAU_VANG', 20200000, 22220000, 5, 'sp12.jpg'),
+('SP12', 'MAU_DEN', 20000000, 22000000, 5, 'sp12.jpg'),
+
+-- SP13: Samsung Galaxy S24 256GB (Base: 16tr / 17.6tr / 15 máy)
+('SP13', 'MAU_VANG', 16200000, 17820000, 7, 'sp13.jpg'),
+('SP13', 'MAU_DEN', 16000000, 17600000, 8, 'sp13.jpg'),
+
+-- SP14: Samsung Galaxy Z Fold6 5G 256GB (Base: 38tr / 41.8tr / 10 máy)
+('SP14', 'MAU_BAC', 38500000, 42350000, 5, 'sp14.jpg'),
+('SP14', 'MAU_XANH_DUONG', 38200000, 42020000, 3, 'sp14.jpg'),
+('SP14', 'MAU_DEN', 38000000, 41800000, 2, 'sp14.jpg'),
+
+-- SP15: Samsung Galaxy Z Flip6 5G 256GB (Base: 24.5tr / 26.95tr / 12 máy)
+('SP15', 'MAU_XANH_LA', 24800000, 27280000, 6, 'sp15.jpg'),
+('SP15', 'MAU_VANG', 24600000, 27060000, 3, 'sp15.jpg'),
+('SP15', 'MAU_BAC', 24500000, 26950000, 3, 'sp15.jpg'),
+
+-- SP16: Samsung Galaxy A55 5G (Base: 8.5tr / 9.35tr / 28 máy)
+('SP16', 'MAU_TIM', 8700000, 9570000, 15, 'sp16.jpg'),
+('SP16', 'MAU_XANH_DUONG', 8600000, 9460000, 8, 'sp16.jpg'),
+('SP16', 'MAU_DEN', 8500000, 9350000, 5, 'sp16.jpg'),
+
+-- SP17: Samsung Galaxy A35 5G (Base: 6.8tr / 7.48tr / 24 máy)
+('SP17', 'MAU_VANG', 6900000, 7590000, 14, 'sp17.jpg'),
+('SP17', 'MAU_XANH_DUONG', 6800000, 7480000, 10, 'sp17.jpg'),
+
+-- SP18: Samsung Galaxy A15 (Base: 4.1tr / 4.51tr / 35 máy)
+('SP18', 'MAU_XANH_DUONG', 4200000, 4620000, 20, 'sp18.jpg'),
+('SP18', 'MAU_DEN', 4100000, 4510000, 15, 'sp18.jpg'),
+
+-- SP03: Xiaomi 14 5G (Base: 16tr / 17.6tr / 16 máy)
+('SP03', 'MAU_TRANG', 16300000, 17930000, 8, 'sp03.jpg'),
+('SP03', 'MAU_XANH_LA', 16200000, 17820000, 5, 'sp03.jpg'),
+('SP03', 'MAU_DEN', 16000000, 17600000, 3, 'sp03.jpg'),
+
+-- SP19: Xiaomi 14 Ultra 5G (Base: 27tr / 29.7tr / 8 máy)
+('SP19', 'MAU_TRANG', 27500000, 30250000, 5, 'sp19.jpg'),
+('SP19', 'MAU_DEN', 27000000, 29700000, 3, 'sp19.jpg'),
+
+-- SP20: Xiaomi 13T Pro 5G (Base: 13.5tr / 14.85tr / 14 máy)
+('SP20', 'MAU_XANH_DUONG', 13700000, 15070000, 8, 'sp20.jpg'),
+('SP20', 'MAU_DEN', 13500000, 14850000, 6, 'sp20.jpg'),
+
+-- SP21: Redmi Note 13 Pro+ 5G (Base: 8.2tr / 9.02tr / 22 máy)
+('SP21', 'MAU_TIM', 8400000, 9240000, 12, 'sp21.jpg'),
+('SP21', 'MAU_TRANG', 8300000, 9130000, 6, 'sp21.jpg'),
+('SP21', 'MAU_DEN', 8200000, 9020000, 4, 'sp21.jpg'),
+
+-- SP05: Redmi Note 13 Pro 4G (Base: 4.5tr / 4.95tr / 30 máy)
+('SP05', 'MAU_XANH_LA', 4600000, 5060000, 16, 'sp05.jpg'),
+('SP05', 'MAU_TIM', 4550000, 5005000, 8, 'sp05.jpg'),
+('SP05', 'MAU_DEN', 4500000, 4950000, 6, 'sp05.jpg'),
+
+-- SP22: POCO X6 Pro 5G (Base: 8.0tr / 8.8tr / 18 máy)
+('SP22', 'MAU_VANG', 8200000, 9020000, 10, 'sp22.jpg'),
+('SP22', 'MAU_DEN', 8000000, 8800000, 8, 'sp22.jpg'),
+
+-- SP23: Redmi 13 (Base: 3.6tr / 3.96tr / 40 máy)
+('SP23', 'MAU_VANG', 3700000, 4070000, 22, 'sp23.jpg'),
+('SP23', 'MAU_XANH_DUONG', 3650000, 4015000, 10, 'sp23.jpg'),
+('SP23', 'MAU_DEN', 3600000, 3960000, 8, 'sp23.jpg'),
+
+-- SP04: OPPO Reno11 5G (Base: 8.0tr / 8.8tr / 20 máy)
+('SP04', 'MAU_XANH_LA', 8200000, 9020000, 12, 'sp04.jpg'),
+('SP04', 'MAU_BAC', 8000000, 8800000, 8, 'sp04.jpg'),
+
+-- SP24: OPPO Find N3 Flip 5G (Base: 20tr / 22tr / 10 máy)
+('SP24', 'MAU_VANG', 20400000, 22440000, 6, 'sp24.jpg'),
+('SP24', 'MAU_DEN', 20000000, 22000000, 4, 'sp24.jpg'),
+
+-- SP25: OPPO Reno12 Pro 5G (Base: 16.5tr / 18.15tr / 15 máy)
+('SP25', 'MAU_BAC', 16800000, 18480000, 9, 'sp25.jpg'),
+('SP25', 'MAU_DEN', 16500000, 18150000, 6, 'sp25.jpg'),
+
+-- SP26: OPPO Reno12 F 5G (Base: 8.3tr / 9.13tr / 25 máy)
+('SP26', 'MAU_VANG', 8450000, 9295000, 15, 'sp26.jpg'),
+('SP26', 'MAU_XANH_LA', 8300000, 9130000, 10, 'sp26.jpg'),
+
+-- SP27: OPPO A79 5G (Base: 6.5tr / 7.15tr / 20 máy)
+('SP27', 'MAU_TIM', 6650000, 7315000, 12, 'sp27.jpg'),
+('SP27', 'MAU_DEN', 6500000, 7150000, 8, 'sp27.jpg'),
+
+-- SP28: OPPO A58 (Base: 4.2tr / 4.62tr / 30 máy)
+('SP28', 'MAU_XANH_LA', 4300000, 4730000, 18, 'sp28.jpg'),
+('SP28', 'MAU_DEN', 4200000, 4620000, 12, 'sp28.jpg'),
+
+-- SP29: Vivo V30e 5G (Base: 8.4tr / 9.24tr / 18 máy)
+('SP29', 'MAU_BAC', 8550000, 9405000, 10, 'sp29.jpg'),
+('SP29', 'MAU_TIM', 8400000, 9240000, 8, 'sp29.jpg'),
+
+-- SP30: Vivo Y100 (Base: 6.2tr / 6.82tr / 25 máy)
+('SP30', 'MAU_TIM', 6350000, 6985000, 15, 'sp30.jpg'),
+('SP30', 'MAU_DEN', 6200000, 6820000, 10, 'sp30.jpg');
+
 -- 9. HÓA ĐƠN NHẬP KHO MẪU
 INSERT INTO HoaDonNhap (MaHDN, MaNV, NgayNhap, MaNCC, TongTien) VALUES 
 ('HDN01', 'NV01', '2026-09-01 08:30:00', 'NCC01', 0),
 ('HDN02', 'NV02', '2026-09-05 14:15:00', 'NCC03', 0);
 
 -- 10. CHI TIẾT HÓA ĐƠN NHẬP
-INSERT INTO ChiTietHDN (MaHDN, MaSP, SoLuong, DonGia, KhuyenMai, ThanhTien) VALUES 
-('HDN01', 'SP01', 10, 26000000, 0, 260000000),
-('HDN01', 'SP02', 10, 24000000, 0, 240000000),
-('HDN02', 'SP03', 15, 16000000, 0, 240000000),
-('HDN02', 'SP04', 20,  8000000, 0, 160000000),
-('HDN02', 'SP05', 30,  4500000, 0, 135000000);
+INSERT INTO ChiTietHDN (MaHDN, MaSP, MaMau, SoLuong, DonGia, KhuyenMai, ThanhTien) VALUES 
+('HDN01', 'SP01', 'MAU_TITAN_TN',  5, 26500000, 0, 132500000),
+('HDN01', 'SP01', 'MAU_TITAN_DEN', 5, 26000000, 0, 130000000),
+('HDN01', 'SP02', 'MAU_TITAN_DEN', 5, 24000000, 0, 120000000),
+('HDN01', 'SP02', 'MAU_TITAN_XANH', 5, 24500000, 0, 122500000),
+('HDN02', 'SP03', 'MAU_TRANG',      8, 16300000, 0, 130400000),
+('HDN02', 'SP03', 'MAU_DEN',        7, 16000000, 0, 112000000),
+('HDN02', 'SP04', 'MAU_XANH_LA',   10,  8200000, 0,  82000000),
+('HDN02', 'SP04', 'MAU_BAC',       10,  8000000, 0,  80000000),
+('HDN02', 'SP05', 'MAU_XANH_LA',   15,  4600000, 0,  69000000),
+('HDN02', 'SP05', 'MAU_DEN',       15,  4500000, 0,  67500000);
 
 -- 11. HÓA ĐƠN BÁN HÀNG MẪU
 INSERT INTO HoaDonBan (MaHDB, MaNV, NgayBan, MaKhach, TongTien, PhuongThucThanhToan, TrangThaiThanhToan, TrangThaiDonHang, DiaChiGiaoHang, SoTienDaThanhToan) VALUES 
@@ -721,11 +1020,11 @@ INSERT INTO HoaDonBan (MaHDB, MaNV, NgayBan, MaKhach, TongTien, PhuongThucThanhT
 ('HDB03', 'NV03', '2026-09-15 11:30:00', 'KH03', 0, N'Cash', N'DaThanhToan', N'HoanThanh', N'145 Nguyễn Văn Linh, Hải Châu, Đà Nẵng', 33440000);
 
 -- 12. CHI TIẾT HÓA ĐƠN BÁN
-INSERT INTO ChiTietHDB (MaHDB, MaSP, SoLuong, DonGia, KhuyenMai, ThanhTien) VALUES 
-('HDB01', 'SP01', 1, 28600000, 0,   28600000),
-('HDB02', 'SP02', 1, 26400000, 2.0, 25872000),
-('HDB02', 'SP05', 2,  4950000, 0,    9900000),
-('HDB03', 'SP03', 2, 17600000, 5.0, 33440000);
+INSERT INTO ChiTietHDB (MaHDB, MaSP, MaMau, SoLuong, DonGia, KhuyenMai, ThanhTien) VALUES 
+('HDB01', 'SP01', 'MAU_TITAN_DEN', 1, 28600000, 0,   28600000),
+('HDB02', 'SP02', 'MAU_TITAN_DEN', 1, 26400000, 2.0, 25872000),
+('HDB02', 'SP05', 'MAU_DEN',       2,  4950000, 0,    9900000),
+('HDB03', 'SP03', 'MAU_DEN',       2, 17600000, 5.0, 33440000);
 
 -- 13. DỮ LIỆU NHẬT KÝ TƯ VẤN CHATBOT AI MẪU
 INSERT INTO Chatbot_TuVanLog (SessionId, NhuCauKhach, NganSachToiDa, MaSP_GoiY, PhanHoiChatbot) VALUES 

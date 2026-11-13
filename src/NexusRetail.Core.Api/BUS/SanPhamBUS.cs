@@ -15,6 +15,8 @@ public interface ISanPhamBUS
 {
     Task<PagedResultDto<SanPhamDto>> LayDanhSachAsync(int page, int pageSize, string? q, decimal? minPrice, decimal? maxPrice, string? brand);
     Task<SanPhamDto?> ChiTietSanPhamAsync(string maSp);
+    Task<List<SanPhamMauSacDto>> LayDanhSachMauSacTheoSpAsync(string maSp);
+    Task<List<MauSacDto>> LayTatCaMauSacAsync();
     Task<PagedResultDto<SanPhamDto>> LayTheoNhanHieuAsync(string maNhanHieu, int page, int pageSize);
     Task<object> LayBoLocDanhMucAsync();
     Task<List<SanPhamDto>> TimKiemAsync(string? keyword, string? tenLoai, decimal? minPrice, decimal? maxPrice);
@@ -67,7 +69,9 @@ public class SanPhamBUS : ISanPhamBUS
         AmThanh = sp.AmThanh,
         ChupAnh = sp.ChupAnh,
         Anh = sp.Anh,
-        GhiChu = sp.GhiChu
+        GhiChu = sp.GhiChu,
+        GiaBanThapNhat = sp.GiaBanThapNhat ?? sp.GiaBan,
+        GiaBanCaoNhat = sp.GiaBanCaoNhat ?? sp.GiaBan
     };
 
     public async Task<PagedResultDto<SanPhamDto>> LayDanhSachAsync(
@@ -106,6 +110,41 @@ public class SanPhamBUS : ISanPhamBUS
             .Select(ProjectFromView)
             .ToListAsync();
 
+        if (items.Count > 0)
+        {
+            var maSpList = items.Select(x => x.MaSp).ToList();
+            var colors = await _db.SanPhamMauSacs
+                .Include(sm => sm.MaMauNavigation)
+                .Where(sm => maSpList.Contains(sm.MaSp))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var colorsBySp = colors.GroupBy(x => x.MaSp).ToDictionary(g => g.Key, g => g.Select(c => new SanPhamMauSacDto
+            {
+                MaSp = c.MaSp,
+                MaMau = c.MaMau,
+                TenMau = c.MaMauNavigation != null ? c.MaMauNavigation.TenMau : c.MaMau,
+                MaHex = c.MaMauNavigation?.MaHex,
+                GiaNhap = c.GiaNhap,
+                GiaBan = c.GiaBan,
+                SoLuong = c.SoLuong,
+                HinhAnh = c.HinhAnh
+            }).OrderBy(c => c.GiaBan).ToList());
+
+            foreach (var item in items)
+            {
+                if (colorsBySp.TryGetValue(item.MaSp, out var cList))
+                {
+                    item.DanhSachMauSac = cList;
+                    if (cList.Count > 0)
+                    {
+                        item.GiaBanThapNhat = cList.Min(c => c.GiaBan);
+                        item.GiaBanCaoNhat = cList.Max(c => c.GiaBan);
+                    }
+                }
+            }
+        }
+
         return new PagedResultDto<SanPhamDto>
         {
             Page = page,
@@ -122,10 +161,29 @@ public class SanPhamBUS : ISanPhamBUS
             .Include(s => s.MaLoaiNavigation)
             .Include(s => s.MaNhanHieuNavigation)
             .Include(s => s.MaManHinhNavigation)
+            .Include(s => s.SanPhamMauSacs)
+                .ThenInclude(sm => sm.MaMauNavigation)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.MaSp == maSp);
 
         if (raw == null) return null;
+
+        var colorList = raw.SanPhamMauSacs
+            .OrderBy(c => c.GiaBan)
+            .Select(c => new SanPhamMauSacDto
+            {
+                MaSp = c.MaSp,
+                MaMau = c.MaMau,
+                TenMau = c.MaMauNavigation != null ? c.MaMauNavigation.TenMau : c.MaMau,
+                MaHex = c.MaMauNavigation?.MaHex,
+                GiaNhap = c.GiaNhap,
+                GiaBan = c.GiaBan,
+                SoLuong = c.SoLuong,
+                HinhAnh = c.HinhAnh
+            }).ToList();
+
+        decimal minPrice = colorList.Count > 0 ? colorList.Min(c => c.GiaBan) : raw.GiaBan;
+        decimal maxPrice = colorList.Count > 0 ? colorList.Max(c => c.GiaBan) : raw.GiaBan;
 
         return new SanPhamDto
         {
@@ -144,8 +202,47 @@ public class SanPhamBUS : ISanPhamBUS
             AmThanh = raw.AmThanh,
             ChupAnh = raw.ChupAnh,
             Anh = raw.Anh,
-            GhiChu = raw.GhiChu
+            GhiChu = raw.GhiChu,
+            GiaBanThapNhat = minPrice,
+            GiaBanCaoNhat = maxPrice,
+            DanhSachMauSac = colorList
         };
+    }
+
+    public async Task<List<SanPhamMauSacDto>> LayDanhSachMauSacTheoSpAsync(string maSp)
+    {
+        var colors = await _db.SanPhamMauSacs
+            .Include(sm => sm.MaMauNavigation)
+            .Where(sm => sm.MaSp == maSp)
+            .OrderBy(sm => sm.GiaBan)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return colors.Select(c => new SanPhamMauSacDto
+        {
+            MaSp = c.MaSp,
+            MaMau = c.MaMau,
+            TenMau = c.MaMauNavigation != null ? c.MaMauNavigation.TenMau : c.MaMau,
+            MaHex = c.MaMauNavigation?.MaHex,
+            GiaNhap = c.GiaNhap,
+            GiaBan = c.GiaBan,
+            SoLuong = c.SoLuong,
+            HinhAnh = c.HinhAnh
+        }).ToList();
+    }
+
+    public async Task<List<MauSacDto>> LayTatCaMauSacAsync()
+    {
+        return await _db.MauSacs
+            .AsNoTracking()
+            .OrderBy(m => m.TenMau)
+            .Select(m => new MauSacDto
+            {
+                MaMau = m.MaMau,
+                TenMau = m.TenMau,
+                MaHex = m.MaHex
+            })
+            .ToListAsync();
     }
 
     public async Task<PagedResultDto<SanPhamDto>> LayTheoNhanHieuAsync(string maNhanHieu, int page, int pageSize)
@@ -351,6 +448,15 @@ public class SanPhamBUS : ISanPhamBUS
         };
 
         _db.SanPhams.Add(sp);
+        _db.SanPhamMauSacs.Add(new SanPhamMauSac
+        {
+            MaSp = maSp,
+            MaMau = "DEFAULT",
+            GiaNhap = dto.GiaNhap,
+            GiaBan = giaBan,
+            SoLuong = dto.SoLuong,
+            HinhAnh = dto.Anh
+        });
         await _db.SaveChangesAsync();
 
         return BusResult<CreatedSanPhamResult>.Created(new CreatedSanPhamResult(sp.MaSp, sp.TenSp, sp.GiaBan));

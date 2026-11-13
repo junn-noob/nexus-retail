@@ -145,8 +145,11 @@ namespace NexusRetail.WinForms.Forms
             decimal khuyenMai = numKhuyenMai.Value;
             decimal thanhTien = soLuong * donGia * (1m - (khuyenMai / 100m));
 
+            string defaultMaMau = sp.DanhSachMauSac?.FirstOrDefault()?.MaMau ?? "DEFAULT";
+            string defaultTenMau = sp.DanhSachMauSac?.FirstOrDefault()?.TenMau ?? "";
+
             // Kiểm tra xem sản phẩm đã có trong phiếu nhập chưa, nếu có thì cộng dồn
-            var existing = _cart.FirstOrDefault(x => x.MaSp == sp.MaSp);
+            var existing = _cart.FirstOrDefault(x => x.MaSp == sp.MaSp && (x.MaMau == defaultMaMau || string.IsNullOrEmpty(x.MaMau)));
             if (existing != null)
             {
                 existing.SoLuong += soLuong;
@@ -160,6 +163,8 @@ namespace NexusRetail.WinForms.Forms
                 {
                     MaSp = sp.MaSp,
                     TenSp = sp.TenSp,
+                    MaMau = defaultMaMau,
+                    TenMau = defaultTenMau,
                     SoLuong = soLuong,
                     DonGia = donGia,
                     KhuyenMai = khuyenMai,

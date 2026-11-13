@@ -127,7 +127,15 @@
                     {
                         <tr>
                             <td class="ps-4 fw-bold text-dark">@item.MaSp</td>
-                            <td class="fw-bold text-dark">@item.TenSp</td>
+                            <td class="fw-bold text-dark">
+                                @item.TenSp
+                                @if (!string.IsNullOrEmpty(item.TenMau))
+                                {
+                                    <span class="badge rounded-pill border text-dark fw-normal ms-1" style="font-size: 0.72rem; background-color: #f8f9fa;">
+                                        <span class="d-inline-block rounded-circle me-1 border" style="width: 8px; height: 8px; background-color: @(item.MaHex ?? "#ccc"); vertical-align: middle;"></span>@item.TenMau
+                                    </span>
+                                }
+                            </td>
                             <td class="text-end text-secondary">@item.DonGia.ToString("N0") ₫</td>
                             <td class="text-center fw-bold text-dark">@item.SoLuong</td>
                             <td class="text-center text-secondary">@(item.KhuyenMai > 0 ? $"{item.KhuyenMai}%" : "—")</td>

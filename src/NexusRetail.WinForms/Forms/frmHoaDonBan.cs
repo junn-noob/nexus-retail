@@ -147,77 +147,17 @@ namespace NexusRetail.WinForms.Forms
             if (dgvChiTiet.Columns["MaSp"] is { } colMa) colMa.HeaderText = "Mã SP";
             if (dgvChiTiet.Columns["TenSp"] is { } colTen) colTen.HeaderText = "Tên Sản Phẩm";
             if (dgvChiTiet.Columns["SoLuong"] is { } colSl) colSl.HeaderText = "Số Lượng";
-            if (dgvChiTiet.Columns["DonGia"] is { } colDg)
-            {
-                colDg.HeaderText = "Đơn Giá";
-                colDg.DefaultCellStyle.Format = "#,##0 ₫";
-            }
-            if (dgvChiTiet.Columns["KhuyenMai"] is { } colKm)
-            {
-                colKm.HeaderText = "Chiết Khấu";
-                colKm.DefaultCellStyle.Format = "0'%'";
-            }
-            if (dgvChiTiet.Columns["ThanhTien"] is { } colTt)
-            {
-                colTt.HeaderText = "Thành Tiền";
-                colTt.DefaultCellStyle.Format = "#,##0 ₫";
-            }
 
-            dgvChiTiet.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-        }
 
-        private async void LoadProductsAsync()
-        {
-            try
-            {
-                _products = await _catalogClient.GetProductsAsync();
-                if (IsDisposed || Disposing) return;
-                cboSanPham.DataSource = _products;
-                cboSanPham.DisplayMember = "TenSp";
-                cboSanPham.ValueMember = "MaSp";
-                cboSanPham.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                cboSanPham.AutoCompleteSource = AutoCompleteSource.ListItems;
 
-                if (_products.Count > 0)
-                {
-                    cboSanPham_SelectedIndexChanged(this, EventArgs.Empty);
-                }
-            }
-            catch { }
-        }
 
-        private void cboSanPham_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            if (cboSanPham.SelectedItem is SanPhamDto sp)
-            {
-                txtDonGia.Text = $"{sp.GiaBan:N0} ₫";
-                lblTonKho.Text = $"Tồn kho: {sp.SoLuong} máy";
-                lblTonKho.ForeColor = sp.SoLuong > 0 ? Color.FromArgb(16, 185, 129) : Color.Red;
-            }
-        }
 
-        private void btnThemMon_Click(object sender, EventArgs e)
-        {
-            if (cboSanPham.SelectedItem is not SanPhamDto sp) return;
 
-            int sl = (int)numSoLuong.Value;
-            decimal km = numKhuyenMai.Value;
 
-            if (sl <= 0)
-            {
-                MessageBox.Show("Số lượng mua phải lớn hơn 0!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
 
-            if (km < 0 || km > 100)
-            {
-                MessageBox.Show("Mức chiết khấu phải từ 0% đến 100%!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
 
-            if (sp.SoLuong <= 0)
-            {
-                MessageBox.Show($"Sản phẩm '{sp.TenSp}' hiện đã hết hàng trong kho!", "Hết hàng", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+
                 return;
             }
 

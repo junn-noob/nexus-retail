@@ -11,6 +11,10 @@ namespace NexusRetail.Shared.DTOs.NhapHang
 
         public string? TenSp { get; set; }
 
+        public string? MaMau { get; set; }
+
+        public string? TenMau { get; set; }
+
         [Required(ErrorMessage = "Số lượng nhập không được để trống!")]
         [Range(1, int.MaxValue, ErrorMessage = "Số lượng nhập phải lớn hơn 0!")]
         public int SoLuong { get; set; }

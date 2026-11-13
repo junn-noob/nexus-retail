@@ -142,6 +142,9 @@ namespace NexusRetail.WebMvc.Services.Orders
                         {
                             MaSp = ct.GetProperty("maSp").GetString() ?? "",
                             TenSp = ct.GetProperty("tenSp").GetString() ?? "",
+                            MaMau = ct.TryGetProperty("maMau", out var pMm) ? pMm.GetString() : null,
+                            TenMau = ct.TryGetProperty("tenMau", out var pTm) ? pTm.GetString() : null,
+                            MaHex = ct.TryGetProperty("maHex", out var pMh) ? pMh.GetString() : null,
                             SoLuong = ct.GetProperty("soLuong").GetInt32(),
                             DonGia = ct.GetProperty("donGia").GetDecimal(),
                             KhuyenMai = ct.GetProperty("khuyenMai").GetDecimal(),

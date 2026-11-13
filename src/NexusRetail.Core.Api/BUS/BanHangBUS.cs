@@ -107,19 +107,20 @@ public class BanHangBUS : IBanHangBUS
             return BusResult<HoaDonBanResponseDto>.BadRequest("Mức chiết khấu / khuyến mãi phải từ 0% đến 100%!");
         }
 
-        // Gộp các dòng trùng MaSP có cùng mức khuyến mãi để tránh lỗi khóa chính kép (MaHDB, MaSP)
+        // Gộp các dòng trùng (MaSP, MaMau) có cùng mức khuyến mãi để tránh lỗi khóa chính kép (MaHDB, MaSP, MaMau)
         var mergedItems = new List<ChiTietHdbDto>();
-        foreach (var group in dto.DanhSachMon.GroupBy(x => x.MaSp.Trim(), StringComparer.OrdinalIgnoreCase))
+        foreach (var group in dto.DanhSachMon.GroupBy(x => (MaSp: x.MaSp.Trim().ToUpperInvariant(), MaMau: string.IsNullOrWhiteSpace(x.MaMau) ? "DEFAULT" : x.MaMau.Trim().ToUpperInvariant())))
         {
             var first = group.First();
             if (group.Any(x => x.KhuyenMai != first.KhuyenMai))
             {
-                return BusResult<HoaDonBanResponseDto>.BadRequest($"Sản phẩm '{group.Key}' bị trùng dòng với mức chiết khấu khác nhau!");
+                return BusResult<HoaDonBanResponseDto>.BadRequest($"Sản phẩm '{first.MaSp}' màu '{first.MaMau}' bị trùng dòng với mức chiết khấu khác nhau!");
             }
 
             mergedItems.Add(new ChiTietHdbDto
             {
                 MaSp = first.MaSp.Trim(),
+                MaMau = string.IsNullOrWhiteSpace(first.MaMau) ? "DEFAULT" : first.MaMau.Trim(),
                 SoLuong = group.Sum(x => x.SoLuong),
                 KhuyenMai = first.KhuyenMai
             });
@@ -218,6 +219,28 @@ public class BanHangBUS : IBanHangBUS
                     return BusResult<HoaDonBanResponseDto>.BadRequest($"Không tìm thấy sản phẩm có mã {item.MaSp}");
                 }
 
+                // Kiểm tra biến thể màu sắc
+                string maMau = string.IsNullOrWhiteSpace(item.MaMau) ? "DEFAULT" : item.MaMau.Trim();
+                var spMau = await _db.SanPhamMauSacs
+                    .Include(sm => sm.MaMauNavigation)
+                    .FirstOrDefaultAsync(x => x.MaSp == item.MaSp && x.MaMau == maMau);
+
+                if (spMau == null && maMau != "DEFAULT")
+                {
+                    await tx.RollbackAsync();
+                    return BusResult<HoaDonBanResponseDto>.BadRequest($"Không tìm thấy màu '{maMau}' của sản phẩm '{sp.TenSp}'!");
+                }
+
+                decimal donGia = spMau?.GiaBan ?? sp.GiaBan;
+                string tenMau = spMau?.MaMauNavigation?.TenMau ?? "Tiêu chuẩn";
+                string? maHex = spMau?.MaMauNavigation?.MaHex;
+
+                if (spMau != null && spMau.SoLuong < item.SoLuong)
+                {
+                    await tx.RollbackAsync();
+                    return BusResult<HoaDonBanResponseDto>.BadRequest($"Sản phẩm '{sp.TenSp}' màu '{tenMau}' chỉ còn {spMau.SoLuong} chiếc trong kho, không đủ để bán!");
+                }
+
                 if (sp.SoLuong < item.SoLuong)
                 {
                     await tx.RollbackAsync();
@@ -227,16 +250,18 @@ public class BanHangBUS : IBanHangBUS
                 // InMemory database does not execute SQL Server trigger trg_ChiTietHDB_Change.
                 if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
                 {
+                    if (spMau != null) spMau.SoLuong -= item.SoLuong;
                     sp.SoLuong -= item.SoLuong;
                 }
 
-                var thanhTien = Math.Round(item.SoLuong * sp.GiaBan * (1m - (item.KhuyenMai / 100m)), 0);
+                var thanhTien = Math.Round(item.SoLuong * donGia * (1m - (item.KhuyenMai / 100m)), 0);
                 var chiTietHdb = new ChiTietHdb
                 {
                     MaHdb = maHdb,
                     MaSp = sp.MaSp,
+                    MaMau = maMau,
                     SoLuong = item.SoLuong,
-                    DonGia = sp.GiaBan,
+                    DonGia = donGia,
                     KhuyenMai = item.KhuyenMai,
                     ThanhTien = thanhTien
                 };
@@ -247,8 +272,11 @@ public class BanHangBUS : IBanHangBUS
                 {
                     MaSp = sp.MaSp,
                     TenSp = sp.TenSp,
+                    MaMau = maMau,
+                    TenMau = tenMau,
+                    MaHex = maHex,
                     SoLuong = item.SoLuong,
-                    DonGia = sp.GiaBan,
+                    DonGia = donGia,
                     KhuyenMai = item.KhuyenMai,
                     ThanhTien = thanhTien
                 });

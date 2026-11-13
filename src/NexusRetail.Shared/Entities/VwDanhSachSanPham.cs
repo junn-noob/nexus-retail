@@ -36,4 +36,8 @@ public partial class VwDanhSachSanPham
     public string? Anh { get; set; }
 
     public string? GhiChu { get; set; }
+
+    public decimal? GiaBanThapNhat { get; set; }
+
+    public decimal? GiaBanCaoNhat { get; set; }
 }

@@ -1,5 +1,11 @@
 @using NexusRetail.Shared.DTOs.SanPham
 @model SanPhamDto
+@{
+    var firstVariant = Model.DanhSachMauSac?.FirstOrDefault();
+    decimal displayGiaBan = firstVariant?.GiaBan ?? Model.GiaBan;
+    int displaySoLuong = firstVariant?.SoLuong ?? Model.SoLuong;
+    string? displayAnh = !string.IsNullOrWhiteSpace(firstVariant?.HinhAnh) ? firstVariant.HinhAnh : Model.Anh;
+}
 
 <div class="modal-header border-bottom py-3 px-4">
     <div class="d-flex align-items-center gap-2">
@@ -42,7 +48,8 @@
                 <!-- Image -->
                 <div class="col-md-5">
                     <div class="dm-modal-img-box">
-                        <img src="/images/products/@(string.IsNullOrWhiteSpace(Model.Anh) ? "iphone_16_plus_black_37a9bceca0.png" : Model.Anh)"
+                        <img id="modalProductImg"
+                             src="/images/products/@(string.IsNullOrWhiteSpace(displayAnh) ? "iphone_16_plus_black_37a9bceca0.png" : displayAnh)"
                              alt="@Model.TenSp"
                              onerror="this.onerror=null;this.src='/images/products/iphone_16_plus_black_37a9bceca0.png';" />
                     </div>
@@ -56,20 +63,57 @@
                     <h2 class="fw-bolder text-dark mb-2">@Model.TenSp</h2>
                     
                     <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3 mb-3">
-                        <div class="fs-2 fw-bolder text-danger text-nowrap">@Model.GiaBan.ToString("N0") ₫</div>
-                        @if (Model.SoLuong > 0)
+                        <div id="modalProductPrice" class="fs-2 fw-bolder text-danger text-nowrap">@displayGiaBan.ToString("N0") ₫</div>
+                        @if (displaySoLuong > 0)
                         {
-                            <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">
-                                <i class="bi bi-check-circle-fill me-1"></i> Sẵn hàng (Còn @Model.SoLuong máy)
+                            <span id="modalStockBadge" class="badge bg-success-subtle text-success fw-bold px-2 py-1">
+                                <i class="bi bi-check-circle-fill me-1"></i> Sẵn hàng (Còn @displaySoLuong máy)
                             </span>
                         }
                         else
                         {
-                            <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-1">
+                            <span id="modalStockBadge" class="badge bg-danger-subtle text-danger fw-bold px-2 py-1">
                                 <i class="bi bi-x-circle-fill me-1"></i> Tạm hết hàng
                             </span>
                         }
                     </div>
+
+                    @if (Model.DanhSachMauSac != null && Model.DanhSachMauSac.Any())
+                    {
+                        <div class="mb-3 p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-secondary text-uppercase">
+                                    Màu sắc: <span id="modalSelectedColorName" class="text-primary fw-bold">@firstVariant!.TenMau</span>
+                                </span>
+                                <span class="small text-muted" id="modalColorStockHint">
+                                    (Kho: @displaySoLuong máy)
+                                </span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2" id="modalColorList">
+                                @for (int i = 0; i < Model.DanhSachMauSac.Count; i++)
+                                {
+                                    var c = Model.DanhSachMauSac[i];
+                                    var isSelected = i == 0;
+                                    <button type="button"
+                                            class="btn btn-sm text-start dm-color-btn @(isSelected ? "btn-outline-primary active shadow-sm" : "btn-outline-secondary") d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                                            data-mamau="@c.MaMau"
+                                            data-tenmau="@c.TenMau"
+                                            data-giaban="@c.GiaBan"
+                                            data-giaban-fmt="@c.GiaBan.ToString("N0") ₫"
+                                            data-soluong="@c.SoLuong"
+                                            data-anh="@(string.IsNullOrWhiteSpace(c.HinhAnh) ? Model.Anh : c.HinhAnh)"
+                                            onclick="onModalColorChange(this)">
+                                        <span class="rounded-circle d-inline-block border" style="width: 16px; height: 16px; background-color: @(c.MaHex ?? "#6B7280");"></span>
+                                        <div class="d-flex flex-column lh-1">
+                                            <span class="fw-bold">@c.TenMau</span>
+                                            <span class="small text-muted mt-1">@c.GiaBan.ToString("N0") ₫</span>
+                                        </div>
+                                    </button>
+                                }
+                            </div>
+                            <input type="hidden" id="modalSelectedMaMau" value="@firstVariant!.MaMau" />
+                        </div>
+                    }
 
                     <!-- Highlight pills -->
                     <div class="d-flex flex-wrap gap-2 mb-3">
@@ -231,3 +275,52 @@
 <div class="modal-footer border-top py-2 px-4 bg-light">
     <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Đóng</button>
 </div>
+
+<script>
+function onModalColorChange(btn) {
+    if (!btn) return;
+    const parent = btn.closest('#modalColorList');
+    if (parent) {
+        parent.querySelectorAll('.dm-color-btn').forEach(b => {
+            b.classList.remove('btn-outline-primary', 'active', 'shadow-sm');
+            b.classList.add('btn-outline-secondary');
+        });
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-outline-primary', 'active', 'shadow-sm');
+    }
+
+    const maMau = btn.getAttribute('data-mamau');
+    const tenMau = btn.getAttribute('data-tenmau');
+    const giaBanFmt = btn.getAttribute('data-giaban-fmt');
+    const soLuong = parseInt(btn.getAttribute('data-soluong') || '0', 10);
+    const anh = btn.getAttribute('data-anh');
+
+    const input = document.getElementById('modalSelectedMaMau');
+    if (input) input.value = maMau;
+
+    const lblName = document.getElementById('modalSelectedColorName');
+    if (lblName) lblName.textContent = tenMau;
+
+    const lblHint = document.getElementById('modalColorStockHint');
+    if (lblHint) lblHint.textContent = `(Kho: ${soLuong} máy)`;
+
+    const priceEl = document.getElementById('modalProductPrice');
+    if (priceEl && giaBanFmt) priceEl.textContent = giaBanFmt;
+
+    const badgeEl = document.getElementById('modalStockBadge');
+    if (badgeEl) {
+        if (soLuong > 0) {
+            badgeEl.className = 'badge bg-success-subtle text-success fw-bold px-2 py-1';
+            badgeEl.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Sẵn hàng (Còn ${soLuong} máy)`;
+        } else {
+            badgeEl.className = 'badge bg-danger-subtle text-danger fw-bold px-2 py-1';
+            badgeEl.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> Tạm hết hàng`;
+        }
+    }
+
+    const imgEl = document.getElementById('modalProductImg');
+    if (imgEl && anh) {
+        imgEl.src = `/images/products/${anh}`;
+    }
+}
+</script>

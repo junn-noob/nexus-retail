@@ -28,6 +28,8 @@ public partial class RetailDbContext : DbContext
 
     public virtual DbSet<ManHinh> ManHinhs { get; set; }
 
+    public virtual DbSet<MauSac> MauSacs { get; set; }
+
     public virtual DbSet<NhaCungCap> NhaCungCaps { get; set; }
 
     public virtual DbSet<NhanHieu> NhanHieus { get; set; }
@@ -37,6 +39,8 @@ public partial class RetailDbContext : DbContext
     public virtual DbSet<Que> Ques { get; set; }
 
     public virtual DbSet<SanPham> SanPhams { get; set; }
+
+    public virtual DbSet<SanPhamMauSac> SanPhamMauSacs { get; set; }
 
     public virtual DbSet<VwChiTietHoaDonBan> VwChiTietHoaDonBans { get; set; }
 
@@ -68,7 +72,7 @@ public partial class RetailDbContext : DbContext
 
         modelBuilder.Entity<ChiTietHdb>(entity =>
         {
-            entity.HasKey(e => new { e.MaHdb, e.MaSp });
+            entity.HasKey(e => new { e.MaHdb, e.MaSp, e.MaMau });
 
             entity.ToTable("ChiTietHDB", tb => tb.HasTrigger("trg_ChiTietHDB_Change"));
 
@@ -78,6 +82,10 @@ public partial class RetailDbContext : DbContext
             entity.Property(e => e.MaSp)
                 .HasMaxLength(20)
                 .HasColumnName("MaSP");
+            entity.Property(e => e.MaMau)
+                .HasMaxLength(20)
+                .HasDefaultValue("DEFAULT")
+                .HasColumnName("MaMau");
             entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.KhuyenMai).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ThanhTien).HasColumnType("decimal(18, 2)");
@@ -90,11 +98,16 @@ public partial class RetailDbContext : DbContext
                 .HasForeignKey(d => d.MaSp)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ChiTietHDB_SanPham");
+
+            entity.HasOne(d => d.MaMauNavigation).WithMany(p => p.ChiTietHdbs)
+                .HasForeignKey(d => d.MaMau)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ChiTietHDB_MauSac");
         });
 
         modelBuilder.Entity<ChiTietHdn>(entity =>
         {
-            entity.HasKey(e => new { e.MaHdn, e.MaSp });
+            entity.HasKey(e => new { e.MaHdn, e.MaSp, e.MaMau });
 
             entity.ToTable("ChiTietHDN", tb => tb.HasTrigger("trg_ChiTietHDN_Change"));
 
@@ -104,7 +117,10 @@ public partial class RetailDbContext : DbContext
             entity.Property(e => e.MaSp)
                 .HasMaxLength(20)
                 .HasColumnName("MaSP");
-            entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MaMau)
+                .HasMaxLength(20)
+                .HasDefaultValue("DEFAULT")
+                .HasColumnName("MaMau");
             entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.KhuyenMai).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ThanhTien).HasColumnType("decimal(18, 2)");
@@ -117,6 +133,11 @@ public partial class RetailDbContext : DbContext
                 .HasForeignKey(d => d.MaSp)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ChiTietHDN_SanPham");
+
+            entity.HasOne(d => d.MaMauNavigation).WithMany(p => p.ChiTietHdns)
+                .HasForeignKey(d => d.MaMau)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ChiTietHDN_MauSac");
         });
 
         modelBuilder.Entity<HoaDonBan>(entity =>
@@ -322,6 +343,40 @@ public partial class RetailDbContext : DbContext
                 .HasConstraintName("FK_SanPham_NhanHieu");
         });
 
+        modelBuilder.Entity<MauSac>(entity =>
+        {
+            entity.HasKey(e => e.MaMau);
+
+            entity.ToTable("MauSac");
+
+            entity.Property(e => e.MaMau).HasMaxLength(20);
+            entity.Property(e => e.TenMau).HasMaxLength(50);
+            entity.Property(e => e.MaHex).HasMaxLength(10);
+        });
+
+        modelBuilder.Entity<SanPhamMauSac>(entity =>
+        {
+            entity.HasKey(e => new { e.MaSp, e.MaMau });
+
+            entity.ToTable("SanPham_MauSac");
+
+            entity.Property(e => e.MaSp)
+                .HasMaxLength(20)
+                .HasColumnName("MaSP");
+            entity.Property(e => e.MaMau).HasMaxLength(20);
+            entity.Property(e => e.GiaBan).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GiaNhap).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.HinhAnh).HasMaxLength(250);
+
+            entity.HasOne(d => d.MaSpNavigation).WithMany(p => p.SanPhamMauSacs)
+                .HasForeignKey(d => d.MaSp)
+                .HasConstraintName("FK_SanPham_MauSac_SanPham");
+
+            entity.HasOne(d => d.MaMauNavigation).WithMany(p => p.SanPhamMauSacs)
+                .HasForeignKey(d => d.MaMau)
+                .HasConstraintName("FK_SanPham_MauSac_MauSac");
+        });
+
         modelBuilder.Entity<VwChiTietHoaDonBan>(entity =>
         {
             entity
@@ -340,6 +395,9 @@ public partial class RetailDbContext : DbContext
             entity.Property(e => e.MaSp)
                 .HasMaxLength(20)
                 .HasColumnName("MaSP");
+            entity.Property(e => e.MaMau).HasMaxLength(20);
+            entity.Property(e => e.TenMau).HasMaxLength(50);
+            entity.Property(e => e.MaHex).HasMaxLength(10);
             entity.Property(e => e.NgayBan).HasColumnType("datetime");
             entity.Property(e => e.SdtKhach)
                 .HasMaxLength(20)
@@ -371,6 +429,8 @@ public partial class RetailDbContext : DbContext
             entity.Property(e => e.ChupAnh).HasMaxLength(200);
             entity.Property(e => e.GiaBan).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.GiaNhap).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GiaBanThapNhat).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GiaBanCaoNhat).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.MaLoai).HasMaxLength(20);
             entity.Property(e => e.MaManHinh).HasMaxLength(20);
             entity.Property(e => e.MaNhanHieu).HasMaxLength(20);

@@ -93,6 +93,9 @@ namespace NexusRetail.WebMvc.Models
     {
         public string MaSp { get; set; } = string.Empty;
         public string TenSp { get; set; } = string.Empty;
+        public string? MaMau { get; set; }
+        public string? TenMau { get; set; }
+        public string? MaHex { get; set; }
         public int SoLuong { get; set; }
         public decimal DonGia { get; set; }
         public decimal KhuyenMai { get; set; }

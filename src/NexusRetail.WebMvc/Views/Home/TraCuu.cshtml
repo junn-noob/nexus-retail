@@ -104,8 +104,18 @@
 
                                     <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
                                         <div>
+                                            @{
+                                                var tenMau = item.TryGetProperty("tenMau", out var tmProp) ? tmProp.GetString() : null;
+                                                var maHex = item.TryGetProperty("maHex", out var mhProp) ? mhProp.GetString() : "#ccc";
+                                            }
                                             <div class="fw-bold text-dark mb-1 d-flex align-items-center flex-wrap gap-2">
                                                 <span><i class="bi bi-phone text-primary me-1"></i> @tenSp</span>
+                                                @if (!string.IsNullOrEmpty(tenMau))
+                                                {
+                                                    <span class="badge rounded-pill border text-dark fw-normal" style="font-size: 0.72rem; background-color: #fff;">
+                                                        <span class="d-inline-block rounded-circle me-1 border" style="width: 8px; height: 8px; background-color: @(maHex ?? "#ccc"); vertical-align: middle;"></span>@tenMau
+                                                    </span>
+                                                }
                                                 <span class="badge bg-white text-dark border px-2 py-1 small fw-semibold">
                                                     Số lượng: @soLuong
                                                 </span>

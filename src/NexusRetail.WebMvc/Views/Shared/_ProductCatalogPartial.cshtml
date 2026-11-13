@@ -56,10 +56,34 @@
                         </span>
                     </div>
 
-                    <div class="d-flex align-items-baseline gap-2 mb-2">
-                        <div class="dm-product-price">@p.GiaBan.ToString("N0") ₫</div>
+                    <div class="d-flex align-items-baseline gap-2 mb-1">
+                        @if (p.DanhSachMauSac != null && p.DanhSachMauSac.Count > 1 && p.GiaBanThapNhat.HasValue && p.GiaBanCaoNhat.HasValue && p.GiaBanThapNhat < p.GiaBanCaoNhat)
+                        {
+                            <div class="dm-product-price text-danger">Từ @p.GiaBanThapNhat.Value.ToString("N0") ₫</div>
+                        }
+                        else
+                        {
+                            <div class="dm-product-price">@p.GiaBan.ToString("N0") ₫</div>
+                        }
                         <span class="text-secondary text-decoration-line-through small">@((p.GiaBan * 1.12m).ToString("N0")) ₫</span>
                     </div>
+
+                    @if (p.DanhSachMauSac != null && p.DanhSachMauSac.Any())
+                    {
+                        <div class="d-flex align-items-center gap-1 mb-2">
+                            <span class="text-muted" style="font-size: 11px;">Màu:</span>
+                            @foreach (var c in p.DanhSachMauSac.Take(4))
+                            {
+                                <span class="rounded-circle d-inline-block border shadow-sm"
+                                      title="@c.TenMau: @c.GiaBan.ToString("N0") ₫"
+                                      style="width: 13px; height: 13px; background-color: @(c.MaHex ?? "#6B7280");"></span>
+                            }
+                            @if (p.DanhSachMauSac.Count > 4)
+                            {
+                                <span class="text-muted" style="font-size: 10px;">+@(p.DanhSachMauSac.Count - 4)</span>
+                            }
+                        </div>
+                    }
 
                     <div class="dm-card-actions">
                         <button type="button" class="dm-btn-quickview" onclick="openProduct('@p.MaSp')">

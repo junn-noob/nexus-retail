@@ -37,5 +37,11 @@ namespace NexusRetail.Shared.DTOs.SanPham
         public string? Anh { get; set; }
 
         public string? GhiChu { get; set; }
+
+        public decimal? GiaBanThapNhat { get; set; }
+
+        public decimal? GiaBanCaoNhat { get; set; }
+
+        public List<SanPhamMauSacDto> DanhSachMauSac { get; set; } = new();
     }
 }
